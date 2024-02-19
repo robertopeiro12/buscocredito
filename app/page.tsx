@@ -1,51 +1,114 @@
-import { Link } from "@nextui-org/link";
-import { Snippet } from "@nextui-org/snippet";
-import { Code } from "@nextui-org/code"
-import { button as buttonStyles } from "@nextui-org/theme";
-import { siteConfig } from "@/config/site";
-import { title, subtitle } from "@/components/primitives";
-import { GithubIcon } from "@/components/icons";
+"use client"
+
+import Introduction from "@/components/Introduction";
+import Acerca from "@/components/Acerca";
+import Footer from "@/components/Footer";
+
+import React from "react";
+import {Navbar, NavbarBrand, NavbarContent, NavbarItem, Link, Button, DropdownItem,NavbarMenuToggle,NavbarMenuItem,NavbarMenu,DropdownTrigger, Dropdown, DropdownMenu, Image} from "@nextui-org/react";
+
 
 export default function Home() {
+
+
+	const [isMenuOpen, setIsMenuOpen] = React.useState(false);
+
+	const menuItems = [
+	  "Profile",
+	  "Dashboard",
+	  "Activity",
+	  "Analytics",
+	  "System",
+	  "Deployments",
+	  "My Settings",
+	  "Team Settings",
+	  "Help & Feedback",
+	  "Log Out",
+	];
+
+
 	return (
-		<section className="flex flex-col items-center justify-center gap-4 py-8 md:py-10">
-			<div className="inline-block max-w-lg text-center justify-center">
-				<h1 className={title()}>Make&nbsp;</h1>
-				<h1 className={title({ color: "violet" })}>beautiful&nbsp;</h1>
-				<br />
-				<h1 className={title()}>
-					websites regardless of your design experience.
-				</h1>
-				<h2 className={subtitle({ class: "mt-4" })}>
-					Beautiful, fast and modern React UI library.
-				</h2>
-			</div>
+		<main className="min-h-screen">
+		{/* <NavBar></NavBar>  */}
+		<Navbar onMenuOpenChange={setIsMenuOpen}>
+      <NavbarContent>
+        <NavbarMenuToggle
+          aria-label={isMenuOpen ? "Close menu" : "Open menu"}
+          className="sm:hidden"
+        />
+        <NavbarBrand>
+		<Image
+		src="img/logo.png"
+		width={100}
+		height={100}
+		/>
+          <p className="font-bold">BuscoCredito</p>
+        </NavbarBrand>
+      </NavbarContent>
 
-			<div className="flex gap-3">
-				<Link
-					isExternal
-					href={siteConfig.links.docs}
-					className={buttonStyles({ color: "primary", radius: "full", variant: "shadow" })}
-				>
-					Documentation
-				</Link>
-				<Link
-					isExternal
-					className={buttonStyles({ variant: "bordered", radius: "full" })}
-					href={siteConfig.links.github}
-				>
-					<GithubIcon size={20} />
-					GitHub
-				</Link>
-			</div>
+      <NavbarContent className="hidden sm:flex gap-4" justify="center">
+        <NavbarItem>
+          <Link color="foreground" href="#" className="text-md">
+           Acerca de
+          </Link>
+        </NavbarItem>
+		<NavbarItem>
+          <Link color="foreground" href="#">
+          ¿Eres prestamista?
+          </Link>
+        </NavbarItem>
+		<Dropdown>
+          <NavbarItem>
+            <DropdownTrigger>
+              <Button
+                disableRipple
+                className="p-0 bg-transparent data-[hover=true]:bg-transparent text-md"
+                radius="sm"
+                variant="light"
+              >
+                 ¿Necesitas un prestamo?
+              </Button>
+            </DropdownTrigger>
+          </NavbarItem>
+          <DropdownMenu
+            aria-label="prestamo"
+            className="w-[200px] "
+            itemClasses={{
+              base: "gap-4",
+            }}
+          >
+            <DropdownItem className="items-center flex justify-center gap-3 w-full">
+            <div className="flex items-center justify-center">
+            <Link href="#" className="mr-5">Login</Link>
+            <Button as={Link} color="primary" href="#" variant="flat">
+            Sign Up
+          </Button>
+          </div>
+            </DropdownItem>
+			</DropdownMenu>
+        </Dropdown>
+      </NavbarContent>
 
-			<div className="mt-8">
-				<Snippet hideSymbol hideCopyButton variant="flat">
-					<span>
-						Get started by editing <Code color="primary">app/page.tsx</Code>
-					</span>
-				</Snippet>
-			</div>
-		</section>
+      <NavbarMenu>
+        {menuItems.map((item, index) => (
+          <NavbarMenuItem key={`${item}-${index}`}>
+            <Link
+              color={
+                index === 2 ? "primary" : index === menuItems.length - 1 ? "danger" : "foreground"
+              }
+              className="w-full"
+              href="#"
+              size="lg"
+            >
+              {item}
+            </Link>
+          </NavbarMenuItem>
+        ))}
+      </NavbarMenu>
+    </Navbar>	
+	<Introduction></Introduction>
+    <Acerca></Acerca>
+    <Footer></Footer>
+		</main>
 	);
 }

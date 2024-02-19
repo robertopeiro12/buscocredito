@@ -9,7 +9,12 @@ module.exports = {
     './node_modules/@nextui-org/theme/dist/**/*.{js,ts,jsx,tsx}'
   ],
   theme: {
-    extend: {},
+    extend: {
+      screens:{
+        'widescreen': { 'raw': '(min-aspect-ratio: 3/2)' },
+        'tallscreen': { 'raw': '(max-aspect-ratio: 13/20)' },
+        },
+    },
   },
   darkMode: "class",
   plugins: [nextui()],

@@ -1,144 +1,75 @@
-import {
-	Navbar as NextUINavbar,
-	NavbarContent,
-	NavbarMenu,
-	NavbarMenuToggle,
-	NavbarBrand,
-	NavbarItem,
-	NavbarMenuItem,
-} from "@nextui-org/navbar";
-import { Button } from "@nextui-org/button";
-import { Kbd } from "@nextui-org/kbd";
-import { Link } from "@nextui-org/link";
-import { Input } from "@nextui-org/input";
+"use client";
+import Image from 'next/image';
+import 'animate.css';
+import Link from 'next/link';
+import React, { useState } from 'react';
 
-import { link as linkStyles } from "@nextui-org/theme";
 
-import { siteConfig } from "@/config/site";
-import NextLink from "next/link";
-import clsx from "clsx";
+const NavBar = () => {
+    const [sidebar, setSidebar] = useState(false);
+    const [active_show_sidebar, setIsActive] = useState(false);
+    const change_sidebar_state=()=>{
+        setIsActive(true);
+        setSidebar(!sidebar);
 
-import { ThemeSwitch } from "@/components/theme-switch";
-import {
-	TwitterIcon,
-	GithubIcon,
-	DiscordIcon,
-	HeartFilledIcon,
-	SearchIcon,
-} from "@/components/icons";
+    }
+    
+  return (
+    <header className='bg-white sticky top-0 z-10'>
+        <section className='flex justify-between items-center mx-auto max-w-7xl px-4 py-3'>
+            <a href='#home' className='flex items-center'>
+                <Image
+                width={842}
+                height={485}
+                src={'/img/logo.png'}
+                alt="Logo"
+                className='w-24'
+                />
+                <h1 className=' mx-auto px-2 text-2xl'> BuscoCredito</h1>
+            </a>
+            <button onClick={change_sidebar_state}
+      id="hamburger-button"
+      className="text-4xl lg:hidden focus:outline-none cursor-pointer px-4">
+      &#9776;
+    </button>
+    <nav className="hidden lg:block space-x-8 text-lg " aria-label="main">
+      <a href="#acerca" className="hover:opacity-90">Acerca de </a>
+      <a href="#prestamo" className="hover:opacity-90">¿Necesitas un prestamo?</a>
+      <a href="#prestamista" className="hover:opacity-90">¿Eres prestamista?</a>
+      <a href="#funcionalidad" className="hover:opacity-90">¿Como funciona?</a>
+      
+    </nav>
+    <Link href="/sign-up">
+    <button className='hover:bg-green-700 hover:text-white transition ease-out duration-300 active:bg-slate-500 hidden lg:block border-2 border-green-500 rounded-full py-2 px-6'>
+      Cuenta
+    </button>
+    </Link>
+        </section>
+        <section >
+        <div className={`fixed w-full h-full bg-black opacity-45 z-10 ${sidebar==true?'block':'hidden'}`} onClick={change_sidebar_state} ></div>
+        <section id="sidebar-check" className={`fixed right-0 top-[79.3px] bottom-0 text-black bg-white z-50  text-3xl animate__animated ${sidebar==true?'animate__fadeInRight ':'animate__fadeOutRight  '}${active_show_sidebar==true?' block':'hidden'} animate__faster"`}>
 
-import { Logo } from "@/components/icons";
+        <nav className="flex flex-col justify-center items-center mt-6 px-2">
+        <a href="#acerca" onClick={change_sidebar_state} className="px-3 py-6">Acerca de</a>
+        <hr className="bg-gradient-to-l from-slate-200 w-full h-0.5"/>
+        <a href="#prestamo" onClick={change_sidebar_state} className="px-3 py-6">Necesitas un prestamo</a>
+        <hr className="bg-gradient-to-l from-slate-200 w-full h-0.5"/>
+        <a href="#prestamista" onClick={change_sidebar_state} className="px-3 py-6">¿Eres prestamista?</a>
+        <hr className="bg-gradient-to-l from-slate-200 w-full h-0.5"/>
+        <a href="#funcionalidad" onClick={change_sidebar_state} className="px-3 py-6">¿Como funciona?</a>
+        <hr className="bg-gradient-to-l from-slate-200 w-full h-0.5"/>
+          </nav>
+          <div className="flex justify-center items-center w-full mt-10">
+          <button onClick={change_sidebar_state} className='active:bg-slate-500 transition ease-out duration-150  border-2 border-green-500 rounded-full py-2 px-5 text-2xl'>
+      ACCOUNT
+    </button>
+            </div>
+        </section>
+        </section>
+    </header>
 
-export const Navbar = () => {
-	const searchInput = (
-		<Input
-			aria-label="Search"
-			classNames={{
-				inputWrapper: "bg-default-100",
-				input: "text-sm",
-			}}
-			endContent={
-				<Kbd className="hidden lg:inline-block" keys={["command"]}>
-					K
-				</Kbd>
-			}
-			labelPlacement="outside"
-			placeholder="Search..."
-			startContent={
-				<SearchIcon className="text-base text-default-400 pointer-events-none flex-shrink-0" />
-			}
-			type="search"
-		/>
-	);
 
-	return (
-		<NextUINavbar maxWidth="xl" position="sticky">
-			<NavbarContent className="basis-1/5 sm:basis-full" justify="start">
-				<NavbarBrand as="li" className="gap-3 max-w-fit">
-					<NextLink className="flex justify-start items-center gap-1" href="/">
-						<Logo />
-						<p className="font-bold text-inherit">ACME</p>
-					</NextLink>
-				</NavbarBrand>
-				<ul className="hidden lg:flex gap-4 justify-start ml-2">
-					{siteConfig.navItems.map((item) => (
-						<NavbarItem key={item.href}>
-							<NextLink
-								className={clsx(
-									linkStyles({ color: "foreground" }),
-									"data-[active=true]:text-primary data-[active=true]:font-medium"
-								)}
-								color="foreground"
-								href={item.href}
-							>
-								{item.label}
-							</NextLink>
-						</NavbarItem>
-					))}
-				</ul>
-			</NavbarContent>
+  )
+}
 
-			<NavbarContent
-				className="hidden sm:flex basis-1/5 sm:basis-full"
-				justify="end"
-			>
-				<NavbarItem className="hidden sm:flex gap-2">
-					<Link isExternal href={siteConfig.links.twitter} aria-label="Twitter">
-						<TwitterIcon className="text-default-500" />
-					</Link>
-					<Link isExternal href={siteConfig.links.discord} aria-label="Discord">
-						<DiscordIcon className="text-default-500" />
-					</Link>
-					<Link isExternal href={siteConfig.links.github} aria-label="Github">
-						<GithubIcon className="text-default-500" />
-					</Link>
-					<ThemeSwitch />
-				</NavbarItem>
-				<NavbarItem className="hidden lg:flex">{searchInput}</NavbarItem>
-				<NavbarItem className="hidden md:flex">
-					<Button
-            isExternal
-						as={Link}
-						className="text-sm font-normal text-default-600 bg-default-100"
-						href={siteConfig.links.sponsor}
-						startContent={<HeartFilledIcon className="text-danger" />}
-						variant="flat"
-					>
-						Sponsor
-					</Button>
-				</NavbarItem>
-			</NavbarContent>
-
-			<NavbarContent className="sm:hidden basis-1 pl-4" justify="end">
-				<Link isExternal href={siteConfig.links.github} aria-label="Github">
-					<GithubIcon className="text-default-500" />
-				</Link>
-				<ThemeSwitch />
-				<NavbarMenuToggle />
-			</NavbarContent>
-
-			<NavbarMenu>
-				{searchInput}
-				<div className="mx-4 mt-2 flex flex-col gap-2">
-					{siteConfig.navMenuItems.map((item, index) => (
-						<NavbarMenuItem key={`${item}-${index}`}>
-							<Link
-								color={
-									index === 2
-										? "primary"
-										: index === siteConfig.navMenuItems.length - 1
-										? "danger"
-										: "foreground"
-								}
-								href="#"
-								size="lg"
-							>
-								{item.label}
-							</Link>
-						</NavbarMenuItem>
-					))}
-				</div>
-			</NavbarMenu>
-		</NextUINavbar>
-	);
-};
+export default NavBar
