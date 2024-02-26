@@ -7,7 +7,6 @@ import Footer from "@/components/Footer";
 import React from "react";
 import {Navbar, NavbarBrand, NavbarContent, NavbarItem, Link, Button, DropdownItem,NavbarMenuToggle,NavbarMenuItem,NavbarMenu,DropdownTrigger, Dropdown, DropdownMenu, Image} from "@nextui-org/react";
 
-
 export default function Home() {
 
 
@@ -80,7 +79,7 @@ export default function Home() {
             <DropdownItem className="items-center flex justify-center gap-3 w-full">
             <div className="flex items-center justify-center">
             <Link href="#" className="mr-5">Login</Link>
-            <Button as={Link} color="primary" href="#" variant="flat">
+            <Button as={Link} color="primary" href="/docs" variant="flat">
             Sign Up
           </Button>
           </div>
