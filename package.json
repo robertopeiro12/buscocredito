@@ -9,6 +9,10 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@emotion/react": "^11.11.4",
+    "@emotion/styled": "^11.11.0",
+    "@mui/material": "^5.15.13",
+    "@mui/x-date-pickers": "^6.19.7",
     "@nextui-org/button": "2.0.26",
     "@nextui-org/code": "2.0.24",
     "@nextui-org/input": "2.1.16",
@@ -28,6 +32,7 @@
     "animate.css": "^4.1.1",
     "autoprefixer": "10.4.16",
     "clsx": "^2.0.0",
+    "dayjs": "^1.11.10",
     "eslint": "8.48.0",
     "eslint-config-next": "14.0.2",
     "firebase": "^10.8.0",

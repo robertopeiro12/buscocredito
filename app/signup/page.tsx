@@ -5,6 +5,10 @@ import { auth } from '../firebase';
 import {signInWithEmailAndPassword, signOut, onAuthStateChanged, setPersistence, createUserWithEmailAndPassword} from "firebase/auth";
 import React, { useEffect } from 'react';
 import { doc, getFirestore, setDoc,Timestamp } from "firebase/firestore"; 
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import dayjs, { Dayjs } from 'dayjs';
 // Add a new document in collection "cities"
 
 
@@ -13,7 +17,7 @@ export default function LoginPage() {
     const [last_name, setLastName] = React.useState("");
     const [second_last_name, setSecondLastName] = React.useState("");
     const [rfc, setRfc] = React.useState("");
-    const [birthday, setBirthday] = React.useState(new Date());
+    const [birthday, setBirthday] = React.useState<Dayjs | null>(dayjs('2022-04-17'));
     const [phone, setPhone] = React.useState("");
     const [address, setAddress] = React.useState<{street:string; number:string; colony:string; city:string; state:string; country:string; zip_code:string}>({
         street: "",
@@ -73,12 +77,13 @@ export default function LoginPage() {
         const db = getFirestore();
       const cityRef = doc(db, "cuentas",user);
       console.log(cityRef)
+      console.log("birthday", Timestamp.fromDate(birthday!.toDate()));
       setDoc(cityRef, {
        name: name,
         last_name: last_name,
         second_last_name: second_last_name,
         rfc: rfc,
-        birthday: Timestamp.fromDate(birthday),
+        birthday: Timestamp.fromDate(birthday!.toDate()),
         phone: phone,
         address: address,
         email: email
@@ -116,6 +121,9 @@ export default function LoginPage() {
       <Input type="text" label="Second Last Name" onValueChange={setSecondLastName} />
       <Input type="text" label="Rfc" onValueChange={setRfc} />
       <Input type="text" label="Phone" onValueChange={setPhone} />
+      <LocalizationProvider dateAdapter={AdapterDayjs}>
+      <DatePicker label="Fecha de Nacimiento" onChange={(newValue: Dayjs | null) => setBirthday(newValue)} />
+      </LocalizationProvider>
       <Input type="text" label="Street" onValueChange={(e) => handleChange(e,"street")} />
       <Input type="text" label="Number" onValueChange={(e) => handleChange(e,"number")} />
       <Input type="text" label="Colony" onValueChange={(e) => handleChange(e,"colony")} />
