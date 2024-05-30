@@ -20,7 +20,6 @@ export default function Home() {
 	  "System",
 	  "Deployments",
 	  "My Settings",
-	  "Team Settings",
 	  "Help & Feedback",
 	  "Log Out",
 	];
@@ -28,7 +27,6 @@ export default function Home() {
 
 	return (
 		<main className="min-h-screen">
-		{/* <NavBar></NavBar>  */}
 		<Navbar onMenuOpenChange={setIsMenuOpen}>
       <NavbarContent>
         <NavbarMenuToggle
@@ -44,7 +42,6 @@ export default function Home() {
           <p className="font-bold">BuscoCredito</p>
         </NavbarBrand>
       </NavbarContent>
-
       <NavbarContent className="hidden sm:flex gap-4" justify="center">
         <NavbarItem>
           <Link color="foreground" href="#" className="text-md">
@@ -79,7 +76,7 @@ export default function Home() {
             <DropdownItem className="items-center flex justify-center gap-3 w-full">
             <div className="flex items-center justify-center">
             <Link href="#" className="mr-5">Login</Link>
-            <Button as={Link} color="primary" href="/docs" variant="flat">
+            <Button as={Link} color="primary" href="/login" variant="flat">
             Sign Up
           </Button>
           </div>
@@ -87,7 +84,6 @@ export default function Home() {
 			</DropdownMenu>
         </Dropdown>
       </NavbarContent>
-
       <NavbarMenu>
         {menuItems.map((item, index) => (
           <NavbarMenuItem key={`${item}-${index}`}>
@@ -105,6 +101,8 @@ export default function Home() {
         ))}
       </NavbarMenu>
     </Navbar>	
+
+        
 	<Introduction></Introduction>
     <Acerca></Acerca>
     <Footer></Footer>

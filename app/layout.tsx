@@ -27,7 +27,7 @@ export default function RootLayout({
 	return (
 		<html lang="en" suppressHydrationWarning className="scroll-smooth">
 			<head />
-			<body
+			<body suppressHydrationWarning = {true}
 				className={clsx(
 					"min-h-screen bg-background antialiased",
 					fontSans.variable

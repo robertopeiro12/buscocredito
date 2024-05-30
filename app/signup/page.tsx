@@ -72,11 +72,11 @@ export default function LoginPage() {
   createUserWithEmailAndPassword(auth,email, password)
       .then((userCredential) => {
         // Signed in 
-        setUser(userCredential.user.uid);
-        console.log("user", user)
+        setUser(userCredential.user.uid.toString());
+        console.log("user", user);
         const db = getFirestore();
       const cityRef = doc(db, "cuentas",user);
-      console.log(cityRef)
+      console.log(cityRef);
       console.log("birthday", Timestamp.fromDate(birthday!.toDate()));
       setDoc(cityRef, {
        name: name,
