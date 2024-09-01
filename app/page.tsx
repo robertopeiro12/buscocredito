@@ -53,36 +53,22 @@ export default function Home() {
           ¿Eres prestamista?
           </Link>
         </NavbarItem>
-		<Dropdown>
-          <NavbarItem>
-            <DropdownTrigger>
-              <Button
-                disableRipple
-                className="p-0 bg-transparent data-[hover=true]:bg-transparent text-md"
-                radius="sm"
-                variant="light"
-              >
-                 ¿Necesitas un prestamo?
-              </Button>
-            </DropdownTrigger>
-          </NavbarItem>
-          <DropdownMenu
-            aria-label="prestamo"
-            className="w-[200px] "
-            itemClasses={{
-              base: "gap-4",
-            }}
-          >
-            <DropdownItem className="items-center flex justify-center gap-3 w-full">
-            <div className="flex items-center justify-center">
-            <Link href="#" className="mr-5">Login</Link>
-            <Button as={Link} color="primary" href="/login" variant="flat">
-            Sign Up
+        <NavbarItem>
+          <Link color="foreground" href="#">
+          ¿Necesitas un préstamo?
+          </Link>
+        </NavbarItem>
+        <NavbarItem>
+        <Button as={Link} color="primary" href="/login">
+            Login
           </Button>
-          </div>
-            </DropdownItem>
-			</DropdownMenu>
-        </Dropdown>
+        </NavbarItem>
+        <NavbarItem>
+        <Button as={Link} color="primary" href="/signup" variant="flat">
+            Sign up
+          </Button>
+        </NavbarItem>
+
       </NavbarContent>
       <NavbarMenu>
         {menuItems.map((item, index) => (

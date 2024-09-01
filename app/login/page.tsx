@@ -4,6 +4,7 @@ import {Button, ButtonGroup} from "@nextui-org/react";
 import { auth } from '../firebase';
 import {signInWithEmailAndPassword, signOut, onAuthStateChanged, setPersistence} from "firebase/auth";
 import React, { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function LoginPage() {
 
@@ -11,7 +12,7 @@ export default function LoginPage() {
     const [password, setPass] = React.useState("");
     const [error, setError] = React.useState(false);
     const [user, setUser] = React.useState("");
-    
+    const router = useRouter();
     // function persistence(){
 
     //     setPersistence(auth, auth.Persistence.LOCAL)
@@ -52,6 +53,7 @@ export default function LoginPage() {
           // Signed in 
           setUser(userCredential.user.uid);
           console.log("user", user)
+          router.push('/user_dashboard')
           // ...
         })
         .catch((error_console) => {
@@ -85,9 +87,9 @@ export default function LoginPage() {
       <Button color="primary" onClick={signIn}>
       Sign In
     </Button>
-    {user?<Button color="primary" onClick={sign_out}>
+    {/* {user?<Button color="primary" onClick={sign_out}>
       Logout
-    </Button>:null}
+    </Button>:null} */}
    
       
     </div>

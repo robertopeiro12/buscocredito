@@ -1,145 +1,133 @@
 "use client"
-import {Input} from "@nextui-org/react";
-import {Button, ButtonGroup} from "@nextui-org/react";
-import { auth } from '../firebase';
-import {signInWithEmailAndPassword, signOut, onAuthStateChanged, setPersistence, createUserWithEmailAndPassword} from "firebase/auth";
-import React, { useEffect } from 'react';
-import { doc, getFirestore, setDoc,Timestamp } from "firebase/firestore"; 
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import dayjs, { Dayjs } from 'dayjs';
-// Add a new document in collection "cities"
 
+import React, { useEffect } from 'react'
+import { Input, Button, Card, CardBody, CardHeader } from "@nextui-org/react"
+import { auth } from '../firebase'
+import { useRouter } from 'next/navigation';
+import { createUserWithEmailAndPassword, onAuthStateChanged, signOut} from "firebase/auth"
+import { doc, getFirestore, setDoc, Timestamp } from "firebase/firestore"
+import dayjs from 'dayjs'
 
 export default function LoginPage() {
-    const [name, setName] = React.useState("");
-    const [last_name, setLastName] = React.useState("");
-    const [second_last_name, setSecondLastName] = React.useState("");
-    const [rfc, setRfc] = React.useState("");
-    const [birthday, setBirthday] = React.useState<Dayjs | null>(dayjs('2022-04-17'));
-    const [phone, setPhone] = React.useState("");
-    const [address, setAddress] = React.useState<{street:string; number:string; colony:string; city:string; state:string; country:string; zip_code:string}>({
-        street: "",
-        number: "",
-        colony: "",
-        city: "",
-        state: "",
-        country: "",
-        zip_code: ""
-    });
-    const [email, setEmail] = React.useState("");
-    const [password, setPass] = React.useState("");
-    const [error, setError] = React.useState(false);
-    const [user, setUser] = React.useState("");
-  
-    useEffect(()=>{
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-              // User is signed in, see docs for a list of available properties
-              // https://firebase.google.com/docs/reference/js/firebase.User
-              setUser(user.uid);
-              // ...
-              console.log("uid", user.uid)
-            } else {
-              // User is signed out
-              // ...
-              console.log("user is logged out")
-            }
-          });
-         
-    }, [])
+  const [name, setName] = React.useState("")
+  const [lastName, setLastName] = React.useState("")
+  const [secondLastName, setSecondLastName] = React.useState("")
+  const [rfc, setRfc] = React.useState("")
+  const [birthday, setBirthday] = React.useState("")
+  const [phone, setPhone] = React.useState("")
+  const [address, setAddress] = React.useState({
+    street: "",
+    number: "",
+    colony: "",
+    city: "",
+    state: "",
+    country: "",
+    zipCode: ""
+  })
+  const [email, setEmail] = React.useState("")
+  const [password, setPassword] = React.useState("")
+  const [error, setError] = React.useState(false)
+  const [user, setUser] = React.useState("")
+  const router = useRouter(); 
+  useEffect(() => {
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setUser(user.uid)
+        console.log("uid", user.uid)
+      } else {
+        console.log("user is logged out")
+      }
+    })
+  }, [])
 
-    function test(){
-     // Add a new document in collection "cities"
-      const db = getFirestore();
-      const cityRef = doc(db, "cuentas",user);
-      console.log(cityRef)
-      setDoc(cityRef, {
-       name: name,
-        last_name: last_name,
-        second_last_name: second_last_name,
-        rfc: rfc,
-        birthday: birthday,
-        phone: phone,
-        address: address,
-        email: email
-      });
-    }
-  
-
-    function signUp() {
-  createUserWithEmailAndPassword(auth,email, password)
+  function signUp() {
+    createUserWithEmailAndPassword(auth, email, password)
       .then((userCredential) => {
-        // Signed in 
-        setUser(userCredential.user.uid.toString());
-        console.log("user", user);
-        const db = getFirestore();
-      const cityRef = doc(db, "cuentas",user);
-      console.log(cityRef);
-      console.log("birthday", Timestamp.fromDate(birthday!.toDate()));
-      setDoc(cityRef, {
-       name: name,
-        last_name: last_name,
-        second_last_name: second_last_name,
-        rfc: rfc,
-        birthday: Timestamp.fromDate(birthday!.toDate()),
-        phone: phone,
-        address: address,
-        email: email
-      });
-        // ...
+        setUser(userCredential.user.uid.toString())
+        console.log("user", user)
+        const db = getFirestore()
+        const cityRef = doc(db, "cuentas", userCredential.user.uid.toString())
+        console.log(cityRef)
+        console.log("birthday", Timestamp.fromDate(new Date(birthday)))
+        setDoc(cityRef, {
+          name: name,
+          last_name: lastName,
+          second_last_name: secondLastName,
+          rfc: rfc,
+          birthday: Timestamp.fromDate(new Date(birthday)),
+          phone: phone,
+          address: address,
+          email: email
+        })
+        console.log("user created")
+        sign_out()
+        router.push('/login')
+
       })
       .catch((error_console) => {
-        var errorCode = error_console.code;
-        var errorMessage = error_console.message;
-          setError(true);
+        var errorCode = error_console.code
+        var errorMessage = error_console.message
+        setError(true)
         console.log("error", errorCode, errorMessage)
+      })
+  }
 
+  function sign_out() {
+    signOut(auth).then(() => {
+        console.log("user is logged out")
+        setUser("");
+      }).catch((error) => {
+        console.log("error", error)
       });
-     
-  }    
+  
+}
+  const handleAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target
+    setAddress(prev => ({ ...prev, [name]: value }))
+  }
 
-
-    const handleChange = (_data:any, type:any) => {
-      let updatedValue = {};
-      updatedValue = {
-        [type]: _data
-      };
-      setAddress(adress => ({
-           ...adress,
-           ...updatedValue
-         }));
-       }
-	return (
-		<div>
-			<h1>Login</h1>
-        
-    <div className="flex w-full flex-col md:flex-nowrap gap-10 mt-10 ">
-      <Input type="text" label="Name" onValueChange={setName} />
-      <Input type="text" label="Last Name" onValueChange={setLastName} />
-      <Input type="text" label="Second Last Name" onValueChange={setSecondLastName} />
-      <Input type="text" label="Rfc" onValueChange={setRfc} />
-      <Input type="text" label="Phone" onValueChange={setPhone} />
-      <LocalizationProvider dateAdapter={AdapterDayjs}>
-      <DatePicker label="Fecha de Nacimiento" onChange={(newValue: Dayjs | null) => setBirthday(newValue)} />
-      </LocalizationProvider>
-      <Input type="text" label="Street" onValueChange={(e) => handleChange(e,"street")} />
-      <Input type="text" label="Number" onValueChange={(e) => handleChange(e,"number")} />
-      <Input type="text" label="Colony" onValueChange={(e) => handleChange(e,"colony")} />
-      <Input type="email" label="Email" onValueChange={setEmail} />
-      <Input type="password" label="Password" onValueChange={setPass}/>
-      <br></br>
-      <label>Output:</label>
-      <pre>{JSON.stringify(address, null, 2)}</pre>
-      { error? <p className="text-red-500 ">Correo o contrasena incorrecta</p>:null}
-      <Button color="primary" onClick={signUp}>
-      Sign In
-    </Button>
-    
-   
-      
+  return (
+    <div className="container mx-auto p-4">
+      <Card className="max-w-2xl mx-auto">
+        <CardHeader className="flex justify-center">
+          <h1 className="text-2xl font-bold">Sign Up</h1>
+        </CardHeader>
+        <CardBody>
+          <form onSubmit={(e) => { e.preventDefault(); signUp(); }} className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Input label="Name" value={name} onChange={(e) => setName(e.target.value)} />
+              <Input label="Last Name" value={lastName} onChange={(e) => setLastName(e.target.value)} />
+              <Input label="Second Last Name" value={secondLastName} onChange={(e) => setSecondLastName(e.target.value)} />
+              <Input label="RFC" value={rfc} onChange={(e) => setRfc(e.target.value)} />
+              <Input label="Phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} />
+              <Input
+                label="Fecha de Nacimiento"
+                type="date"
+                value={birthday}
+                onChange={(e) => setBirthday(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <h2 className="text-lg font-semibold">Address</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Input label="Street" name="street" onChange={handleAddressChange} />
+                <Input label="Number" name="number" onChange={handleAddressChange} />
+                <Input label="Colony" name="colony" onChange={handleAddressChange} />
+                <Input label="City" name="city" onChange={handleAddressChange} />
+                <Input label="State" name="state" onChange={handleAddressChange} />
+                <Input label="Country" name="country" onChange={handleAddressChange} />
+                <Input label="Zip Code" name="zipCode" onChange={handleAddressChange} />
+              </div>
+            </div>
+            <Input label="Email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+            <Input label="Password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
+            {error && <p className="text-red-500">Incorrect email or password</p>}
+            <Button color="primary" type="submit" className="w-full">
+              Sign Up
+            </Button>
+          </form>
+        </CardBody>
+      </Card>
     </div>
-		</div>
-	);
+  )
 }
