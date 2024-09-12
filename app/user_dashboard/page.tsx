@@ -7,8 +7,8 @@ import { onAuthStateChanged ,signOut} from "firebase/auth"
 import { Navbar, NavbarBrand, NavbarContent, NavbarItem, Link, Button, Dropdown, DropdownTrigger, DropdownMenu, DropdownItem, Avatar, Card, CardBody, CardFooter, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Input, Textarea } from "@nextui-org/react"
 import { Menu, CreditCard, HelpCircle, LogOut, User, PlusCircle, Router } from 'lucide-react'
 import CreditForm from "@/components/CreditForm";
-import { AnimatePresence } from "framer-motion";
-import { doc, getFirestore, setDoc,getDoc, Timestamp, updateDoc, arrayUnion} from "firebase/firestore"
+import { AnimatePresence, motion } from "framer-motion";
+import { doc, getFirestore, setDoc,getDoc, Timestamp, updateDoc, arrayUnion, addDoc, collection, query, where, getDocs, deleteDoc} from "firebase/firestore"
 export default function DashboardPage() {
   const [user, setUser] = useState("")
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -30,40 +30,67 @@ export default function DashboardPage() {
 
 
   const [showForm, setShowForm] = useState(false);
+  const [showForm1, setShowForm1] = useState(false);
   const [solicitudes, setSolicitudes] = useState([]);
   const router = useRouter();
 
+// query viejo
+  // const fetchSolicitudes = async (userId) => {
+  //   const db = getFirestore();
+  //   const cityRef = doc(db, "cuentas", userId);
+  //   const cityDoc = await getDoc(cityRef);
 
+  //   if (cityDoc.exists()) {
+  //     const data = cityDoc.data();
+  //     if (data.solicitudes) {
+  //       setSolicitudes(data.solicitudes);
+  //     }
+  //   } else {
+  //     console.log("No such document!");
+  //   }
+  // };
   const fetchSolicitudes = async (userId) => {
     const db = getFirestore();
-    const cityRef = doc(db, "cuentas", userId);
-    const cityDoc = await getDoc(cityRef);
-
-    if (cityDoc.exists()) {
-      const data = cityDoc.data();
-      if (data.solicitudes) {
-        setSolicitudes(data.solicitudes);
-      }
-    } else {
-      console.log("No such document!");
-    }
+    const solicitudesRef = collection(db, "solicitudes");
+    const q = query(solicitudesRef, where("userId", "==", userId));
+    const querySnapshot = await getDocs(q);
+  
+    const fetchedSolicitudes = [];
+    querySnapshot.forEach((doc) => {
+      const temp = doc.data();
+      temp['id']=doc.id;
+      fetchedSolicitudes.push(temp);
+    });
+  
+    setSolicitudes(fetchedSolicitudes);
+    resetForm1();
   };
 
+ const deleteSolicitud = async (solicitud) => {
+  console.log(solicitud);
+    const db = getFirestore();
+    const cityRef = doc(db, "solicitudes", solicitud);
+    await deleteDoc(cityRef);
+    fetchSolicitudes(user);
+    resetForm1();
+  }
+
   const addSolicitud = (solicitud) => {
+    solicitud['userId'] = user;
     console.log(solicitud);
     const db = getFirestore()
     console.log(user);
-    const cityRef = doc(db, "cuentas", user)
-    console.log(cityRef)
-    updateDoc(cityRef, {
-      solicitudes: arrayUnion(solicitud)
-    })
+    const cityRef = collection(db, "solicitudes")
+    addDoc(cityRef, solicitud)
     fetchSolicitudes(user);
     setShowForm(false);
   };
 
   const resetForm = () => {
     setShowForm(false);
+  };
+  const resetForm1 = () => {
+    setShowForm1(false);
   };
 
   function sign_out() {
@@ -189,7 +216,32 @@ export default function DashboardPage() {
                     </div>
                   </CardBody>
                   <CardFooter>
-                    <Button color="primary" fullWidth>Ver detalles</Button>
+                    <Button color="default" className='py-1 text-[rgb(200,200,200)]' variant="light" onPress={() => setShowForm1(true)}>Eliminar</Button>
+                    {/* () => deleteSolicitud(solicitud.id) */}
+                    <AnimatePresence>
+                    {showForm1 && (
+                    <div className="fixed inset-0 flex items-center justify-center z-50">
+      <div
+        className="fixed inset-0 bg-black bg-opacity-50"
+        onClick={resetForm1}
+></div>
+      <motion.div
+        initial={{ opacity: 0, y: -50 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: 50 }}
+        className="relative bg-white p-6 rounded-lg shadow-lg w-full max-w-lg mx-auto"
+      >
+        <h1 className="text-2xl font-bold mb-4 text-center">
+          ¿Estas seguro de eliminar la solicitud?
+        </h1>
+        <div className='flex justify-center items-center align-middle'>
+        <Button color="primary" className='self-center mr-5'  onPress={ () => deleteSolicitud(solicitud.id)}>Continuar</Button>
+        <Button color="default" className='py-1 text-[rgb(200,200,200)]' variant="light"  onClick={resetForm1}>Cancelar</Button>
+        </div>
+        </motion.div>
+    </div>
+    )}
+    </AnimatePresence>
                   </CardFooter>
                 </Card>
               ))}
