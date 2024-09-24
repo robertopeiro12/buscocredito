@@ -106,9 +106,10 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen bg-background">
       <Navbar isBordered>
-        <NavbarBrand>
-          <img src="/placeholder.svg?height=32&width=32" alt="BuscoCredito Logo" className="h-8 w-8 mr-2" />
-          <p className="font-bold text-inherit">BuscoCredito</p>
+     
+        <NavbarBrand >
+          <img src="/img/logo.png" alt="BuscoCredito Logo" className="h-6 w-10 mr-2" />
+          <a className="font-bold text-inherit" href='/'>BuscoCredito</a>
         </NavbarBrand>
         <NavbarContent className="hidden sm:flex gap-4" justify="center">
           <NavbarItem>

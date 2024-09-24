@@ -5,6 +5,7 @@ import { auth } from '../firebase';
 import {signInWithEmailAndPassword, signOut, onAuthStateChanged, setPersistence} from "firebase/auth";
 import React, { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { doc, getDoc, getFirestore } from "firebase/firestore";
 
 export default function LoginPage() {
 
@@ -49,11 +50,25 @@ export default function LoginPage() {
 
     function signIn() {
         signInWithEmailAndPassword(auth,email, password)
-        .then((userCredential) => {
+        .then(async (userCredential) => {
           // Signed in 
           setUser(userCredential.user.uid);
-          console.log("user", user)
-          router.push('/user_dashboard')
+          const db = getFirestore();
+          const userDocRef = doc(db, "cuentas", userCredential.user.uid);
+          
+          // Fetch the document data
+          const userDocSnap = await getDoc(userDocRef);
+          if (userDocSnap.exists()) {
+              const userData = userDocSnap.data();
+              const accountType = userData.type;
+              console.log("account_type", accountType);
+              if(accountType === "b_admin"){
+                router.push('/admin_dashboard')
+              }
+          } else {
+              console.log("No such document!");
+          }
+          // router.push('/user_dashboard')
           // ...
         })
         .catch((error_console) => {
