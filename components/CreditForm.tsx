@@ -283,45 +283,61 @@ const Section5 = ({ payment, setPayment, next, prev, error, setError }) => (
   </motion.div>
 );
 
-const Section6 = ({ income, setIncome, next, prev, error, setError }) => (
-  <motion.div
-    initial={{ opacity: 0, x: 100 }}
-    animate={{ opacity: 1, x: 0 }}
-    exit={{ opacity: 0, x: -100 }}
-    className="w-full"
-  >
-    <h2 className="text-xl font-bold mb-4 text-center">Ingresos Mensuales</h2>
-    <input
-      type="number"
-      value={income}
-      onChange={(e) => {
-        setIncome(e.target.value);
-        setError(false);
-      }}
-      className="w-full p-2 border rounded"
-      placeholder="Ingresos en $"
-    />
-    <p className="text-gray-600 mt-2 text-center">
-      Aviso: Más adelante se te requerirá que demuestres esos ingresos.
-    </p>
-    {error && (
-      <p className="text-red-500 text-center mt-2">
-        Por favor complete la sección.
+const Section6 = ({ income, setIncome, next, prev, error, setError }) => {
+  const handleIncomeChange = (e) => {
+    let value = e.target.value;
+
+    // Si el valor es negativo o comienza con '0', ajustarlo
+    if (value < 0) {
+      setError(true); // Activar error si es negativo
+    } else {
+      // Eliminar cualquier cero inicial
+      if (value.startsWith("0")) {
+        value = value.replace(/^0+/, "");
+      }
+      setIncome(value);
+      setError(false); // Desactivar error si no hay problemas
+    }
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: 100 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: -100 }}
+      className="w-full"
+    >
+      <h2 className="text-xl font-bold mb-4 text-center">Ingresos</h2>
+      <input
+        type="number"
+        value={income}
+        onChange={handleIncomeChange}
+        className="w-full p-2 border rounded"
+        placeholder="Ingresos en $"
+        min="0" // Asegurarse de que el input no acepte números negativos
+      />
+      <p className="text-gray-600 mt-2 text-center">
+        Aviso: Más adelante se te requerirá que demuestres esos ingresos.
       </p>
-    )}
-    <div className="flex space-x-4 mt-4 justify-center">
-      <button onClick={prev} className="py-2 px-4 bg-gray-200">
-        Atrás
-      </button>
-      <button
-        onClick={() => (income ? next() : setError(true))}
-        className="py-2 px-4 bg-gray-200"
-      >
-        Siguiente
-      </button>
-    </div>
-  </motion.div>
-);
+      {error && (
+        <p className="text-red-500 text-center mt-2">
+          Por favor ingrese un valor válido y no negativo.
+        </p>
+      )}
+      <div className="flex space-x-4 mt-4 justify-center">
+        <button onClick={prev} className="py-2 px-4 bg-gray-200">
+          Atrás
+        </button>
+        <button
+          onClick={() => (income && income > 0 ? next() : setError(true))}
+          className="py-2 px-4 bg-gray-200"
+        >
+          Siguiente
+        </button>
+      </div>
+    </motion.div>
+  );
+};
 
 const FinalSection = ({ prev, submitForm }) => (
   <motion.div
