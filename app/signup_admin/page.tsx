@@ -6,6 +6,12 @@ import { createUserWithEmailAndPassword, onAuthStateChanged, signOut} from "fire
 import { auth } from '../firebase'
 import { useRouter } from 'next/navigation';
 import { doc, getFirestore, setDoc, Timestamp } from "firebase/firestore"
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion"
 
 export default function SignUpAdmin() {
   const [accessToken, setAccessToken] = useState('')

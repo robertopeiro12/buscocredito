@@ -94,7 +94,7 @@ export default function LoginPage() {
 	return (
 		<div>
 			<h1>Login</h1>
-        
+         
     <div className="flex w-full flex-col md:flex-nowrap gap-10 mt-10 ">
       <Input type="email" label="Email" onValueChange={setEmail} />
       <Input type="password" label="Password" onValueChange={setPass}/>
