@@ -7,32 +7,59 @@ import { LogoutIcon } from '@/components/LogoutIcon'
 import { ViewIcon } from '@/components/ViewIcon'
 import { EditIcon } from '@/components/EditIcon'
 import {DeleteIcon} from "@/components/DeleteIcon";
+import { auth } from '../firebase'
+import { createUserWithEmailAndPassword, onAuthStateChanged, signOut} from "firebase/auth"
+import { doc, getFirestore, setDoc, Timestamp } from "firebase/firestore"
 
 type Subaccount = {
   id: number
   name: string
   email: string
   role: string
+  password: string
 }
 
 export default function AdminDashboard() {
-  const [subaccounts, setSubaccounts] = useState<Subaccount[]>([
-    { id: 1, name: "John Doe", email: "john@example.com", role: "Manager" },
-    { id: 2, name: "Jane Smith", email: "jane@example.com", role: "Developer" },
-  ])
+  const [subaccounts, setSubaccounts] = useState<Subaccount[]>([])
   const [newSubaccount, setNewSubaccount] = useState<Omit<Subaccount, "id">>({
     name: "",
     email: "",
+    password: "",
     role: "",
   })
   const [isModalOpen, setIsModalOpen] = useState(false)
 
+  function UserAdd() {
+    
+    createUserWithEmailAndPassword(auth, newSubaccount.email, newSubaccount.password)
+      .then(async (userCredential) => {
+        const userId = userCredential.user.uid
+        console.log("user", userId)
+        const db = getFirestore()
+        const cityRef = doc(db, "cuentas", userId)
+        console.log(cityRef)
+        await setDoc(cityRef, {
+          Empresa: "",
+          type: "b_sale",
+          email: newSubaccount.email
+        })
+        
+        console.log("user created")
+      })
+      .catch((error_console) => {
+        var errorCode = error_console.code
+        var errorMessage = error_console.message
+        console.log("error", errorCode, errorMessage)
+      })
+  }
+
   const handleCreateSubaccount = () => {
+    
     setSubaccounts([
       ...subaccounts,
       { ...newSubaccount, id: subaccounts.length + 1 },
     ])
-    setNewSubaccount({ name: "", email: "", role: "" })
+    setNewSubaccount({ name: "", email: "", role: "" ,password: ""})
     setIsModalOpen(false)
   }
 
@@ -193,6 +220,13 @@ export default function AdminDashboard() {
                         placeholder="Email"
                         value={newSubaccount.email}
                         onChange={(e) => setNewSubaccount({ ...newSubaccount, email: e.target.value })}
+                        className="mt-2 p-2 block w-full border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+                      />
+                      <input
+                        type="password"
+                        placeholder="Password"
+                        value={newSubaccount.password}
+                        onChange={(e) => setNewSubaccount({ ...newSubaccount, password: e.target.value })}
                         className="mt-2 p-2 block w-full border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
                       />
                       <input

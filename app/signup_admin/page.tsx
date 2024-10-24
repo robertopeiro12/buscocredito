@@ -78,7 +78,7 @@ function signUp() {
         
         console.log("user created")
         sign_out()  // Esto cerrará la sesión del usuario
-        // router.push('/login') // O bien, puedes redirigir a otra página antes de cerrar la sesión
+        router.push('/login') // O bien, puedes redirigir a otra página antes de cerrar la sesión
       })
       .catch((error_console) => {
         var errorCode = error_console.code

@@ -65,6 +65,9 @@ export default function LoginPage() {
               if(accountType === "b_admin"){
                 router.push('/admin_dashboard')
               }
+              else if(accountType === "user"){
+                router.push('/user_dashboard')
+              }
           } else {
               console.log("No such document!");
           }

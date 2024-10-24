@@ -57,7 +57,8 @@ export default function LoginPage() {
           birthday: Timestamp.fromDate(new Date(birthday)),
           phone: phone,
           address: address,
-          email: email
+          email: email,
+          type: "user", 
         })
         console.log("user created")
         sign_out()
