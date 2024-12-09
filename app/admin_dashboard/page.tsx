@@ -62,30 +62,64 @@ export default function AdminDashboard() {
     });
   };
 
+
+  const createSubaccount = async (newSubaccount) => {
+    try {
+      const response = await fetch('/api/createSubaccount', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newSubaccount),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setNewSubaccount({ ...newSubaccount, userId: data.userId });
+        console.log("User created:", data.userId);
+      } else {
+        const errorData = await response.json();
+        console.error("Error creating new user:", errorData.error);
+      }
+    } catch (error) {
+      console.error("Error creating new user:", error);
+    }
+  };
+  
+  // Call createSubaccount with the newSubaccount object
+ 
+
+
+
+
+
+
+
   function UserAdd() {
-    createUserWithEmailAndPassword(auth, newSubaccount.email, newSubaccount.password)
-      .then(async (userCredential) => {
-        const userId = userCredential.user.uid
-        console.log("user", userId)
-        const db = getFirestore()
-        const cityRef = doc(db, "cuentas", userId)
-        console.log(cityRef)
-        await setDoc(cityRef, {
-          Nombre: newSubaccount.name,
-          Empresa: "",
-          Empresa_id: user,
-          type: "b_sale",
-          email: newSubaccount.email
-        })
-        setNewSubaccount({ name: newSubaccount.name, email:newSubaccount.email ,password: "", userId:userCredential.user.uid})
-        console.log("user created")
-        sign_out()
-      })
-      .catch((error_console) => {
-        var errorCode = error_console.code
-        var errorMessage = error_console.message
-        console.log("error", errorCode, errorMessage)
-      })
+    createSubaccount(newSubaccount);
+    // createUserWithEmailAndPassword(auth, newSubaccount.email, newSubaccount.password)
+    //   .then(async (userCredential) => {
+    //     const userId = userCredential.user.uid
+    //     console.log("user", userId)
+    //     const db = getFirestore()
+    //     const cityRef = doc(db, "cuentas", userId)
+    //     console.log(cityRef)
+    //     await setDoc(cityRef, {
+    //       Nombre: newSubaccount.name,
+    //       Empresa: "",
+    //       Empresa_id: user,
+    //       type: "b_sale",
+    //       email: newSubaccount.email
+    //     })
+    //     setNewSubaccount({ name: newSubaccount.name, email:newSubaccount.email ,password: "", userId:userCredential.user.uid})
+    //     console.log("user created")
+    //     // sign_out()
+    //   })
+    //   .catch((error_console) => {
+    //     var errorCode = error_console.code
+    //     var errorMessage = error_console.message
+    //     console.log("error", errorCode, errorMessage)
+    //   })
   }
 
   const handleCreateSubaccount = () => {
