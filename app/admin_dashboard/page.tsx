@@ -96,6 +96,7 @@ export default function AdminDashboard() {
 
 
   function UserAdd() {
+    newSubaccount.userId = user 
     createSubaccount(newSubaccount);
     // createUserWithEmailAndPassword(auth, newSubaccount.email, newSubaccount.password)
     //   .then(async (userCredential) => {
