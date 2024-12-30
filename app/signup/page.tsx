@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import {
   createUserWithEmailAndPassword,
   onAuthStateChanged,
+  signOut,
 } from "firebase/auth";
 import { doc, getFirestore, setDoc, Timestamp } from "firebase/firestore";
 import { auth } from "../firebase";
@@ -82,13 +83,23 @@ export default function SignUpPage() {
           type: "user",
         });
         console.log("Usuario creado y datos guardados");
-        router.push("/login");
+        sign_out()
       })
       .catch((err) => {
         console.error("Error al registrarse:", err);
         setError(true);
       });
   };
+
+    function sign_out() {
+      signOut(auth).then(() => {
+          console.log("user is logged out")
+          router.push("/login")
+        }).catch((error) => {
+          console.log("error", error)
+        });
+    
+  }
 
   const nextStep = () => setStep(step + 1);
   const prevStep = () => setStep(step - 1);
