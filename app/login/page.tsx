@@ -68,6 +68,9 @@ export default function LoginPage() {
               else if(accountType === "user"){
                 router.push('/user_dashboard')
               }
+              else if(accountType === "b_sale"){
+                router.push('/lender')
+              }
           } else {
               console.log("No such document!");
           }
