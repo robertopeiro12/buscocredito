@@ -6,7 +6,9 @@ import { LogOut } from 'lucide-react';
 import { createUserWithEmailAndPassword, onAuthStateChanged, signOut} from "firebase/auth"
 import { useEffect } from "react"
 import { auth } from '../firebase'
-import { getFirestore, collection, onSnapshot } from 'firebase/firestore';
+import { useRouter } from 'next/navigation';
+
+import {doc, getFirestore, collection, onSnapshot,getDoc } from 'firebase/firestore';
 // Mock data (in a real application, this would come from an API)
 // const offers = [
 //   { id: '1', userId: 'user1', amount: 5000, interestRate: 5.5, term: 12, status: 'pending', createdAt: '2023-04-01T10:00:00Z' },
@@ -32,7 +34,8 @@ export default function Lender() {
   const [offers, setOffers] = useState<any[]>([]);
   const borrowDetails = {};
   const selectedOffer = selectedOfferId ? offers.find(o => o.id === selectedOfferId) : null;
-  const selectedBorrowerDetails = selectedOffer ? borrowDetails[selectedOffer.userId as keyof typeof borrowDetails] : null;
+  const [offeruserdata, setOfferuserdata] = useState<any>({});
+  const router = useRouter();
   
 
    useEffect(() => {
@@ -84,13 +87,85 @@ export default function Lender() {
         fetchedOffers.push(temp);
       });
       setOffers(fetchedOffers);
+      console.log(fetchedOffers);
     });
 
   }
 
+  const get_user_data = async(id, userId) =>{
+    try {
+      const response = await fetch('/api/getUserOfferData', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userId: userId }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (response.status === 200) {
+          console.log("Datas:", data.data);
+          setOfferuserdata(JSON.parse(data.data));
+          setSelectedOfferId(id);
+
+        } else {
+          console.error("Error fetching user data:", response.error);
+        }
+      } else {
+        const errorData = await response.json();
+        console.error("Error getting data:", errorData.error);
+      }
+    } catch (error) {
+      console.error("Error getting data:", error);
+    }
+  
+  
+
+  }
+
+  const add_aceppted = async(id) =>{
+    
+    try {
+      
+      const db = getFirestore()
+      const userRef = doc(db, "cuentas", user.toString())
+      const userSnap = await getDoc(userRef);
+      const userId= userSnap.data().Empresa_id;
+      const response = await fetch('/api/addOfferAcepted', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ id: id, userId: userId }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (response.status === 200) {
+          console.log("All Ok accepted");
+        } else {
+          console.error("Error fetching user data:", response.error);
+        }
+      } else {
+        const errorData = await response.json();
+        console.error("Error getting data:", errorData.error);
+      }
+    } catch (error) {
+      console.error("Error getting data:", error);
+
+  }
+
+  }
+  
   const sign_out = () => {
-    // Implement sign out logic here
-    console.log("Signing out...");
+    signOut(auth).then(() => {
+      console.log("user is logged out")
+      setUser("");
+      router.push('/login')
+    }).catch((error) => {
+      console.log("error", error)
+    });
   };
 
   return (
@@ -137,16 +212,16 @@ export default function Lender() {
           {/* Offer list */}
           <div className="w-full md:w-1/2">
             <div className="grid gap-4 md:grid-cols-1 lg:grid-cols-2">
-              {offers.map((offer) => (
+              {offers.map((offer, index) => (
                 <motion.div
                   key={offer.id}
                   layoutId={`offer-${offer.id}`}
-                  onClick={() => setSelectedOfferId(offer.id)}
+                  onClick={() => get_user_data(offer.id, offer.userId)}
                   className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow p-4 cursor-pointer"
-                  whileHover={{ scale: 1.03 }}
+                  whileHover={{ scale: 1.03 }}  
                   whileTap={{ scale: 0.98 }}
                 >
-                  <h2 className="text-xl font-semibold mb-2">Offer #{offer.id}</h2>
+                  <h2 className="text-xl font-semibold mb-2">Offer #{index + 1}</h2>
                   <p>Amount: ${offer.amount}</p>
                   <p>Income: {offer.income}</p>
                   <p>Term: {offer.term}</p>
@@ -161,7 +236,7 @@ export default function Lender() {
           {/* Offer details */}
           <div className="w-full md:w-1/2">
             <AnimatePresence mode="wait">
-              {selectedOffer && selectedBorrowerDetails ? (
+              {selectedOffer && offeruserdata ? (
                 <motion.div
                   key={selectedOffer.id}
                   initial={{ opacity: 0, y: 20 }}
@@ -184,10 +259,10 @@ export default function Lender() {
                     </div>
                     <div>
                       <h3 className="text-lg font-semibold mb-2">Borrower Details</h3>
-                      <p>Credit Score: {selectedBorrowerDetails.creditScore}</p>
-                      <p>Income: ${selectedBorrowerDetails.income}</p>
+                      <p>Country: {offeruserdata.country}</p>
+                      {/* <p>Income: ${selectedBorrowerDetails.income}</p>
                       <p>Employment Status: {selectedBorrowerDetails.employmentStatus}</p>
-                      <p>Debt-to-Income Ratio: {(selectedBorrowerDetails.debtToIncomeRatio * 100).toFixed(2)}%</p>
+                      <p>Debt-to-Income Ratio: {(selectedBorrowerDetails.debtToIncomeRatio * 100).toFixed(2)}%</p> */}
                     </div>
                   </div>
                   <div className="flex justify-end space-x-4 mt-4">
@@ -200,6 +275,7 @@ export default function Lender() {
                     </motion.button>
                     <motion.button
                       whileHover={{ scale: 1.05 }}
+                      onClick={() => add_aceppted(selectedOffer.id)}
                       whileTap={{ scale: 0.95 }}
                       className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
                     >
