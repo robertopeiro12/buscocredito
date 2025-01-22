@@ -37,8 +37,8 @@ export default function RootLayout({
         )}
       >
         <Providers themeProps={{ attribute: "class", defaultTheme: "white" }}>
-          {/* <NavBar /> */}
-          <main className="flex-grow">{children}</main>
+          <NavBar />
+          <main className="flex-grow pt-16 mt-4">{children}</main>
           <Footer />
         </Providers>
       </body>
