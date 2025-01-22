@@ -1,33 +1,39 @@
-"use client"
+"use client";
 
 import Introduction from "@/components/Introduction";
 import Acerca from "@/components/Acerca";
 import Footer from "@/components/Footer";
+import NavBar from "@/components/navbar";
 
 import React from "react";
-import {Navbar, NavbarBrand, NavbarContent, NavbarItem, Link, Button, DropdownItem,NavbarMenuToggle,NavbarMenuItem,NavbarMenu,DropdownTrigger, Dropdown, DropdownMenu, Image} from "@nextui-org/react";
+import {
+  Link,
+  Button,
+  DropdownItem,
+  DropdownTrigger,
+  Dropdown,
+  DropdownMenu,
+  Image,
+} from "@nextui-org/react";
 
 export default function Home() {
+  const [isMenuOpen, setIsMenuOpen] = React.useState(false);
 
+  const menuItems = [
+    "Profile",
+    "Dashboard",
+    "Activity",
+    "Analytics",
+    "System",
+    "Deployments",
+    "My Settings",
+    "Help & Feedback",
+    "Log Out",
+  ];
 
-	const [isMenuOpen, setIsMenuOpen] = React.useState(false);
-
-	const menuItems = [
-	  "Profile",
-	  "Dashboard",
-	  "Activity",
-	  "Analytics",
-	  "System",
-	  "Deployments",
-	  "My Settings",
-	  "Help & Feedback",
-	  "Log Out",
-	];
-
-
-	return (
-		<main className="min-h-screen">
-		<Navbar onMenuOpenChange={setIsMenuOpen}>
+  return (
+    <main className="min-h-screen">
+      {/* <Navbar onMenuOpenChange={setIsMenuOpen}>
       <NavbarContent>
         <NavbarMenuToggle
           aria-label={isMenuOpen ? "Close menu" : "Open menu"}
@@ -86,12 +92,12 @@ export default function Home() {
           </NavbarMenuItem>
         ))}
       </NavbarMenu>
-    </Navbar>	
+    </Navbar>	 */}
 
-        
-	<Introduction></Introduction>
-    <Acerca></Acerca>
-    <Footer></Footer>
-		</main>
-	);
+      <NavBar />
+
+      <Introduction></Introduction>
+      <Acerca></Acerca>
+    </main>
+  );
 }
