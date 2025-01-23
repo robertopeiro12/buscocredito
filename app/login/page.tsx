@@ -30,7 +30,6 @@ export default function LoginPage() {
       }
     });
 
-    // Cleanup subscription
     return () => unsubscribe();
   }, []);
 
@@ -39,7 +38,7 @@ export default function LoginPage() {
       ...prev,
       [field]: value,
     }));
-    setError(false); // Clear error when user types
+    setError(false);
   };
 
   const signIn = async () => {
@@ -86,8 +85,8 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="bg-white p-8 rounded-xl shadow-md w-full">
-      <h1 className="text-2xl font-bold text-center text-gray-800 mb-6">
+    <div className="bg-white p-8 rounded-xl shadow-lg w-full border border-gray-100">
+      <h1 className="text-2xl font-bold text-center text-gray-800 mb-8">
         Iniciar Sesión
       </h1>
 
@@ -101,7 +100,11 @@ export default function LoginPage() {
           isInvalid={error}
           classNames={{
             input: "bg-transparent",
-            inputWrapper: "bg-default-100",
+            inputWrapper: [
+              "bg-default-100",
+              "hover:bg-default-200",
+              "transition-colors",
+            ].join(" "),
           }}
         />
 
@@ -114,7 +117,11 @@ export default function LoginPage() {
           isInvalid={error}
           classNames={{
             input: "bg-transparent",
-            inputWrapper: "bg-default-100",
+            inputWrapper: [
+              "bg-default-100",
+              "hover:bg-default-200",
+              "transition-colors",
+            ].join(" "),
           }}
         />
 
@@ -125,13 +132,20 @@ export default function LoginPage() {
         )}
 
         <Button
-          color="primary"
+          color="success"
           onClick={signIn}
           isLoading={isLoading}
-          className="w-full"
+          className="w-full bg-[#55A555] hover:opacity-90 transition-opacity"
         >
           {isLoading ? "Iniciando sesión..." : "Iniciar Sesión"}
         </Button>
+
+        <p className="text-sm text-center text-gray-600">
+          ¿No tienes una cuenta?{" "}
+          <a href="/signup" className="text-[#55A555] hover:underline">
+            Regístrate aquí
+          </a>
+        </p>
       </div>
     </div>
   );
