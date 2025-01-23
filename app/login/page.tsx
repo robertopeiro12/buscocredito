@@ -1,119 +1,138 @@
-"use client"
-import {Input} from "@nextui-org/react";
-import {Button, ButtonGroup} from "@nextui-org/react";
-import { auth } from '../firebase';
-import {signInWithEmailAndPassword, signOut, onAuthStateChanged, setPersistence} from "firebase/auth";
-import React, { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+"use client";
+import { Input, Button } from "@nextui-org/react";
+import { auth } from "../firebase";
+import {
+  signInWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged,
+} from "firebase/auth";
+import React, { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { doc, getDoc, getFirestore } from "firebase/firestore";
 
 export default function LoginPage() {
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+  });
+  const [error, setError] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [user, setUser] = useState("");
+  const router = useRouter();
 
-    const [email, setEmail] = React.useState("");
-    const [password, setPass] = React.useState("");
-    const [error, setError] = React.useState(false);
-    const [user, setUser] = React.useState("");
-    const router = useRouter();
-    // function persistence(){
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setUser(user.uid);
+        console.log("uid", user.uid);
+      } else {
+        console.log("user is logged out");
+      }
+    });
 
-    //     setPersistence(auth, auth.Persistence.LOCAL)
-    //         .then(() => {
-    //             // Existing and future Auth states are now persisted in the current
-    //             // session only. Closing the window would clear any existing state even
-    //             // if a user forgets to sign out.
-    //             // ...
-    //             console.log("persistence")
-    //         })
-    //         .catch((error) => {
-    //             // An error happened.
-    //             console.log("error", error)
-    //         });
-    
-    // }
+    // Cleanup subscription
+    return () => unsubscribe();
+  }, []);
 
-    useEffect(()=>{
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-              // User is signed in, see docs for a list of available properties
-              // https://firebase.google.com/docs/reference/js/firebase.User
-              setUser(user.uid);
-              // ...
-              console.log("uid", user.uid)
-            } else {
-              // User is signed out
-              // ...
-              console.log("user is logged out")
-            }
-          });
-         
-    }, [])
+  const handleInputChange = (value: string, field: "email" | "password") => {
+    setFormData((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+    setError(false); // Clear error when user types
+  };
 
-    function signIn() {
-        signInWithEmailAndPassword(auth,email, password)
-        .then(async (userCredential) => {
-          // Signed in 
-          setUser(userCredential.user.uid);
-          const db = getFirestore();
-          const userDocRef = doc(db, "cuentas", userCredential.user.uid);
-          
-          // Fetch the document data
-          const userDocSnap = await getDoc(userDocRef);
-          if (userDocSnap.exists()) {
-              const userData = userDocSnap.data();
-              const accountType = userData.type;
-              console.log("account_type", accountType);
-              if(accountType === "b_admin"){
-                router.push('/admin_dashboard')
-              }
-              else if(accountType === "user"){
-                router.push('/user_dashboard')
-              }
-              else if(accountType === "b_sale"){
-                router.push('/lender')
-              }
-          } else {
-              console.log("No such document!");
-          }
-          // router.push('/user_dashboard')
-          // ...
-        })
-        .catch((error_console) => {
-          var errorCode = error_console.code;
-          var errorMessage = error_console.message;
-            setError(true);
-          console.log("error", errorCode, errorMessage)
-
-        });
-       
-    }      
-
-    function sign_out() {
-        signOut(auth).then(() => {
-            console.log("user is logged out")
-            setUser("");
-          }).catch((error) => {
-            console.log("error", error)
-          });
-      
+  const signIn = async () => {
+    if (!formData.email || !formData.password) {
+      setError(true);
+      return;
     }
 
-	return (
-		<div>
-			<h1>Login</h1>
-         
-    <div className="flex w-full flex-col md:flex-nowrap gap-10 mt-10 ">
-      <Input type="email" label="Email" onValueChange={setEmail} />
-      <Input type="password" label="Password" onValueChange={setPass}/>
-      { error? <p className="text-red-500 ">Correo o contrasena incorrecta</p>:null}
-      <Button color="primary" onClick={signIn}>
-      Sign In
-    </Button>
-    {/* {user?<Button color="primary" onClick={sign_out}>
-      Logout
-    </Button>:null} */}
-   
-      
+    setIsLoading(true);
+    try {
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        formData.email,
+        formData.password
+      );
+      setUser(userCredential.user.uid);
+
+      const db = getFirestore();
+      const userDocRef = doc(db, "cuentas", userCredential.user.uid);
+      const userDocSnap = await getDoc(userDocRef);
+
+      if (userDocSnap.exists()) {
+        const userData = userDocSnap.data();
+        switch (userData.type) {
+          case "b_admin":
+            router.push("/admin_dashboard");
+            break;
+          case "user":
+            router.push("/user_dashboard");
+            break;
+          case "b_sale":
+            router.push("/lender");
+            break;
+          default:
+            console.error("Unknown account type");
+        }
+      }
+    } catch (error: any) {
+      console.error("Login error:", error);
+      setError(true);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <div className="bg-white p-8 rounded-xl shadow-md w-full">
+      <h1 className="text-2xl font-bold text-center text-gray-800 mb-6">
+        Iniciar Sesión
+      </h1>
+
+      <div className="flex flex-col gap-6">
+        <Input
+          type="email"
+          label="Email"
+          placeholder="correo@ejemplo.com"
+          value={formData.email}
+          onValueChange={(value) => handleInputChange(value, "email")}
+          isInvalid={error}
+          classNames={{
+            input: "bg-transparent",
+            inputWrapper: "bg-default-100",
+          }}
+        />
+
+        <Input
+          type="password"
+          label="Contraseña"
+          placeholder="••••••••"
+          value={formData.password}
+          onValueChange={(value) => handleInputChange(value, "password")}
+          isInvalid={error}
+          classNames={{
+            input: "bg-transparent",
+            inputWrapper: "bg-default-100",
+          }}
+        />
+
+        {error && (
+          <p className="text-red-500 text-sm text-center">
+            Correo o contraseña incorrecta
+          </p>
+        )}
+
+        <Button
+          color="primary"
+          onClick={signIn}
+          isLoading={isLoading}
+          className="w-full"
+        >
+          {isLoading ? "Iniciando sesión..." : "Iniciar Sesión"}
+        </Button>
+      </div>
     </div>
-		</div>
-	);
+  );
 }
