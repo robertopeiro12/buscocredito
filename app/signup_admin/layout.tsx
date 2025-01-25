@@ -1,17 +1,13 @@
-// import { Navbar, NavbarBrand, NavbarContent, NavbarMenuToggle, Image, NavbarItem, Link, Dropdown, DropdownTrigger, Button, DropdownMenu, DropdownItem, NavbarMenu, NavbarMenuItem } from "@nextui-org/react";
-
 export default function SignUpAdminLayout({
-	children,
+  children,
 }: {
-	children: React.ReactNode;
+  children: React.ReactNode;
 }) {
-	return (
-		<main>
-	
-        <section className="bg-white flex justify-center items-center w-full h-screen">
-            {children}
-
-        </section>
-      </main>
-	);
+  return (
+    <main className="min-h-screen bg-gradient-to-br from-white to-[#f8fdf8]">
+      <section className="flex justify-center items-center w-full min-h-screen px-4 py-8">
+        {children}
+      </section>
+    </main>
+  );
 }
