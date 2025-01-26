@@ -9,20 +9,10 @@ import {
   Button,
   Spacer,
 } from "@nextui-org/react";
-import {
-  createUserWithEmailAndPassword,
-  onAuthStateChanged,
-  signOut,
-} from "firebase/auth";
+import { createUserWithEmailAndPassword, signOut } from "firebase/auth";
 import { auth } from "../firebase";
 import { useRouter } from "next/navigation";
-import { doc, getFirestore, setDoc, Timestamp } from "firebase/firestore";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
+import { doc, getFirestore, setDoc } from "firebase/firestore";
 
 export default function SignUpAdmin() {
   const [accessToken, setAccessToken] = useState("");
@@ -70,7 +60,7 @@ export default function SignUpAdmin() {
         Empresa: "",
         type: "b_admin",
         email: email,
-        createdAt: Timestamp.now(),
+        // Removed createdAt field
       });
 
       await signOut(auth);
