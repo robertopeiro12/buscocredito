@@ -13,8 +13,6 @@ export default function DashboardPage() {
   const [user, setUser] = useState("")
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [activeTab, setActiveTab] = useState("loans")
-  const [showBanksModal, setShowBanksModal] = useState(false);
-  const [banksData, setBanksData] = useState([]);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -93,11 +91,6 @@ export default function DashboardPage() {
   };
   const resetForm1 = () => {
     setShowForm1(false);
-  };
-
-  const openBanksModal = (banks) => {
-    setBanksData(banks || []);
-    setShowBanksModal(true);
   };
 
   function sign_out() {
@@ -223,11 +216,8 @@ export default function DashboardPage() {
                 </p>
                     </div>
                   </CardBody>
-                  <CardFooter>  
+                  <CardFooter>
                     <Button color="default" className='py-1 text-[rgb(200,200,200)]' variant="light" onPress={() => setShowForm1(true)}>Eliminar</Button>
-                    <Button color="default" className='py-1 text-[rgb(200,200,200)]'  variant="light" onPress={() => openBanksModal(solicitud.accepted)}>
-                      Ver Bancos
-                    </Button>
                     {/* () => deleteSolicitud(solicitud.id) */}
                     <AnimatePresence>
                     {showForm1 && (
@@ -289,36 +279,6 @@ export default function DashboardPage() {
 <AnimatePresence>
           {showForm && (
             <CreditForm addSolicitud={addSolicitud} resetForm={resetForm} />
-          )}
-        </AnimatePresence>
-
-        <AnimatePresence>
-          {showBanksModal && (
-            <div className="fixed inset-0 flex items-center justify-center z-50">
-              <div className="fixed inset-0 bg-black bg-opacity-50" onClick={() => setShowBanksModal(false)}></div>
-              <motion.div
-                initial={{ opacity: 0, y: -50 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 50 }}
-                className="relative bg-white p-6 rounded-lg shadow-lg w-full max-w-lg mx-auto"
-              >
-                <h1 className="text-2xl font-bold mb-4 text-center">
-                  Bancos que aceptaron la solicitud
-                </h1>
-                <ul>
-                  {banksData.map((bank, idx) => (
-                    <li key={idx} className="mb-1">
-                      {bank}
-                    </li>
-                  ))}
-                </ul>
-                <div className="flex items-center justify-center mt-4">
-                  <Button color="primary" onPress={() => setShowBanksModal(false)}>
-                    Cerrar
-                  </Button>
-                </div>
-              </motion.div>
-            </div>
           )}
         </AnimatePresence>
         

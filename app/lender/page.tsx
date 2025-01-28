@@ -3,24 +3,12 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { LogOut } from 'lucide-react';
-import { createUserWithEmailAndPassword, onAuthStateChanged, signOut} from "firebase/auth"
+import { onAuthStateChanged, signOut} from "firebase/auth"
 import { useEffect } from "react"
 import { auth } from '../firebase'
 import { useRouter } from 'next/navigation';
-
 import {doc, getFirestore, collection, onSnapshot,getDoc } from 'firebase/firestore';
-// Mock data (in a real application, this would come from an API)
-// const offers = [
-//   { id: '1', userId: 'user1', amount: 5000, interestRate: 5.5, term: 12, status: 'pending', createdAt: '2023-04-01T10:00:00Z' },
-//   { id: '2', userId: 'user2', amount: 10000, interestRate: 6.0, term: 24, status: 'pending', createdAt: '2023-04-02T14:30:00Z' },
-//   { id: '3', userId: 'user3', amount: 7500, interestRate: 5.8, term: 18, status: 'pending', createdAt: '2023-04-03T09:15:00Z' },
-// ];
-
-// const borrowDetails = {
-//   user1: { userId: 'user1', creditScore: 720, income: 60000, employmentStatus: 'Full-time', debtToIncomeRatio: 0.3 },
-//   user2: { userId: 'user2', creditScore: 680, income: 55000, employmentStatus: 'Part-time', debtToIncomeRatio: 0.35 },
-//   user3: { userId: 'user3', creditScore: 750, income: 75000, employmentStatus: 'Full-time', debtToIncomeRatio: 0.25 },
-// };
+import { ProposalData, PartnerData } from '@/types';
 
 const adminData = {
   name: "Admin User",
@@ -29,20 +17,24 @@ const adminData = {
 };
 
 export default function Lender() {
-  const [selectedOfferId, setSelectedOfferId] = useState<string | null>(null);
+  const router = useRouter();
   const [user, setUser] = useState("")
+  const [selectedOfferId, setSelectedOfferId] = useState<string | null>(null);
   const [offers, setOffers] = useState<any[]>([]);
-  const borrowDetails = {};
   const selectedOffer = selectedOfferId ? offers.find(o => o.id === selectedOfferId) : null;
   const [offeruserdata, setOfferuserdata] = useState<any>({});
-  const router = useRouter();
-  
+  const [isEditing, setIsEditing] = useState(false);
+  const [proposaldata, setproposaldata] = useState<ProposalData | null>(null);
+  const [partnerdata, setPartnerData] = useState<PartnerData>({ name: '', company: '', company_id: '' });
 
+  
+// INITIAL USE EFFECT
    useEffect(() => {
       onAuthStateChanged(auth, (user) => {
         if (user) {
           setUser(user.uid)
           console.log("uid", user.uid)
+          get_partner_data(user.uid)
           get_offer()
           
         } else {
@@ -50,32 +42,39 @@ export default function Lender() {
         }
       })
     }, [])
+
+// Basic Functions
+const sign_out = () => {
+  signOut(auth).then(() => {
+    console.log("user is logged out")
+    setUser("");
+    router.push('/login')
+  }).catch((error) => {
+    console.log("error", error)
+  });
+};
+
+const get_partner_data = async(uid) =>{
+
+  const db = getFirestore();
+  const partnersRef = collection(db, "cuentas");
+  const query = doc(partnersRef, uid);
+  const docSnap = await getDoc(query);
+  if (docSnap.exists()) {
+    console.log("Document data:", docSnap.data());
+    setPartnerData((prev) => ({
+      ...prev,
+      name: docSnap.data().name,
+      company_id: docSnap.data().company_id,
+      company: docSnap.data().Empresa
+    }));
+  } else {
+    console.log("No such document!");
+  } 
+};
     
 
   const get_offer = async() =>{
-    // try {
-    //   const response = await fetch('/api/getUserOffers', {
-    //     method: 'GET',
-    //     headers: {
-    //       'Content-Type': 'application/json',
-    //     },
-    //   });
-
-    //   if (response.ok) {
-    //     const data = await response.json();
-    //     console.log("Data:", data);
-    //     if (response.status === 200) {
-    //       setOffers(data.offers);
-    //     } else {
-    //       console.error("Error fetching offers:", response.error);
-    //     }
-    //   } else {
-    //     const errorData = await response.json();
-    //     console.error("Error getting data:", errorData.error);
-    //   }
-    // } catch (error) {
-    //   console.error("Error getting data:", error);
-    // }
     const db = getFirestore();
     const solicitudesRef = collection(db, "solicitudes");
 
@@ -119,54 +118,24 @@ export default function Lender() {
     } catch (error) {
       console.error("Error getting data:", error);
     }
-  
-  
-
   }
 
-  const add_aceppted = async(id) =>{
-    
+
+  const updateOffer = async (id: string) => {
     try {
-      
-      const db = getFirestore()
-      const userRef = doc(db, "cuentas", user.toString())
-      const userSnap = await getDoc(userRef);
-      const userId= userSnap.data().Empresa_id;
-      const response = await fetch('/api/addOfferAcepted', {
+      await fetch('/api/updateOffer', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ id: id, userId: userId }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, amount: editedAmount, term: editedTerm }),
       });
-
-      if (response.ok) {
-        const data = await response.json();
-        if (response.status === 200) {
-          console.log("All Ok accepted");
-        } else {
-          console.error("Error fetching user data:", response.error);
-        }
-      } else {
-        const errorData = await response.json();
-        console.error("Error getting data:", errorData.error);
-      }
+      setIsEditing(false);
+      // ...existing code...
     } catch (error) {
-      console.error("Error getting data:", error);
-
-  }
-
-  }
-  
-  const sign_out = () => {
-    signOut(auth).then(() => {
-      console.log("user is logged out")
-      setUser("");
-      router.push('/login')
-    }).catch((error) => {
-      console.log("error", error)
-    });
+      console.error('Error updating offer:', error);
+    }
   };
+  
+
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-100">
@@ -245,43 +214,121 @@ export default function Lender() {
                   transition={{ duration: 0.3 }}
                   className="bg-white rounded-lg shadow-md p-4"
                 >
-                  <h2 className="text-2xl font-semibold mb-4">Offer Details</h2>
+                  <h2 className="text-2xl font-semibold mb-4">Detalles de solicitud</h2>
                   <div className="grid gap-4 md:grid-cols-2">
                     <div>
-                      <h3 className="text-lg font-semibold mb-2">Offer Information</h3>
-                      <p>Amount: ${selectedOffer.amount}</p>
-                      <p>Income: {selectedOffer.income}</p>
-                      <p>Term: {selectedOffer.term}</p>
+                      <h3 className="text-lg font-semibold mb-2">Solicitud</h3>
+                      <p>Cantidad: ${selectedOffer.amount}</p>
+                      <p>Ganancias: {selectedOffer.income}</p>
+                      <p>Plazo: {selectedOffer.term}</p>
+                      <p>Amortizacion: {selectedOffer.payment}</p>
                       {/* <p>Created At: {new Date(selectedOffer.createdAt).toLocaleString()}</p> */}
                       <span className="inline-block mt-2 px-2 py-1 text-sm rounded-full bg-gray-200">
                         {selectedOffer.status}
                       </span>
                     </div>
                     <div>
-                      <h3 className="text-lg font-semibold mb-2">Borrower Details</h3>
-                      <p>Country: {offeruserdata.country}</p>
-                      {/* <p>Income: ${selectedBorrowerDetails.income}</p>
-                      <p>Employment Status: {selectedBorrowerDetails.employmentStatus}</p>
-                      <p>Debt-to-Income Ratio: {(selectedBorrowerDetails.debtToIncomeRatio * 100).toFixed(2)}%</p> */}
+                      <h3 className="text-lg font-semibold mb-2">Detalles del prestatario</h3>
+                      <p>Pais: {offeruserdata.country}</p>
+                      <p>Motivo: {offeruserdata.country}</p>
                     </div>
                   </div>
                   <div className="flex justify-end space-x-4 mt-4">
+                  
                     <motion.button
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
-                      className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 transition-colors"
+                      onClick={() => {
+                        setproposaldata({
+                          company: ,
+                          amount: selectedOffer.amount,
+                          comision: selectedOffer.comision,
+                          amortization: selectedOffer.amortization,
+                          partner: offeruserdata.partner,
+                          deadline: parseInt(selectedOffer.term.split(' ')[0]) || 0,
+                          interest_rate: -1,
+                          medical_balance: -1,
+                        });
+                        setIsEditing(true);
+                      }}
+                      className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors"
                     >
-                      Reject
-                    </motion.button>
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      onClick={() => add_aceppted(selectedOffer.id)}
-                      whileTap={{ scale: 0.95 }}
-                      className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
-                    >
-                      Accept
+                      Generar propuesta
                     </motion.button>
                   </div>
+
+
+                  {isEditing && (
+                    <div className='fixed top-0 left-0 w-full h-full bg-gray-900 bg-opacity-50 flex items-center justify-center' >
+                    
+                    <div className=" fixed mt-4 p-4 px-6 border bg-white rounded-lg shadow-md justify-center items-center flex flex-col">
+                    <button onClick={() => setIsEditing(false)} className="absolute top-2 right-2 text-red-500">X</button>
+                      <h2 className="text-2xl font-semibold mb-4">Generar propuesta</h2>
+                      <div className="flex items-center justify-center flex-row">
+                      <div className="flex items-left flex-col  mr-2">
+                      <label className="block mb-2 font-black">Empresa:</label>
+                      <input
+                        className="border mb-2 p-1 border-[#858585] rounded-md"
+                        value={editedAmount}
+                        onChange={(e) => setEditedAmount(e.target.value)}
+                      />
+                      <label className="block mb-2 font-black">Monto:</label>
+                      <input
+                        className="border mb-2 p-1 border-[#858585] rounded-md"
+                        value={editedTerm}
+                        onChange={(e) => setEditedTerm(e.target.value)}
+                      />
+                       <label className="block mb-2 font-black">Comision:</label>
+                      <input
+                        className="border mb-2 p-1 border-[#858585] rounded-md"
+                        value={editedTerm}
+                        onChange={(e) => setEditedTerm(e.target.value)}
+                      />
+                       <label className="block mb-2 font-black">Amortizacion:</label>
+                      <input
+                        className="border mb-2 p-1 border-[#858585] rounded-md"
+                        value={editedTerm}
+                        onChange={(e) => setEditedTerm(e.target.value)}
+                      />
+                      </div>
+                      <div className="flex items-left flex-col  px-2">
+                      <label className="block mb-2 font-black">Representante:</label>
+                      <input
+                        className="border mb-2 p-1 border-[#858585] rounded-md"
+                        value={editedAmount}
+                        onChange={(e) => setEditedAmount(e.target.value)}
+                      />
+                      <label className="block mb-2 font-black">Plazo:</label>
+                      <input
+                        className="border mb-2 p-1 border-[#858585] rounded-md"
+                        value={editedAmount}
+                        onChange={(e) => setEditedAmount(e.target.value)}
+                      />
+                      <label className="block mb-2 font-black">Tasa de interes:</label>
+                      <input
+                        className="border mb-2 p-1 border-[#858585] rounded-md"
+                        value={editedTerm}
+                        onChange={(e) => setEditedTerm(e.target.value)}
+                      />
+                      <label className="block mb-2 font-black">Seguro de Vida saldo deudor:</label>
+                      <input
+                        className="border mb-2 p-1 border-[#858585] rounded-md"
+                        value={editedTerm}
+                        onChange={(e) => setEditedTerm(e.target.value)}
+                      />
+                      </div>
+                      </div>
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => updateOffer(selectedOffer.id)}
+                        className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors mt-6"
+                      >
+                       Enviar propuesta
+                      </motion.button>
+                    </div>
+                    </div>
+                  )}
                 </motion.div>
               ) : (
                 <motion.div
