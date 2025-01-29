@@ -41,7 +41,6 @@ import {
 } from "firebase/firestore";
 
 export default function DashboardPage() {
-
   const [user, setUser] = useState("");
   const [activeTab, setActiveTab] = useState("loans");
   const [showBanksModal, setShowBanksModal] = useState(false);
@@ -220,14 +219,16 @@ export default function DashboardPage() {
                 {activeTab === "settings" && "Configuración"}
                 {activeTab === "help" && "Centro de Ayuda"}
               </h1>
-              <Button
-                color="primary"
-                endContent={<PlusCircle className="w-4 h-4" />}
-                className="bg-green-600 hover:bg-green-700"
-                onPress={() => setShowForm(true)}
-              >
-                Solicitar Préstamo
-              </Button>
+              {activeTab === "loans" && (
+                <Button
+                  color="primary"
+                  endContent={<PlusCircle className="w-4 h-4" />}
+                  className="bg-green-600 hover:bg-green-700"
+                  onPress={() => setShowForm(true)}
+                >
+                  Solicitar Préstamo
+                </Button>
+              )}
             </div>
           </div>
         </header>
