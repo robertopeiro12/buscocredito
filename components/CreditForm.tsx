@@ -1,303 +1,316 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
+import {
+  Check,
+  ChevronLeft,
+  ChevronRight,
+  X,
+  Building,
+  User,
+  DollarSign,
+  Calendar,
+  CreditCard,
+  Wallet,
+} from "lucide-react";
 
-const Section1 = ({ next, setPurpose, purpose, error, setError }) => (
+// Progress Bar Component
+// This component shows the user's progress through the form
+const ProgressBar = ({
+  currentStep,
+  totalSteps,
+}: {
+  currentStep: number;
+  totalSteps: number;
+}) => (
+  <div className="w-full mb-8">
+    <div className="relative pt-1">
+      {/* Progress text showing current step and percentage */}
+      <div className="flex mb-2 items-center justify-between">
+        <div className="text-xs font-semibold text-blue-600">
+          Paso {currentStep} de {totalSteps}
+        </div>
+        <div className="text-right">
+          <span className="text-xs font-semibold text-blue-600">
+            {Math.round((currentStep / totalSteps) * 100)}%
+          </span>
+        </div>
+      </div>
+      {/* Progress bar visual element */}
+      <div className="overflow-hidden h-2 mb-4 text-xs flex rounded bg-blue-100">
+        <motion.div
+          initial={{ width: `${((currentStep - 1) / totalSteps) * 100}%` }}
+          animate={{ width: `${(currentStep / totalSteps) * 100}%` }}
+          className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-blue-500"
+        />
+      </div>
+    </div>
+  </div>
+);
+
+// Reusable Button Component
+// This component provides consistent button styling across the form
+const Button = ({
+  onClick,
+  variant = "default",
+  disabled = false,
+  children,
+}: {
+  onClick: () => void;
+  variant?: "default" | "primary" | "success";
+  disabled?: boolean;
+  children: React.ReactNode;
+}) => {
+  const baseStyles =
+    "py-2 px-6 rounded-lg font-medium transition-all duration-200 flex items-center gap-2";
+  const variants = {
+    default: "bg-gray-100 hover:bg-gray-200 text-gray-700",
+    primary: "bg-blue-500 hover:bg-blue-600 text-white",
+    success: "bg-green-500 hover:bg-green-600 text-white",
+  };
+
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      className={`${baseStyles} ${variants[variant]} ${
+        disabled ? "opacity-50 cursor-not-allowed" : ""
+      }`}
+    >
+      {children}
+    </button>
+  );
+};
+
+// Section 1: Purpose Selection Component
+const Section1 = ({
+  next,
+  setPurpose,
+  purpose,
+  error,
+  setError,
+}: {
+  next: () => void;
+  setPurpose: (purpose: string) => void;
+  purpose: string;
+  error: boolean;
+  setError: (error: boolean) => void;
+}) => (
   <motion.div
     initial={{ opacity: 0, x: -100 }}
     animate={{ opacity: 1, x: 0 }}
     exit={{ opacity: 0, x: 100 }}
-    className="w-full"
+    className="w-full space-y-6"
   >
-    <h2 className="text-xl font-bold mb-4 text-center">
-      Propósito del Crédito
-    </h2>
-    <div className="flex space-x-4 justify-center">
+    {/* Section Header */}
+    <div className="text-center space-y-2">
+      <h2 className="text-2xl font-bold text-gray-800">
+        Propósito del Crédito
+      </h2>
+      <p className="text-gray-600">
+        Seleccione el tipo de crédito que necesita
+      </p>
+    </div>
+
+    {/* Purpose Selection Cards */}
+    <div className="grid grid-cols-2 gap-4 max-w-md mx-auto">
+      {/* Personal Credit Card */}
       <button
         onClick={() => {
           setPurpose("Personal");
           setError(false);
         }}
-        className={`py-2 px-4 ${
-          purpose === "Personal" ? "bg-blue-500 text-white" : "bg-gray-200"
+        className={`p-6 rounded-xl border-2 transition-all duration-200 ${
+          purpose === "Personal"
+            ? "border-blue-500 bg-blue-50"
+            : "border-gray-200 hover:border-blue-200"
         }`}
       >
-        Personal
+        <User
+          className={`w-8 h-8 mb-2 mx-auto ${
+            purpose === "Personal" ? "text-blue-500" : "text-gray-400"
+          }`}
+        />
+        <span
+          className={`block font-medium ${
+            purpose === "Personal" ? "text-blue-500" : "text-gray-600"
+          }`}
+        >
+          Personal
+        </span>
       </button>
+
+      {/* Business Credit Card */}
       <button
         onClick={() => {
           setPurpose("Negocio");
           setError(false);
         }}
-        className={`py-2 px-4 ${
-          purpose === "Negocio" ? "bg-blue-500 text-white" : "bg-gray-200"
+        className={`p-6 rounded-xl border-2 transition-all duration-200 ${
+          purpose === "Negocio"
+            ? "border-blue-500 bg-blue-50"
+            : "border-gray-200 hover:border-blue-200"
         }`}
       >
-        Negocio
+        <Building
+          className={`w-8 h-8 mb-2 mx-auto ${
+            purpose === "Negocio" ? "text-blue-500" : "text-gray-400"
+          }`}
+        />
+        <span
+          className={`block font-medium ${
+            purpose === "Negocio" ? "text-blue-500" : "text-gray-600"
+          }`}
+        >
+          Negocio
+        </span>
       </button>
     </div>
+
+    {/* Error Message */}
     {error && (
-      <p className="text-red-500 text-center mt-2">
-        Por favor complete la sección.
+      <p className="text-red-500 text-center text-sm">
+        Por favor seleccione un propósito para continuar
       </p>
     )}
-    <div className="flex space-x-4 mt-4 justify-center">
-      <button
+
+    {/* Navigation Buttons */}
+    <div className="flex justify-center mt-6">
+      <Button
         onClick={() => (purpose ? next() : setError(true))}
-        className="py-2 px-4 bg-gray-200"
+        variant="primary"
+        disabled={!purpose}
       >
-        Siguiente
-      </button>
+        Siguiente <ChevronRight className="w-4 h-4" />
+      </Button>
     </div>
   </motion.div>
 );
+// Section 2: Credit Type Selection Component
+const Section2 = ({
+  purpose,
+  next,
+  prev,
+  setType,
+  type,
+  error,
+  setError,
+}: {
+  purpose: string;
+  next: () => void;
+  prev: () => void;
+  setType: (type: string) => void;
+  type: string;
+  error: boolean;
+  setError: (error: boolean) => void;
+}) => {
+  // Define credit type options based on purpose
+  const creditTypes = {
+    Personal: [
+      { id: "consumo", label: "Crédito al consumo", icon: CreditCard },
+      { id: "deudas", label: "Liquidación deudas", icon: Wallet },
+    ],
+    Negocio: [
+      { id: "capital", label: "Capital de trabajo", icon: DollarSign },
+      {
+        id: "maquinaria",
+        label: "Adquisición de maquinaria o equipo",
+        icon: Building,
+      },
+      { id: "deudas", label: "Liquidación deudas", icon: Wallet },
+    ],
+  };
 
-const Section2 = ({ purpose, next, prev, setType, type, error, setError }) => (
-  <motion.div
-    initial={{ opacity: 0, x: 100 }}
-    animate={{ opacity: 1, x: 0 }}
-    exit={{ opacity: 0, x: -100 }}
-    className="w-full"
-  >
-    <h2 className="text-xl font-bold mb-4 text-center">
-      Tipo de Crédito ({purpose})
-    </h2>
-    <div className="flex space-x-4 justify-center">
-      {purpose === "Personal" && (
-        <>
+  const selectedTypes = creditTypes[purpose as keyof typeof creditTypes];
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: 100 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: -100 }}
+      className="w-full space-y-6"
+    >
+      {/* Section Header */}
+      <div className="text-center space-y-2">
+        <h2 className="text-2xl font-bold text-gray-800">
+          Tipo de Crédito ({purpose})
+        </h2>
+        <p className="text-gray-600">
+          Seleccione el propósito específico de su crédito
+        </p>
+      </div>
+
+      {/* Credit Type Options */}
+      <div className="grid grid-cols-1 gap-4 max-w-md mx-auto">
+        {selectedTypes.map(({ id, label, icon: Icon }) => (
           <button
+            key={id}
             onClick={() => {
-              setType("Crédito al consumo");
+              setType(label);
               setError(false);
             }}
-            className={`py-2 px-4 ${
-              type === "Crédito al consumo"
-                ? "bg-blue-500 text-white"
-                : "bg-gray-200"
+            className={`p-4 rounded-xl border-2 transition-all duration-200 flex items-center gap-4 ${
+              type === label
+                ? "border-blue-500 bg-blue-50"
+                : "border-gray-200 hover:border-blue-200"
             }`}
           >
-            Crédito al consumo
+            <Icon
+              className={`w-6 h-6 ${
+                type === label ? "text-blue-500" : "text-gray-400"
+              }`}
+            />
+            <span
+              className={`font-medium ${
+                type === label ? "text-blue-500" : "text-gray-600"
+              }`}
+            >
+              {label}
+            </span>
           </button>
-          <button
-            onClick={() => {
-              setType("Liquidación deudas");
-              setError(false);
-            }}
-            className={`py-2 px-4 ${
-              type === "Liquidación deudas"
-                ? "bg-blue-500 text-white"
-                : "bg-gray-200"
-            }`}
-          >
-            Liquidación deudas
-          </button>
-        </>
+        ))}
+      </div>
+
+      {/* Error Message */}
+      {error && (
+        <p className="text-red-500 text-center text-sm">
+          Por favor seleccione un tipo de crédito para continuar
+        </p>
       )}
-      {purpose === "Negocio" && (
-        <>
-          <button
-            onClick={() => {
-              setType("Capital de trabajo");
-              setError(false);
-            }}
-            className={`py-2 px-4 ${
-              type === "Capital de trabajo"
-                ? "bg-blue-500 text-white"
-                : "bg-gray-200"
-            }`}
-          >
-            Capital de trabajo
-          </button>
-          <button
-            onClick={() => {
-              setType("Adquisición de maquinaria o equipo");
-              setError(false);
-            }}
-            className={`py-2 px-4 ${
-              type === "Adquisición de maquinaria o equipo"
-                ? "bg-blue-500 text-white"
-                : "bg-gray-200"
-            }`}
-          >
-            Adquisición de maquinaria o equipo
-          </button>
-          <button
-            onClick={() => {
-              setType("Liquidación deudas");
-              setError(false);
-            }}
-            className={`py-2 px-4 ${
-              type === "Liquidación deudas"
-                ? "bg-blue-500 text-white"
-                : "bg-gray-200"
-            }`}
-          >
-            Liquidación deudas
-          </button>
-        </>
-      )}
-    </div>
-    {error && (
-      <p className="text-red-500 text-center mt-2">
-        Por favor complete la sección.
-      </p>
-    )}
-    <div className="flex space-x-4 mt-4 justify-center">
-      <button onClick={prev} className="py-2 px-4 bg-gray-200">
-        Atrás
-      </button>
-      <button
-        onClick={() => (type ? next() : setError(true))}
-        className="py-2 px-4 bg-gray-200"
-      >
-        Siguiente
-      </button>
-    </div>
-  </motion.div>
-);
 
-const Section3 = ({ amount, setAmount, next, prev }) => (
-  <motion.div
-    initial={{ opacity: 0, x: 100 }}
-    animate={{ opacity: 1, x: 0 }}
-    exit={{ opacity: 0, x: -100 }}
-    className="w-full"
-  >
-    <h2 className="text-xl font-bold mb-4 text-center">Monto deseado</h2>
-    <input
-      type="range"
-      min="10000"
-      max="5000000"
-      step="10000"
-      value={amount}
-      onChange={(e) => setAmount(Number(e.target.value))}
-      className="w-full"
-    />
-    <p className="text-gray-700 mt-2 text-center">
-      Monto seleccionado: ${amount.toLocaleString()}
-    </p>
-    <div className="flex space-x-4 mt-4 justify-center">
-      <button onClick={prev} className="py-2 px-4 bg-gray-200">
-        Atrás
-      </button>
-      <button onClick={next} className="py-2 px-4 bg-gray-200">
-        Siguiente
-      </button>
-    </div>
-  </motion.div>
-);
-
-const Section4 = ({ term, setTerm, next, prev, error, setError }) => (
-  <motion.div
-    initial={{ opacity: 0, x: 100 }}
-    animate={{ opacity: 1, x: 0 }}
-    exit={{ opacity: 0, x: -100 }}
-    className="w-full"
-  >
-    <h2 className="text-xl font-bold mb-4 text-center">Plazo de Pago</h2>
-    <div className="grid grid-cols-4 gap-2 justify-center">
-      {[
-        "3 meses",
-        "6 meses",
-        "8 meses",
-        "12 meses",
-        "18 meses",
-        "24 meses",
-        "36 meses",
-        "48 meses",
-        "60 meses",
-        "72 meses",
-      ].map((t) => (
-        <button
-          key={t}
-          onClick={() => {
-            setTerm(t);
-            setError(false);
-          }}
-          className={`py-2 px-4 ${
-            term === t ? "bg-blue-500 text-white" : "bg-gray-200"
-          }`}
+      {/* Navigation Buttons */}
+      <div className="flex justify-center gap-4 mt-6">
+        <Button onClick={prev} variant="default">
+          <ChevronLeft className="w-4 h-4" /> Atrás
+        </Button>
+        <Button
+          onClick={() => (type ? next() : setError(true))}
+          variant="primary"
+          disabled={!type}
         >
-          {t}
-        </button>
-      ))}
-    </div>
-    {error && (
-      <p className="text-red-500 text-center mt-2">
-        Por favor complete la sección.
-      </p>
-    )}
-    <div className="flex space-x-4 mt-4 justify-center">
-      <button onClick={prev} className="py-2 px-4 bg-gray-200">
-        Atrás
-      </button>
-      <button
-        onClick={() => (term ? next() : setError(true))}
-        className="py-2 px-4 bg-gray-200"
-      >
-        Siguiente
-      </button>
-    </div>
-  </motion.div>
-);
-
-const Section5 = ({ payment, setPayment, next, prev, error, setError }) => (
-  <motion.div
-    initial={{ opacity: 0, x: 100 }}
-    animate={{ opacity: 1, x: 0 }}
-    exit={{ opacity: 0, x: -100 }}
-    className="w-full"
-  >
-    <h2 className="text-xl font-bold mb-4 text-center">Forma de Pago</h2>
-    <div className="flex space-x-4 justify-center">
-      {["Semanal", "Quincenal", "Mensual"].map((p) => (
-        <button
-          key={p}
-          onClick={() => {
-            setPayment(p);
-            setError(false);
-          }}
-          className={`py-2 px-4 ${
-            payment === p ? "bg-yellow-500 text-white" : "bg-gray-200"
-          }`}
-        >
-          {p}
-        </button>
-      ))}
-    </div>
-    {error && (
-      <p className="text-red-500 text-center mt-2">
-        Por favor complete la sección.
-      </p>
-    )}
-    <div className="flex space-x-4 mt-4 justify-center">
-      <button onClick={prev} className="py-2 px-4 bg-gray-200">
-        Atrás
-      </button>
-      <button
-        onClick={() => (payment ? next() : setError(true))}
-        className="py-2 px-4 bg-gray-200"
-      >
-        Siguiente
-      </button>
-    </div>
-  </motion.div>
-);
-
-const Section6 = ({ income, setIncome, next, prev, error, setError }) => {
-  const handleIncomeChange = (e) => {
-    let value = e.target.value;
-
-    // Si el valor es negativo o comienza con '0', ajustarlo
-    if (value < 0) {
-      setError(true); // Activar error si es negativo
-    } else {
-      // Eliminar cualquier cero inicial
-      if (value.startsWith("0")) {
-        value = value.replace(/^0+/, "");
-      }
-      setIncome(value);
-      setError(false); // Desactivar error si no hay problemas
-    }
+          Siguiente <ChevronRight className="w-4 h-4" />
+        </Button>
+      </div>
+    </motion.div>
+  );
+};
+// Section 3: Amount Selection Component
+const Section3 = ({
+  amount,
+  setAmount,
+  next,
+  prev,
+}: {
+  amount: number;
+  setAmount: (amount: number) => void;
+  next: () => void;
+  prev: () => void;
+}) => {
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat("es-MX", {
+      style: "currency",
+      currency: "MXN",
+      maximumFractionDigits: 0,
+    }).format(value);
   };
 
   return (
@@ -305,74 +318,586 @@ const Section6 = ({ income, setIncome, next, prev, error, setError }) => {
       initial={{ opacity: 0, x: 100 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -100 }}
-      className="w-full"
+      className="w-full space-y-8"
     >
-      <h2 className="text-xl font-bold mb-4 text-center">Ingresos</h2>
-      <input
-        type="number"
-        value={income}
-        onChange={handleIncomeChange}
-        className="w-full p-2 border rounded"
-        placeholder="Ingresos en $"
-        min="0" // Asegurarse de que el input no acepte números negativos
-      />
-      <p className="text-gray-600 mt-2 text-center">
-        Aviso: Más adelante se te requerirá que demuestres esos ingresos.
-      </p>
-      {error && (
-        <p className="text-red-500 text-center mt-2">
-          Por favor ingrese un valor válido y no negativo.
+      {/* Section Header */}
+      <div className="text-center space-y-2">
+        <h2 className="text-2xl font-bold text-gray-800">Monto del Crédito</h2>
+        <p className="text-gray-600">
+          Seleccione el monto que necesita para su crédito
         </p>
-      )}
-      <div className="flex space-x-4 mt-4 justify-center">
-        <button onClick={prev} className="py-2 px-4 bg-gray-200">
-          Atrás
-        </button>
-        <button
-          onClick={() => (income && income > 0 ? next() : setError(true))}
-          className="py-2 px-4 bg-gray-200"
-        >
-          Siguiente
-        </button>
+      </div>
+
+      {/* Amount Display */}
+      <div className="text-center">
+        <span className="text-4xl font-bold text-blue-500">
+          {formatCurrency(amount)}
+        </span>
+      </div>
+
+      {/* Amount Slider Container */}
+      <div className="max-w-md mx-auto space-y-6">
+        <input
+          type="range"
+          min="10000"
+          max="5000000"
+          step="10000"
+          value={amount}
+          onChange={(e) => setAmount(Number(e.target.value))}
+          className="w-full h-2 bg-blue-100 rounded-lg appearance-none cursor-pointer"
+          style={{
+            background: `linear-gradient(to right, #3B82F6 0%, #3B82F6 ${
+              ((amount - 10000) / (5000000 - 10000)) * 100
+            }%, #E5E7EB ${
+              ((amount - 10000) / (5000000 - 10000)) * 100
+            }%, #E5E7EB 100%)`,
+          }}
+        />
+
+        {/* Range Labels */}
+        <div className="flex justify-between text-sm text-gray-600">
+          <span>{formatCurrency(10000)}</span>
+          <span>{formatCurrency(5000000)}</span>
+        </div>
+
+        {/* Helper Text */}
+        <p className="text-sm text-gray-500 text-center">
+          Deslice para ajustar el monto del crédito
+        </p>
+      </div>
+
+      {/* Navigation Buttons */}
+      <div className="flex justify-center gap-4">
+        <Button onClick={prev} variant="default">
+          <ChevronLeft className="w-4 h-4" /> Atrás
+        </Button>
+        <Button onClick={next} variant="primary">
+          Siguiente <ChevronRight className="w-4 h-4" />
+        </Button>
       </div>
     </motion.div>
   );
 };
+// Section 4: Term Selection Component
+const Section4 = ({
+  term,
+  setTerm,
+  next,
+  prev,
+  error,
+  setError,
+}: {
+  term: string;
+  setTerm: (term: string) => void;
+  next: () => void;
+  prev: () => void;
+  error: boolean;
+  setError: (error: boolean) => void;
+}) => {
+  const terms = [
+    { months: 3, label: "3 meses" },
+    { months: 6, label: "6 meses" },
+    { months: 8, label: "8 meses" },
+    { months: 12, label: "12 meses" },
+    { months: 18, label: "18 meses" },
+    { months: 24, label: "24 meses" },
+    { months: 36, label: "36 meses" },
+    { months: 48, label: "48 meses" },
+    { months: 60, label: "60 meses" },
+    { months: 72, label: "72 meses" },
+  ];
 
-const FinalSection = ({ prev, submitForm }) => (
-  <motion.div
-    initial={{ opacity: 0, x: 100 }}
-    animate={{ opacity: 1, x: 0 }}
-    exit={{ opacity: 0, x: -100 }}
-    className="w-full"
-  >
-    <h2 className="text-xl font-bold mb-4 text-center">Revisión Final</h2>
-    <p className="mb-4 text-center">
-      Por favor revisa tus respuestas antes de enviar el formulario.
-    </p>
-    <div className="flex space-x-4 mt-4 justify-center">
-      <button onClick={prev} className="py-2 px-4 bg-gray-200 rounded">
-        Atrás
-      </button>
-      <button
-        onClick={submitForm}
-        className="py-2 px-4 bg-green-500 text-white rounded"
-      >
-        Enviar Solicitud
-      </button>
-    </div>
-  </motion.div>
-);
+  const termGroups = [
+    terms.slice(0, 5), // Short terms (3-18 months)
+    terms.slice(5), // Long terms (24-72 months)
+  ];
 
-const CreditForm = ({ addSolicitud, resetForm }) => {
-  const [purpose, setPurpose] = useState("");
-  const [type, setType] = useState("");
-  const [amount, setAmount] = useState(10000);
-  const [term, setTerm] = useState("");
-  const [payment, setPayment] = useState("");
-  const [income, setIncome] = useState("");
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: 100 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: -100 }}
+      className="w-full space-y-6"
+    >
+      {/* Section Header */}
+      <div className="text-center space-y-2">
+        <h2 className="text-2xl font-bold text-gray-800">Plazo del Crédito</h2>
+        <p className="text-gray-600">
+          Seleccione el tiempo en el que desea pagar el crédito
+        </p>
+      </div>
+
+      {/* Term Selection Grid */}
+      <div className="space-y-6 max-w-2xl mx-auto">
+        {termGroups.map((group, groupIndex) => (
+          <div
+            key={groupIndex}
+            className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3"
+          >
+            {group.map(({ months, label }) => (
+              <button
+                key={months}
+                onClick={() => {
+                  setTerm(label);
+                  setError(false);
+                }}
+                className={`p-3 rounded-lg border-2 transition-all duration-200 ${
+                  term === label
+                    ? "border-blue-500 bg-blue-50 text-blue-500"
+                    : "border-gray-200 hover:border-blue-200 text-gray-600"
+                }`}
+              >
+                <span className="block text-lg font-semibold">{months}</span>
+                <span className="block text-sm">meses</span>
+              </button>
+            ))}
+          </div>
+        ))}
+      </div>
+
+      {/* Error Message */}
+      {error && (
+        <p className="text-red-500 text-center text-sm">
+          Por favor seleccione un plazo para continuar
+        </p>
+      )}
+
+      {/* Navigation Buttons */}
+      <div className="flex justify-center gap-4 mt-8">
+        <Button onClick={prev} variant="default">
+          <ChevronLeft className="w-4 h-4" /> Atrás
+        </Button>
+        <Button
+          onClick={() => (term ? next() : setError(true))}
+          variant="primary"
+          disabled={!term}
+        >
+          Siguiente <ChevronRight className="w-4 h-4" />
+        </Button>
+      </div>
+    </motion.div>
+  );
+};
+// Section 5: Payment Frequency Selection Component
+const Section5 = ({
+  payment,
+  setPayment,
+  next,
+  prev,
+  error,
+  setError,
+}: {
+  payment: string;
+  setPayment: (payment: string) => void;
+  next: () => void;
+  prev: () => void;
+  error: boolean;
+  setError: (error: boolean) => void;
+}) => {
+  // Payment frequency options with their respective metadata
+  const paymentOptions = [
+    {
+      id: "semanal",
+      label: "Semanal",
+      description: "Pagos cada 7 días",
+      icon: Calendar,
+      frequency: "52 pagos al año",
+    },
+    {
+      id: "quincenal",
+      label: "Quincenal",
+      description: "Pagos cada 15 días",
+      icon: Calendar,
+      frequency: "24 pagos al año",
+    },
+    {
+      id: "mensual",
+      label: "Mensual",
+      description: "Pagos cada mes",
+      icon: Calendar,
+      frequency: "12 pagos al año",
+    },
+  ];
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: 100 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: -100 }}
+      className="w-full space-y-8"
+    >
+      {/* Section Header */}
+      <div className="text-center space-y-3">
+        <h2 className="text-2xl font-bold text-gray-800">Frecuencia de Pago</h2>
+        <p className="text-gray-600 max-w-md mx-auto">
+          Seleccione la frecuencia con la que prefiere realizar sus pagos. Esta
+          decisión afectará el monto de cada pago.
+        </p>
+      </div>
+
+      {/* Payment Options Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto px-4">
+        {paymentOptions.map(
+          ({ id, label, description, icon: Icon, frequency }) => (
+            <button
+              key={id}
+              onClick={() => {
+                setPayment(label);
+                setError(false);
+              }}
+              className={`
+              relative p-6 rounded-xl border-2 transition-all duration-200
+              ${
+                payment === label
+                  ? "border-blue-500 bg-blue-50 shadow-md"
+                  : "border-gray-200 hover:border-blue-200 hover:bg-gray-50"
+              }
+            `}
+            >
+              <div className="flex flex-col items-center text-center space-y-3">
+                <Icon
+                  className={`w-8 h-8 ${
+                    payment === label ? "text-blue-500" : "text-gray-400"
+                  }`}
+                />
+                <div className="space-y-1">
+                  <span
+                    className={`block text-lg font-medium ${
+                      payment === label ? "text-blue-500" : "text-gray-700"
+                    }`}
+                  >
+                    {label}
+                  </span>
+                  <span className="block text-sm text-gray-500">
+                    {description}
+                  </span>
+                  <span className="block text-xs text-gray-400">
+                    {frequency}
+                  </span>
+                </div>
+              </div>
+              {payment === label && (
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  className="absolute -top-2 -right-2 bg-blue-500 text-white rounded-full p-1"
+                >
+                  <Check className="w-4 h-4" />
+                </motion.div>
+              )}
+            </button>
+          )
+        )}
+      </div>
+
+      {/* Error Message */}
+      {error && (
+        <motion.p
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-red-500 text-center text-sm bg-red-50 py-2 px-4 rounded-lg mx-auto max-w-md"
+        >
+          Por favor seleccione una frecuencia de pago para continuar
+        </motion.p>
+      )}
+
+      {/* Navigation Buttons */}
+      <div className="flex justify-center gap-4">
+        <Button onClick={prev} variant="default">
+          <ChevronLeft className="w-4 h-4" />
+          Atrás
+        </Button>
+        <Button
+          onClick={() => (payment ? next() : setError(true))}
+          variant="primary"
+          disabled={!payment}
+        >
+          Siguiente <ChevronRight className="w-4 h-4" />
+        </Button>
+      </div>
+    </motion.div>
+  );
+};
+// Section 6: Income Input Component
+const Section6 = ({
+  income,
+  setIncome,
+  next,
+  prev,
+  error,
+  setError,
+}: {
+  income: string;
+  setIncome: (income: string) => void;
+  next: () => void;
+  prev: () => void;
+  error: boolean;
+  setError: (error: boolean) => void;
+}) => {
+  // Currency formatter utility
+  const formatCurrency = (value: string) => {
+    const number = parseFloat(value.replace(/[^\d]/g, ""));
+    return new Intl.NumberFormat("es-MX", {
+      style: "currency",
+      currency: "MXN",
+      maximumFractionDigits: 0,
+    }).format(number || 0);
+  };
+
+  // Income validation and handling
+  const handleIncomeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const rawValue = e.target.value.replace(/[^\d]/g, "");
+
+    if (rawValue === "" || parseInt(rawValue) >= 0) {
+      setIncome(rawValue);
+      setError(false);
+    }
+  };
+
+  const validateAndProceed = () => {
+    const incomeValue = parseInt(income);
+    if (!income || incomeValue <= 0) {
+      setError(true);
+      return;
+    }
+    next();
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: 100 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: -100 }}
+      className="w-full space-y-8"
+    >
+      {/* Section Header */}
+      <div className="text-center space-y-3">
+        <h2 className="text-2xl font-bold text-gray-800">Ingresos Mensuales</h2>
+        <p className="text-gray-600 max-w-md mx-auto">
+          Ingrese sus ingresos mensuales totales. Esta información nos ayuda a
+          determinar la capacidad de pago para su crédito.
+        </p>
+      </div>
+
+      {/* Income Input Field */}
+      <div className="max-w-md mx-auto space-y-4">
+        <div className="relative">
+          <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+          <input
+            type="text"
+            value={formatCurrency(income)}
+            onChange={handleIncomeChange}
+            className={`
+              w-full pl-10 pr-4 py-3 text-lg rounded-lg border-2 
+              transition-colors duration-200
+              ${
+                error
+                  ? "border-red-300 focus:border-red-500"
+                  : "border-gray-200 focus:border-blue-500"
+              }
+              focus:outline-none focus:ring-2 
+              ${error ? "focus:ring-red-200" : "focus:ring-blue-200"}
+            `}
+            placeholder="Ingrese sus ingresos mensuales"
+          />
+        </div>
+
+        {/* Helper Text */}
+        <p className="text-sm text-gray-500 text-center">
+          Posteriormente se le solicitará documentación que respalde estos
+          ingresos declarados
+        </p>
+
+        {/* Error Message */}
+        {error && (
+          <motion.p
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-red-500 text-sm bg-red-50 p-2 rounded-lg text-center"
+          >
+            Por favor ingrese un monto válido mayor a cero
+          </motion.p>
+        )}
+      </div>
+
+      {/* Navigation Buttons */}
+      <div className="flex justify-center gap-4">
+        <Button onClick={prev} variant="default">
+          <ChevronLeft className="w-4 h-4" />
+          Atrás
+        </Button>
+        <Button
+          onClick={validateAndProceed}
+          variant="primary"
+          disabled={!income || parseInt(income) <= 0}
+        >
+          Siguiente <ChevronRight className="w-4 h-4" />
+        </Button>
+      </div>
+    </motion.div>
+  );
+};
+// Final Section: Review and Submit Component
+const FinalSection = ({
+  formData,
+  prev,
+  onSubmit,
+  isSubmitting,
+}: {
+  formData: {
+    purpose: string;
+    type: string;
+    amount: number;
+    term: string;
+    payment: string;
+    income: string;
+  };
+  prev: () => void;
+  onSubmit: () => Promise<void>;
+  isSubmitting: boolean;
+}) => {
+  const formatCurrency = (value: number | string) => {
+    const numericValue =
+      typeof value === "string" ? parseInt(value.replace(/[^\d]/g, "")) : value;
+
+    return new Intl.NumberFormat("es-MX", {
+      style: "currency",
+      currency: "MXN",
+      maximumFractionDigits: 0,
+    }).format(numericValue || 0);
+  };
+
+  const summaryItems = [
+    {
+      label: "Propósito del Crédito",
+      value: formData.purpose,
+      icon: formData.purpose === "Personal" ? User : Building,
+    },
+    {
+      label: "Tipo de Crédito",
+      value: formData.type,
+      icon: CreditCard,
+    },
+    {
+      label: "Monto Solicitado",
+      value: formatCurrency(formData.amount),
+      icon: DollarSign,
+    },
+    {
+      label: "Plazo de Pago",
+      value: formData.term,
+      icon: Calendar,
+    },
+    {
+      label: "Frecuencia de Pago",
+      value: formData.payment,
+      icon: Calendar,
+    },
+    {
+      label: "Ingresos Mensuales",
+      value: formatCurrency(formData.income),
+      icon: Wallet,
+    },
+  ];
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: 100 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: -100 }}
+      className="w-full space-y-8"
+    >
+      {/* Review Header */}
+      <div className="text-center space-y-3">
+        <h2 className="text-2xl font-bold text-gray-800">Revisión Final</h2>
+        <p className="text-gray-600 max-w-md mx-auto">
+          Por favor revise los detalles de su solicitud antes de enviarla. Puede
+          regresar a cualquier sección si necesita hacer cambios.
+        </p>
+      </div>
+
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-3xl mx-auto">
+        {summaryItems.map(({ label, value, icon: Icon }) => (
+          <div
+            key={label}
+            className="p-4 rounded-lg border border-gray-200 bg-white shadow-sm"
+          >
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-full bg-blue-50">
+                <Icon className="w-5 h-5 text-blue-500" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-500">{label}</p>
+                <p className="font-medium text-gray-900">{value}</p>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Terms and Conditions */}
+      <div className="max-w-3xl mx-auto p-4 rounded-lg bg-gray-50 border border-gray-200">
+        <p className="text-sm text-gray-600 text-center">
+          Al enviar esta solicitud, confirma que todos los datos proporcionados
+          son correctos y autoriza la verificación de su información crediticia.
+        </p>
+      </div>
+
+      {/* Navigation Buttons */}
+      <div className="flex justify-center gap-4">
+        <Button onClick={prev} variant="default" disabled={isSubmitting}>
+          <ChevronLeft className="w-4 h-4" />
+          Modificar Datos
+        </Button>
+        <Button onClick={onSubmit} variant="success" disabled={isSubmitting}>
+          {isSubmitting ? (
+            <>
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                className="w-4 h-4 border-2 border-white border-t-transparent rounded-full"
+              />
+              Procesando...
+            </>
+          ) : (
+            <>
+              Enviar Solicitud
+              <Check className="w-4 h-4" />
+            </>
+          )}
+        </Button>
+      </div>
+    </motion.div>
+  );
+};
+const CreditForm = ({
+  addSolicitud,
+  resetForm,
+}: {
+  addSolicitud: (data: {
+    purpose: string;
+    type: string;
+    amount: number;
+    term: string;
+    payment: string;
+    income: string;
+  }) => void;
+  resetForm: () => void;
+}) => {
+  const [formData, setFormData] = useState({
+    purpose: "",
+    type: "",
+    amount: 10000,
+    term: "",
+    payment: "",
+    income: "",
+  });
   const [step, setStep] = useState(1);
   const [error, setError] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const totalSteps = 7;
 
   const nextStep = () => {
     setError(false);
@@ -384,104 +909,114 @@ const CreditForm = ({ addSolicitud, resetForm }) => {
     setStep(step - 1);
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    addSolicitud({ purpose, type, amount, term, payment, income });
-    resetForm();
+  const updateFormData = (field: string, value: string | number) => {
+    setFormData((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
+
+  const handleSubmit = async () => {
+    setIsSubmitting(true);
+    try {
+      await addSolicitud(formData);
+      resetForm();
+    } catch (error) {
+      setError(true);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50">
       <div
-        className="fixed inset-0 bg-black bg-opacity-50"
+        className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm"
         onClick={resetForm}
-      ></div>
+      />
       <motion.div
-        initial={{ opacity: 0, y: -50 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: 50 }}
-        className="relative bg-white p-6 rounded-lg shadow-lg w-full max-w-lg mx-auto"
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.95 }}
+        className="relative bg-white p-8 rounded-xl shadow-xl w-full max-w-2xl mx-4"
       >
         <button
-          className="absolute top-2 right-2 text-gray-500"
+          className="absolute top-4 right-4 p-1 rounded-full hover:bg-gray-100 transition-colors"
           onClick={resetForm}
         >
-          X
+          <X className="w-6 h-6 text-gray-400" />
         </button>
-        <h1 className="text-2xl font-bold mb-4 text-center">
-          Solicitud de Crédito
-        </h1>
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          key={step}
-        >
-          {step === 1 && (
-            <Section1
-              next={nextStep}
-              setPurpose={setPurpose}
-              purpose={purpose}
-              error={error}
-              setError={setError}
-            />
-          )}
-          {step === 2 && (
-            <Section2
-              purpose={purpose}
-              next={nextStep}
-              prev={prevStep}
-              setType={setType}
-              type={type}
-              error={error}
-              setError={setError}
-            />
-          )}
-          {step === 3 && (
-            <Section3
-              amount={amount}
-              setAmount={setAmount}
-              next={nextStep}
-              prev={prevStep}
-            />
-          )}
-          {step === 4 && (
-            <Section4
-              term={term}
-              setTerm={setTerm}
-              next={nextStep}
-              prev={prevStep}
-              error={error}
-              setError={setError}
-            />
-          )}
-          {step === 5 && (
-            <Section5
-              payment={payment}
-              setPayment={setPayment}
-              next={nextStep}
-              prev={prevStep}
-              error={error}
-              setError={setError}
-            />
-          )}
-          {step === 6 && (
-            <Section6
-              income={income}
-              setIncome={setIncome}
-              next={nextStep}
-              prev={prevStep}
-              error={error}
-              setError={setError}
-            />
-          )}
-          {step === 7 && (
-            <FinalSection prev={prevStep} submitForm={handleSubmit} />
-          )}
-        </motion.div>
+
+        <ProgressBar currentStep={step} totalSteps={totalSteps} />
+
+        {step === 1 && (
+          <Section1
+            purpose={formData.purpose}
+            setPurpose={(value) => updateFormData("purpose", value)}
+            next={nextStep}
+            error={error}
+            setError={setError}
+          />
+        )}
+        {step === 2 && (
+          <Section2
+            purpose={formData.purpose}
+            type={formData.type}
+            setType={(value) => updateFormData("type", value)}
+            next={nextStep}
+            prev={prevStep}
+            error={error}
+            setError={setError}
+          />
+        )}
+        {step === 3 && (
+          <Section3
+            amount={formData.amount}
+            setAmount={(value) => updateFormData("amount", value)}
+            next={nextStep}
+            prev={prevStep}
+          />
+        )}
+        {step === 4 && (
+          <Section4
+            term={formData.term}
+            setTerm={(value) => updateFormData("term", value)}
+            next={nextStep}
+            prev={prevStep}
+            error={error}
+            setError={setError}
+          />
+        )}
+        {step === 5 && (
+          <Section5
+            payment={formData.payment}
+            setPayment={(value) => updateFormData("payment", value)}
+            next={nextStep}
+            prev={prevStep}
+            error={error}
+            setError={setError}
+          />
+        )}
+        {step === 6 && (
+          <Section6
+            income={formData.income}
+            setIncome={(value) => updateFormData("income", value)}
+            next={nextStep}
+            prev={prevStep}
+            error={error}
+            setError={setError}
+          />
+        )}
+        {step === 7 && (
+          <FinalSection
+            formData={formData}
+            prev={prevStep}
+            onSubmit={handleSubmit}
+            isSubmitting={isSubmitting}
+          />
+        )}
       </motion.div>
     </div>
   );
 };
-
 export default CreditForm;
