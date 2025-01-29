@@ -39,6 +39,7 @@ import {
 } from "firebase/firestore";
 
 export default function DashboardPage() {
+
   const [user, setUser] = useState("");
   const [activeTab, setActiveTab] = useState("loans");
   const [showBanksModal, setShowBanksModal] = useState(false);

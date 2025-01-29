@@ -51,7 +51,7 @@ export const getUserOfferData = async (id: string) => {
     }
 }
 
-export const add_aceppted = async (id: string, bank_id: string) => {
+export const add_propuesta = async (id: string, bank_id: string) => {
     
     const Firestore = getFirestore();
     const accountRef = Firestore.collection('solicitudes').doc(id)
