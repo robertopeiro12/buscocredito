@@ -1,97 +1,64 @@
-"use client"
+"use client";
 
 import Introduction from "@/components/Introduction";
 import Acerca from "@/components/Acerca";
 import Footer from "@/components/Footer";
-
-import React from "react";
-import {Navbar, NavbarBrand, NavbarContent, NavbarItem, Link, Button, DropdownItem,NavbarMenuToggle,NavbarMenuItem,NavbarMenu,DropdownTrigger, Dropdown, DropdownMenu, Image} from "@nextui-org/react";
+import React, { useState, useEffect } from "react";
 
 export default function Home() {
+  const [isLoading, setIsLoading] = useState(true);
+  const [scrollProgress, setScrollProgress] = useState(0);
 
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 500);
 
-	const [isMenuOpen, setIsMenuOpen] = React.useState(false);
+    const handleScroll = () => {
+      const totalScroll =
+        document.documentElement.scrollHeight - window.innerHeight;
+      const currentProgress = (window.scrollY / totalScroll) * 100;
+      setScrollProgress(currentProgress);
+    };
 
-	const menuItems = [
-	  "Profile",
-	  "Dashboard",
-	  "Activity",
-	  "Analytics",
-	  "System",
-	  "Deployments",
-	  "My Settings",
-	  "Help & Feedback",
-	  "Log Out",
-	];
+    window.addEventListener("scroll", handleScroll);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, []);
 
+  if (isLoading) {
+    return (
+      <div className="fixed inset-0 bg-white flex items-center justify-center z-50">
+        <div className="w-16 h-16 border-4 border-green-200 border-t-green-600 rounded-full animate-spin"></div>
+      </div>
+    );
+  }
 
-	return (
-		<main className="min-h-screen">
-		<Navbar onMenuOpenChange={setIsMenuOpen}>
-      <NavbarContent>
-        <NavbarMenuToggle
-          aria-label={isMenuOpen ? "Close menu" : "Open menu"}
-          className="sm:hidden"
-        />
-        <NavbarBrand>
-		<Image
-		src="img/logo.png"
-		width={100}
-		height={100}
-		/>
-          <p className="font-bold">BuscoCredito</p>
-        </NavbarBrand>
-      </NavbarContent>
-      <NavbarContent className="hidden sm:flex gap-4" justify="center">
-        <NavbarItem>
-          <Link color="foreground" href="#" className="text-md">
-           Acerca de
-          </Link>
-        </NavbarItem>
-		<NavbarItem>
-          <Link color="foreground" href="#">
-          ¿Eres prestamista?
-          </Link>
-        </NavbarItem>
-        <NavbarItem>
-          <Link color="foreground" href="#">
-          ¿Necesitas un préstamo?
-          </Link>
-        </NavbarItem>
-        <NavbarItem>
-        <Button as={Link} color="primary" href="/login">
-            Login
-          </Button>
-        </NavbarItem>
-        <NavbarItem>
-        <Button as={Link} color="primary" href="/signup" variant="flat">
-            Sign up
-          </Button>
-        </NavbarItem>
+  return (
+    <>
+      {/* Progress bar */}
+      <div
+        className="fixed top-0 left-0 h-1 bg-green-600 transition-all duration-300 z-[60]"
+        style={{ width: `${scrollProgress}%` }}
+      />
 
-      </NavbarContent>
-      <NavbarMenu>
-        {menuItems.map((item, index) => (
-          <NavbarMenuItem key={`${item}-${index}`}>
-            <Link
-              color={
-                index === 2 ? "primary" : index === menuItems.length - 1 ? "danger" : "foreground"
-              }
-              className="w-full"
-              href="#"
-              size="lg"
-            >
-              {item}
-            </Link>
-          </NavbarMenuItem>
-        ))}
-      </NavbarMenu>
-    </Navbar>	
+      {/* Hero Section */}
+      <section
+        className="relative bg-gradient-to-b from-white via-white to-gray-50"
+        id="inicio"
+      >
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#0000000a_1px,transparent_1px),linear-gradient(to_bottom,#0000000a_1px,transparent_1px)] bg-[size:24px_24px] opacity-25" />
+        <Introduction />
+      </section>
 
-        
-	<Introduction></Introduction>
-    <Acerca></Acerca>
-    <Footer></Footer>
-		</main>
-	);
+      {/* About Section */}
+      <section className="relative bg-white" id="acerca">
+        <div className="absolute top-0 left-0 right-0 h-24 bg-gradient-to-b from-gray-50 to-transparent" />
+        <Acerca />
+      </section>
+
+      {/* Footer */}
+      <Footer />
+    </>
+  );
 }
