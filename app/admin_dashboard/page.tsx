@@ -13,7 +13,6 @@ import {
   query,
   where,
   getDocs,
-  deleteDoc,
   getDoc,
   doc,
   addDoc,
@@ -50,8 +49,6 @@ import {
   PlusCircle,
   ChevronRight,
   User,
-  Activity,
-  Bell,
 } from "lucide-react";
 
 // Types
@@ -90,6 +87,7 @@ const initialAdminState: AdminData = {
   company: "",
   notifications: 0,
 };
+
 export default function AdminDashboard() {
   // State management
   const [subaccounts, setSubaccounts] = useState<Subaccount[]>([]);
@@ -98,7 +96,16 @@ export default function AdminDashboard() {
     "subaccounts" | "settings" | "help"
   >("subaccounts");
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [errors, setErrors] = useState<{
+    name?: string;
+    email?: string;
+    password?: string;
+    createSubaccount?: string;
+    fetch?: string;
+    adminData?: string;
+    signOut?: string;
+    fetchSubaccounts?: string;
+  }>({});
 
   // Modal states
   const [showSubaccountModal, setShowSubaccountModal] = useState(false);
@@ -123,6 +130,50 @@ export default function AdminDashboard() {
 
   const router = useRouter();
 
+  // Validation function
+  const validateSubaccountForm = (values: {
+    name: string;
+    email: string;
+    password: string;
+  }) => {
+    const errors: { [key: string]: string } = {};
+
+    // Name validation
+    if (!values.name) {
+      errors.name = "El nombre es obligatorio";
+    } else if (values.name.length < 3) {
+      errors.name = "El nombre debe tener al menos 3 caracteres";
+    } else if (values.name.length > 50) {
+      errors.name = "El nombre no puede tener más de 50 caracteres";
+    } else if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(values.name)) {
+      errors.name = "El nombre solo puede contener letras y espacios";
+    }
+
+    // Email validation
+    if (!values.email) {
+      errors.email = "El correo electrónico es obligatorio";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email)) {
+      errors.email = "El correo electrónico no es válido";
+    }
+
+    // Password validation
+    if (!values.password) {
+      errors.password = "La contraseña es obligatoria";
+    } else if (values.password.length < 6) {
+      errors.password = "La contraseña debe tener al menos 6 caracteres";
+    } else if (values.password.length > 50) {
+      errors.password = "La contraseña no puede tener más de 50 caracteres";
+    } else if (!/\d/.test(values.password)) {
+      errors.password = "La contraseña debe contener al menos un número";
+    } else if (!/[A-Z]/.test(values.password)) {
+      errors.password = "La contraseña debe contener al menos una mayúscula";
+    } else if (!/[a-z]/.test(values.password)) {
+      errors.password = "La contraseña debe contener al menos una minúscula";
+    }
+
+    return errors;
+  };
+
   // Authentication and data fetching
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -135,7 +186,10 @@ export default function AdminDashboard() {
           ]);
         } catch (error) {
           console.error("Error fetching data:", error);
-          setError("Error al cargar los datos. Por favor, intente de nuevo.");
+          setErrors({
+            ...errors,
+            fetch: "Error al cargar los datos. Por favor, intente de nuevo.",
+          });
         } finally {
           setIsLoading(false);
         }
@@ -145,20 +199,19 @@ export default function AdminDashboard() {
     });
 
     return () => unsubscribe();
-  }, [router]);
+  }, [router, errors]);
 
   // Fetch admin data
   const fetchAdminData = async (userId: string) => {
     try {
       const db = getFirestore();
 
-      // Cambiar a colección "cuentas" y buscar por type = "b_admin"
       const cuentasRef = collection(db, "cuentas");
       const q = query(cuentasRef, where("type", "==", "b_admin"));
       const querySnapshot = await getDocs(q);
 
       if (!querySnapshot.empty) {
-        const adminDoc = querySnapshot.docs[0]; // Tomamos el primer documento que coincida
+        const adminDoc = querySnapshot.docs[0];
         const data = adminDoc.data();
         setAdminData({
           name: data.Nombre || "",
@@ -168,16 +221,18 @@ export default function AdminDashboard() {
           notifications: data.notifications || 0,
         });
       } else {
-        console.log("No se encontró documento de administrador");
         throw new Error("No se encontraron datos del administrador");
       }
     } catch (error) {
       console.error("Error fetching admin data:", error);
-      setError("Error al cargar los datos del administrador");
+      setErrors({
+        ...errors,
+        adminData: "Error al cargar los datos del administrador",
+      });
       throw error;
     }
   };
-  // Añade esta función junto a las otras funciones del componente AdminDashboard
+
   const handleSignOut = () => {
     signOut(auth)
       .then(() => {
@@ -186,7 +241,7 @@ export default function AdminDashboard() {
       })
       .catch((error) => {
         console.error("Error signing out:", error);
-        setError("Error al cerrar sesión");
+        setErrors({ ...errors, signOut: "Error al cerrar sesión" });
       });
   };
 
@@ -215,10 +270,14 @@ export default function AdminDashboard() {
       setSubaccounts(fetchedSubaccounts);
     } catch (error) {
       console.error("Error fetching subaccounts:", error);
-      setError("Error al cargar las subcuentas");
+      setErrors({
+        ...errors,
+        fetchSubaccounts: "Error al cargar las subcuentas",
+      });
       throw error;
     }
   };
+
   // Create subaccount with improved error handling and validation
   const createSubaccount = async (newSubaccount: Omit<Subaccount, "id">) => {
     try {
@@ -227,11 +286,17 @@ export default function AdminDashboard() {
         !newSubaccount.password ||
         !newSubaccount.name
       ) {
-        throw new Error("Todos los campos son obligatorios");
+        setErrors({
+          createSubaccount: "Todos los campos son obligatorios",
+        });
+        return;
       }
 
       if (newSubaccount.password.length < 6) {
-        throw new Error("La contraseña debe tener al menos 6 caracteres");
+        setErrors({
+          createSubaccount: "La contraseña debe tener al menos 6 caracteres",
+        });
+        return;
       }
 
       // Create user in Firebase Authentication
@@ -258,7 +323,7 @@ export default function AdminDashboard() {
       });
 
       if (docRef.id) {
-        await fetchSubaccounts(user); // Refresh the list
+        await fetchSubaccounts(user);
         return docRef.id;
       }
     } catch (error: any) {
@@ -284,15 +349,45 @@ export default function AdminDashboard() {
   // Handle subaccount creation with loading state and error handling
   const handleCreateSubaccount = async () => {
     setIsCreating(true);
-    setError(null);
+
+    // Clear previous errors
+    setErrors({});
+
+    // Validate form
+    const validationErrors = validateSubaccountForm(newSubaccount);
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      setIsCreating(false);
+      return;
+    }
 
     try {
       await createSubaccount({ ...newSubaccount, userId: user });
       setShowSubaccountModal(false);
       setNewSubaccount(initialSubaccountState);
-      // Show success toast or notification here
+      setNotification({
+        type: "success",
+        message: "Subcuenta creada exitosamente",
+        show: true,
+      });
     } catch (error: any) {
-      setError(error.message);
+      // Handle Firebase specific errors
+      const errorCode = error.code;
+      if (errorCode === "auth/email-already-in-use") {
+        setErrors({ email: "Este correo electrónico ya está registrado" });
+      } else if (errorCode === "auth/invalid-email") {
+        setErrors({ email: "El correo electrónico no es válido" });
+      } else if (errorCode === "auth/weak-password") {
+        setErrors({ password: "La contraseña es demasiado débil" });
+      } else {
+        setErrors({ createSubaccount: error.message });
+      }
+
+      setNotification({
+        type: "error",
+        message: "Error al crear la subcuenta",
+        show: true,
+      });
     } finally {
       setIsCreating(false);
     }
@@ -336,7 +431,6 @@ export default function AdminDashboard() {
       );
       setShowDeleteConfirmation(false);
 
-      // Mostrar mensaje de éxito
       setNotification({
         type: "success",
         message: "La subcuenta se ha eliminado correctamente",
@@ -345,7 +439,6 @@ export default function AdminDashboard() {
     } catch (error: any) {
       console.error("Error deleting subaccount:", error);
 
-      // Mostrar mensaje de error
       setNotification({
         type: "error",
         message: error.message || "Error al eliminar la subcuenta",
@@ -355,6 +448,7 @@ export default function AdminDashboard() {
       setIsLoading(false);
     }
   };
+
   return (
     <div className="flex min-h-screen bg-gray-50">
       {/* Loading State */}
@@ -368,15 +462,28 @@ export default function AdminDashboard() {
       )}
 
       {/* Error Display */}
-      {error && (
-        <div className="fixed top-4 right-4 bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg shadow-lg z-50">
-          {error}
-          <button
-            onClick={() => setError(null)}
-            className="ml-3 text-red-400 hover:text-red-600"
-          >
-            ×
-          </button>
+      {Object.keys(errors).length > 0 && (
+        <div className="fixed top-4 right-4 z-50 space-y-2">
+          {Object.entries(errors).map(([key, message]) => (
+            <div
+              key={key}
+              className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg shadow-lg"
+            >
+              {message}
+              <button
+                onClick={() =>
+                  setErrors((prev) => {
+                    const newErrors = { ...prev };
+                    delete newErrors[key];
+                    return newErrors;
+                  })
+                }
+                className="ml-3 text-red-400 hover:text-red-600"
+              >
+                ×
+              </button>
+            </div>
+          ))}
         </div>
       )}
 
@@ -466,6 +573,7 @@ export default function AdminDashboard() {
           </div>
         </div>
       </div>
+
       {/* Main Content */}
       <div className="flex-1 flex flex-col">
         {/* Header */}
@@ -620,6 +728,7 @@ export default function AdminDashboard() {
               )}
             </div>
           )}
+
           {/* Settings Tab */}
           {activeTab === "settings" && (
             <Card className="bg-white max-w-4xl mx-auto">
@@ -750,7 +859,7 @@ export default function AdminDashboard() {
         onClose={() => {
           setShowSubaccountModal(false);
           setNewSubaccount(initialSubaccountState);
-          setError(null);
+          setErrors({});
         }}
       >
         <ModalContent>
@@ -770,6 +879,8 @@ export default function AdminDashboard() {
                   })
                 }
                 isRequired
+                isInvalid={!!errors.name}
+                errorMessage={errors.name}
                 className="max-w-full"
               />
               <Input
@@ -784,6 +895,8 @@ export default function AdminDashboard() {
                 }
                 isRequired
                 type="email"
+                isInvalid={!!errors.email}
+                errorMessage={errors.email}
                 className="max-w-full"
               />
               <Input
@@ -798,6 +911,9 @@ export default function AdminDashboard() {
                   })
                 }
                 isRequired
+                isInvalid={!!errors.password}
+                errorMessage={errors.password}
+                description="La contraseña debe contener al menos 6 caracteres, una mayúscula, una minúscula y un número"
                 className="max-w-full"
               />
             </div>
@@ -865,6 +981,7 @@ export default function AdminDashboard() {
           </ModalFooter>
         </ModalContent>
       </Modal>
+
       {notification.show && (
         <div
           className={`fixed bottom-4 right-4 p-4 rounded-lg shadow-lg ${
