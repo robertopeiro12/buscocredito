@@ -21,7 +21,6 @@ const userRecord = await auth.createUser({
 }
 
 }
-// Añadir a FireAuthFunc.ts
 
 export const delete_auth_user = async (email: string): Promise<{ status: number, error?: string }> => {
     try {

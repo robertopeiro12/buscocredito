@@ -58,11 +58,7 @@ interface Subaccount {
   email: string;
   password: string;
   userId: string;
-  status: "active" | "inactive";
-  lastActive?: string;
-  createdAt: string;
 }
-
 interface AdminData {
   name: string;
   email: string;
@@ -77,8 +73,6 @@ const initialSubaccountState: Omit<Subaccount, "id"> = {
   email: "",
   password: "",
   userId: "",
-  status: "active",
-  createdAt: new Date().toISOString(),
 };
 
 const initialAdminState: AdminData = {
@@ -262,9 +256,6 @@ export default function AdminDashboard() {
           email: data.email,
           password: "",
           userId: doc.id,
-          status: data.status || "active",
-          lastActive: data.lastActive,
-          createdAt: data.createdAt || new Date().toISOString(),
         });
       });
       setSubaccounts(fetchedSubaccounts);
@@ -307,7 +298,6 @@ export default function AdminDashboard() {
       );
 
       const uid = userCredential.user.uid;
-      const currentDate = new Date().toISOString();
 
       // Create document in Firestore
       const db = getFirestore();
@@ -317,9 +307,6 @@ export default function AdminDashboard() {
         Nombre: newSubaccount.name,
         email: newSubaccount.email,
         type: "b_sale",
-        status: "active",
-        createdAt: currentDate,
-        lastActive: currentDate,
       });
 
       if (docRef.id) {
@@ -588,7 +575,7 @@ export default function AdminDashboard() {
                 </h1>
                 <p className="mt-1 text-sm text-gray-500">
                   {activeTab === "subaccounts" &&
-                    `${subaccounts.length} subcuentas activas`}
+                    `${subaccounts.length} subcuentas`}
                   {activeTab === "settings" &&
                     "Administra tu perfil y preferencias"}
                   {activeTab === "help" &&
@@ -663,42 +650,9 @@ export default function AdminDashboard() {
                                 </p>
                               </div>
                             </div>
-                            <Badge
-                              color={
-                                subaccount.status === "active"
-                                  ? "success"
-                                  : "default"
-                              }
-                              variant="flat"
-                              className="capitalize"
-                            >
-                              {subaccount.status}
-                            </Badge>
-                          </div>
-
-                          <div className="space-y-2 text-sm text-gray-500">
-                            <div className="flex justify-between">
-                              <span>Creado:</span>
-                              <span>
-                                {new Date(
-                                  subaccount.createdAt
-                                ).toLocaleDateString()}
-                              </span>
-                            </div>
-                            {subaccount.lastActive && (
-                              <div className="flex justify-between">
-                                <span>Última actividad:</span>
-                                <span>
-                                  {new Date(
-                                    subaccount.lastActive
-                                  ).toLocaleDateString()}
-                                </span>
-                              </div>
-                            )}
                           </div>
                         </div>
                       </CardBody>
-
                       <CardFooter className="px-6 py-4 bg-gray-50 border-t border-gray-100">
                         <div className="flex justify-between w-full">
                           <Button
