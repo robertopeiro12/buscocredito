@@ -65,3 +65,36 @@ export const add_propuesta = async (id: string, bank_id: string) => {
         return { error: error.message, status: 500 };
     }
 }
+
+// Agregar esto a tu archivo db/FirestoreFunc.ts
+
+export const delete_subaccount_doc = async (subaccountId: string): Promise<{ status: number, error?: string }> => {
+    const Firestore = getFirestore();
+    const docRef = Firestore.collection('cuentas').doc(subaccountId);
+    try {
+        await docRef.delete();
+        return { status: 200 };
+    } catch (error) {
+        console.error("Error deleting document: ", error);
+        return { error: error.message, status: 500 };
+    }
+}
+
+export const verify_subaccount = async (subaccountId: string): Promise<{ status: number, exists: boolean, error?: string }> => {
+    const Firestore = getFirestore();
+    const docRef = Firestore.collection('cuentas').doc(subaccountId);
+    try {
+        const doc = await docRef.get();
+        return { 
+            status: 200, 
+            exists: doc.exists 
+        };
+    } catch (error) {
+        console.error("Error verifying document: ", error);
+        return { 
+            status: 500, 
+            exists: false, 
+            error: error.message 
+        };
+    }
+}

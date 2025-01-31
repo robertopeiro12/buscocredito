@@ -21,3 +21,21 @@ const userRecord = await auth.createUser({
 }
 
 }
+// Añadir a FireAuthFunc.ts
+
+export const delete_auth_user = async (email: string): Promise<{ status: number, error?: string }> => {
+    try {
+        const auth = getAuth();
+        
+        // Primero obtenemos el usuario por email
+        const userRecord = await auth.getUserByEmail(email);
+        // Luego lo eliminamos usando su UID
+        await auth.deleteUser(userRecord.uid);
+        
+        console.log('Successfully deleted user:', email);
+        return { status: 200 };
+    } catch (error) {
+        console.log('Error deleting user:', error);
+        return { error: error.message, status: 500 };
+    }
+}
