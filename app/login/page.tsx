@@ -1,4 +1,5 @@
 "use client";
+import { collection, query, where, getDocs } from "firebase/firestore";
 import { Input, Button } from "@nextui-org/react";
 import { auth } from "../firebase";
 import {
@@ -49,32 +50,53 @@ export default function LoginPage() {
 
     setIsLoading(true);
     try {
+      // 1. Primero autenticamos con Firebase Auth
       const userCredential = await signInWithEmailAndPassword(
         auth,
         formData.email,
         formData.password
       );
-      setUser(userCredential.user.uid);
 
       const db = getFirestore();
-      const userDocRef = doc(db, "cuentas", userCredential.user.uid);
-      const userDocSnap = await getDoc(userDocRef);
+      // 2. Buscamos por Empresa_id que es el UID del admin
+      const querySnapshot = await getDocs(
+        query(
+          collection(db, "cuentas"),
+          where("email", "==", formData.email),
+          where("type", "in", ["b_admin", "b_sale", "user"]) // Verificación adicional
+        )
+      );
 
-      if (userDocSnap.exists()) {
-        const userData = userDocSnap.data();
-        switch (userData.type) {
-          case "b_admin":
-            router.push("/admin_dashboard");
-            break;
-          case "user":
-            router.push("/user_dashboard");
-            break;
-          case "b_sale":
-            router.push("/lender");
-            break;
-          default:
-            console.error("Unknown account type");
+      if (!querySnapshot.empty) {
+        const userData = querySnapshot.docs[0].data();
+
+        // 3. Verificar que el usuario está activo y tiene permisos
+        if (userData.Empresa_id) {
+          // 4. Redirección basada en el tipo
+          switch (userData.type) {
+            case "b_admin":
+              router.push("/admin_dashboard");
+              break;
+            case "user":
+              router.push("/user_dashboard");
+              break;
+            case "b_sale":
+              router.push("/lender");
+              break;
+            default:
+              console.error("Unknown account type");
+              await signOut(auth); // Cerramos sesión si el tipo no es válido
+              setError(true);
+          }
+        } else {
+          console.error("User has no company association");
+          await signOut(auth);
+          setError(true);
         }
+      } else {
+        console.error("No user document found");
+        await signOut(auth);
+        setError(true);
       }
     } catch (error: any) {
       console.error("Login error:", error);
@@ -83,7 +105,6 @@ export default function LoginPage() {
       setIsLoading(false);
     }
   };
-
   return (
     <div className="bg-white p-8 rounded-xl shadow-lg w-full border border-gray-100">
       <h1 className="text-2xl font-bold text-center text-gray-800 mb-8">
