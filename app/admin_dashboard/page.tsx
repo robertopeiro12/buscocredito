@@ -199,9 +199,18 @@ export default function AdminDashboard() {
   const fetchAdminData = async (userId: string) => {
     try {
       const db = getFirestore();
-
       const cuentasRef = collection(db, "cuentas");
-      const q = query(cuentasRef, where("type", "==", "b_admin"));
+
+      // Obtener el email del usuario autenticado
+      const userEmail = auth.currentUser?.email;
+
+      // Buscar por email y tipo
+      const q = query(
+        cuentasRef,
+        where("email", "==", userEmail),
+        where("type", "==", "b_admin")
+      );
+
       const querySnapshot = await getDocs(q);
 
       if (!querySnapshot.empty) {
