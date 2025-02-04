@@ -1,60 +1,50 @@
-// app/api/deleteSubaccount/route.ts
-import "server-only";
-import { NextRequest, NextResponse } from 'next/server';
-import { initAdmin } from '@/db/FirebaseAdmin';
-import { delete_subaccount_doc, verify_subaccount } from '@/db/FirestoreFunc';
-import { delete_auth_user } from '@/db/FireAuthFunc';  // Asumiendo que tienes esta función
+import { type NextRequest, NextResponse } from "next/server";
+import { initAdmin } from "@/db/FirebaseAdmin";
+import { delete_subaccount_doc } from "@/db/FirestoreFunc";
+import { delete_subaccount } from "@/db/FireAuthFunc";
 
-export async function POST(req: NextRequest) {
-    const { subaccountId, email } = await req.json();
+export async function DELETE(req: NextRequest) {
+  try {
+    const { userId } = await req.json();
 
-    if (!subaccountId || !email) {
-        return NextResponse.json(
-            { error: "Se requiere ID y email de la subcuenta" },
-            { status: 400 }
-        );
+    if (!userId) {
+      return NextResponse.json(
+        { error: "Se requiere el ID del usuario" },
+        { status: 400 }
+      );
     }
 
-    try {
-        await initAdmin();
+    // Initialize admin
+    await initAdmin();
 
-        // Verificar existencia
-        const verifyResult = await verify_subaccount(subaccountId);
-        if (!verifyResult.exists) {
-            return NextResponse.json(
-                { error: 'La subcuenta no existe' },
-                { status: 404 }
-            );
-        }
-
-        // Eliminar de Auth
-        const authResult = await delete_auth_user(email);
-        if (authResult.status !== 200) {
-            return NextResponse.json(
-                { error: authResult.error },
-                { status: 500 }
-            );
-        }
-
-        // Eliminar de Firestore
-        const deleteResult = await delete_subaccount_doc(subaccountId);
-        if (deleteResult.status !== 200) {
-            return NextResponse.json(
-                { error: deleteResult.error },
-                { status: 500 }
-            );
-        }
-
-        return NextResponse.json(
-            { message: 'Subcuenta eliminada correctamente' },
-            { status: 200 }
-        );
-
-    } catch (error) {
-        console.error('Error en deleteSubaccount:', error);
-        return NextResponse.json(
-            { error: 'Error al eliminar la subcuenta' },
-            { status: 500 }
-        );
+    // First delete the user from Authentication
+    const authResult = await delete_subaccount(userId);
+    if (authResult.status !== 200) {
+      return NextResponse.json(
+        { error: authResult.error },
+        { status: authResult.status }
+      );
     }
+
+    // Then delete the document from Firestore
+    const firestoreResult = await delete_subaccount_doc(userId);
+    if (firestoreResult.status !== 200) {
+      return NextResponse.json(
+        { error: firestoreResult.error },
+        { status: firestoreResult.status }
+      );
+    }
+
+    // If both operations were successful
+    return NextResponse.json(
+      { message: "Usuario eliminado correctamente" },
+      { status: 200 }
+    );
+  } catch (error: any) {
+    console.error("Error al eliminar usuario:", error);
+    return NextResponse.json(
+      { error: error.message || "Error interno del servidor" },
+      { status: 500 }
+    );
+  }
 }
