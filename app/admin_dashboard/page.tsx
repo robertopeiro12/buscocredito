@@ -43,6 +43,7 @@ type AdminData = {
 
 export default function AdminDashboard() {
   const [subaccounts, setSubaccounts] = useState<Subaccount[]>([]);
+  const [isCreating, setIsCreating] = useState(false);
   const [userEmail, setUserEmail] = useState("");
   const [user, setUser] = useState("");
   const [adminData, setAdminData] = useState<AdminData>({
@@ -156,9 +157,17 @@ export default function AdminDashboard() {
     }
   };
 
-  const handleCreateSubaccount = () => {
-    createSubaccount({ ...newSubaccount, userId: user });
-    setNewSubaccount({ name: "", email: "", password: "", userId: "" });
+  const handleCreateSubaccount = async () => {
+    setIsCreating(true); // Iniciamos el loading
+    try {
+      await createSubaccount({ ...newSubaccount, userId: user });
+      setNewSubaccount({ name: "", email: "", password: "", userId: "" });
+    } catch (error) {
+      console.error("Error al crear subcuenta:", error);
+    } finally {
+      setIsCreating(false); // Terminamos el loading
+      setIsModalOpen(false);
+    }
   };
 
   const handleDeleteSubaccount = async (id: number) => {
@@ -403,10 +412,15 @@ export default function AdminDashboard() {
               color="danger"
               variant="light"
               onPress={() => setIsModalOpen(false)}
+              isDisabled={isCreating}
             >
               Cancelar
             </Button>
-            <Button color="success" onPress={handleCreateSubaccount}>
+            <Button
+              color="success"
+              onPress={handleCreateSubaccount}
+              isLoading={isCreating}
+            >
               Crear
             </Button>
           </ModalFooter>
