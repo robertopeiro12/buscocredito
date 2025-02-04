@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 import { auth } from "../firebase";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import {
@@ -64,6 +65,11 @@ export default function AdminDashboard() {
   });
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("subaccounts");
+  const filteredSubaccounts = subaccounts.filter(
+    (account) =>
+      account.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      account.email.toLowerCase().includes(searchTerm.toLowerCase())
+  );
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
   useEffect(() => {
@@ -136,11 +142,10 @@ export default function AdminDashboard() {
 
   const fetchUsers = async (userId: string) => {
     setIsLoading(true);
-    const db = getFirestore();
-    const solicitudesRef = collection(db, "cuentas");
-    const q = query(solicitudesRef, where("Empresa_id", "==", userId));
-
     try {
+      const db = getFirestore();
+      const solicitudesRef = collection(db, "cuentas");
+      const q = query(solicitudesRef, where("Empresa_id", "==", userId));
       const querySnapshot = await getDocs(q);
       const newSubaccounts: Subaccount[] = [];
 
@@ -160,8 +165,11 @@ export default function AdminDashboard() {
       });
 
       setSubaccounts(newSubaccounts);
-    } catch (error) {
-      console.error("Error al obtener usuarios:", error);
+    } catch (error: any) {
+      toast.error("Error al cargar las subcuentas. Verifica tu conexión.", {
+        icon: "🔄",
+        duration: 5000,
+      });
     } finally {
       setIsLoading(false);
     }
@@ -204,6 +212,9 @@ export default function AdminDashboard() {
 
   const handleCreateSubaccount = async () => {
     if (!validateForm()) {
+      toast.error("Por favor, completa todos los campos correctamente", {
+        icon: "⚠️",
+      });
       return;
     }
 
@@ -211,46 +222,56 @@ export default function AdminDashboard() {
     try {
       await createSubaccount({ ...newSubaccount, userId: user });
       setNewSubaccount({ name: "", email: "", password: "", userId: "" });
-      setFormErrors({ name: "", email: "", password: "" }); // Limpiar errores
-    } catch (error) {
-      console.error("Error al crear subcuenta:", error);
+      setFormErrors({ name: "", email: "", password: "" });
+      toast.success("¡Subcuenta creada exitosamente!", {
+        icon: "✅",
+      });
+    } catch (error: any) {
+      toast.error("No se pudo crear la subcuenta. Intenta nuevamente.", {
+        icon: "❌",
+      });
     } finally {
       setIsCreating(false);
       setIsModalOpen(false);
     }
   };
-
   const handleDeleteSubaccount = async (id: number) => {
     try {
       const subaccount = subaccounts.find((acc) => acc.id === id);
       if (!subaccount) {
-        console.error("Subcuenta no encontrada");
+        toast.error("No se encontró la subcuenta", {
+          icon: "❌",
+        });
         return;
       }
 
       setSubaccounts((prevAccounts) =>
         prevAccounts.filter((account) => account.id !== id)
       );
-
+      toast.success("Subcuenta eliminada correctamente", {
+        icon: "✅",
+      });
       await fetchUsers(user);
-    } catch (error) {
-      console.error("Error al eliminar la subcuenta:", error);
+    } catch (error: any) {
+      toast.error("Error al eliminar la subcuenta. Intenta nuevamente.", {
+        icon: "❌",
+      });
       await fetchUsers(user);
     }
   };
-  const filteredSubaccounts = subaccounts.filter(
-    (account) =>
-      account.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      account.email.toLowerCase().includes(searchTerm.toLowerCase())
-  );
 
   const handleSignOut = () => {
     signOut(auth)
       .then(() => {
+        toast.success("¡Hasta pronto! Sesión cerrada exitosamente", {
+          icon: "👋",
+        });
         router.push("/login");
       })
       .catch((error) => {
-        console.error("Error al cerrar sesión:", error);
+        toast.error("No se pudo cerrar sesión. Intenta nuevamente.", {
+          icon: "❌",
+        });
       });
   };
   return (
