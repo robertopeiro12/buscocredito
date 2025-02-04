@@ -43,6 +43,7 @@ type AdminData = {
 
 export default function AdminDashboard() {
   const [subaccounts, setSubaccounts] = useState<Subaccount[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
   const [isCreating, setIsCreating] = useState(false);
   const [userEmail, setUserEmail] = useState("");
   const [user, setUser] = useState("");
@@ -188,6 +189,11 @@ export default function AdminDashboard() {
       await fetchUsers(user);
     }
   };
+  const filteredSubaccounts = subaccounts.filter(
+    (account) =>
+      account.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      account.email.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   const handleSignOut = () => {
     signOut(auth)
@@ -246,6 +252,8 @@ export default function AdminDashboard() {
                     placeholder="Buscar subcuentas..."
                     startContent={<Search className="text-gray-400" />}
                     className="w-full max-w-md"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
                   />
                 </CardBody>
               </Card>
@@ -256,7 +264,7 @@ export default function AdminDashboard() {
                 </div>
               ) : (
                 <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                  {subaccounts.map((subaccount) => (
+                  {filteredSubaccounts.map((subaccount) => (
                     <SubaccountCard
                       key={subaccount.id}
                       subaccount={subaccount}
