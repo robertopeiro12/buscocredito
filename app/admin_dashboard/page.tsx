@@ -46,6 +46,11 @@ export default function AdminDashboard() {
   const [searchTerm, setSearchTerm] = useState("");
   const [isCreating, setIsCreating] = useState(false);
   const [userEmail, setUserEmail] = useState("");
+  const [formErrors, setFormErrors] = useState({
+    name: "",
+    email: "",
+    password: "",
+  });
   const [user, setUser] = useState("");
   const [adminData, setAdminData] = useState<AdminData>({
     company_name: "",
@@ -88,6 +93,45 @@ export default function AdminDashboard() {
     } catch (error) {
       console.error("Error al obtener datos del administrador:", error);
     }
+  };
+  const validateForm = () => {
+    let isValid = true;
+    const newErrors = {
+      name: "",
+      email: "",
+      password: "",
+    };
+
+    // Validar nombre
+    if (!newSubaccount.name.trim()) {
+      newErrors.name = "El nombre es requerido";
+      isValid = false;
+    } else if (newSubaccount.name.trim().length < 3) {
+      newErrors.name = "El nombre debe tener al menos 3 caracteres";
+      isValid = false;
+    }
+
+    // Validar email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!newSubaccount.email) {
+      newErrors.email = "El email es requerido";
+      isValid = false;
+    } else if (!emailRegex.test(newSubaccount.email)) {
+      newErrors.email = "Email inválido";
+      isValid = false;
+    }
+
+    // Validar contraseña
+    if (!newSubaccount.password) {
+      newErrors.password = "La contraseña es requerida";
+      isValid = false;
+    } else if (newSubaccount.password.length < 6) {
+      newErrors.password = "La contraseña debe tener al menos 6 caracteres";
+      isValid = false;
+    }
+
+    setFormErrors(newErrors);
+    return isValid;
   };
 
   const fetchUsers = async (userId: string) => {
@@ -159,14 +203,19 @@ export default function AdminDashboard() {
   };
 
   const handleCreateSubaccount = async () => {
-    setIsCreating(true); // Iniciamos el loading
+    if (!validateForm()) {
+      return;
+    }
+
+    setIsCreating(true);
     try {
       await createSubaccount({ ...newSubaccount, userId: user });
       setNewSubaccount({ name: "", email: "", password: "", userId: "" });
+      setFormErrors({ name: "", email: "", password: "" }); // Limpiar errores
     } catch (error) {
       console.error("Error al crear subcuenta:", error);
     } finally {
-      setIsCreating(false); // Terminamos el loading
+      setIsCreating(false);
       setIsModalOpen(false);
     }
   };
@@ -396,6 +445,8 @@ export default function AdminDashboard() {
               onChange={(e) =>
                 setNewSubaccount({ ...newSubaccount, name: e.target.value })
               }
+              isInvalid={!!formErrors.name}
+              errorMessage={formErrors.name}
             />
             <Input
               label="Correo electrónico"
@@ -404,6 +455,8 @@ export default function AdminDashboard() {
               onChange={(e) =>
                 setNewSubaccount({ ...newSubaccount, email: e.target.value })
               }
+              isInvalid={!!formErrors.email}
+              errorMessage={formErrors.email}
             />
             <Input
               label="Contraseña"
@@ -413,6 +466,8 @@ export default function AdminDashboard() {
               onChange={(e) =>
                 setNewSubaccount({ ...newSubaccount, password: e.target.value })
               }
+              isInvalid={!!formErrors.password}
+              errorMessage={formErrors.password}
             />
           </ModalBody>
           <ModalFooter>
