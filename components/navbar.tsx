@@ -10,12 +10,15 @@ export default function NavBar() {
   const pathname = usePathname();
 
   // Add admin dashboard path to the check
-  const shouldHideAuthButtons = [
-    "/login",
-    "/signup",
-    "/user_dashboard",
-    "/admin_dashboard", // Added admin dashboard path
-  ].includes(pathname);
+  const shouldHideAuthButtons =
+    [
+      "/login",
+      "/signup",
+      "/user_dashboard",
+      "/admin_dashboard", // Added admin dashboard path
+      "/lender",
+      "/lender/offer",
+    ].includes(pathname) || pathname.startsWith("/lender");
 
   return (
     <nav className="w-full bg-white/95 backdrop-blur-sm border-b border-gray-100 px-4 py-3 fixed top-0 z-50 shadow-sm">
