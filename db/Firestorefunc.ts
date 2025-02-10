@@ -51,13 +51,18 @@ export const getUserOfferData = async (id: string) => {
     }
 }
 
-export const add_propuesta = async (id: string, bank_id: string) => {
+export const add_propuesta = async (id: string, offer_data: any) => {
     
     const Firestore = getFirestore();
     const accountRef = Firestore.collection('solicitudes').doc(id)
+    const propuestasRef = Firestore.collection('propuestas')
     try {
-        await accountRef.update({
-            accepted: FieldValue.arrayUnion(bank_id)
+    const newDocRef = await propuestasRef.add(offer_data);
+    const newDocId = newDocRef.id;
+    console.log("New document ID: ", newDocId);
+      
+     await accountRef.update({
+            accepted: FieldValue.arrayUnion(newDocId)
         });
         return { status: 200 };
     } catch (error) {
