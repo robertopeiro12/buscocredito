@@ -57,19 +57,24 @@ export const getUserOfferData = async (id: string) => {
   }
 }
 
-export const add_propuesta = async (id: string, bank_id: string) => {
-  const Firestore = getFirestore()
-  const accountRef = Firestore.collection("solicitudes").doc(id)
-  try {
-    await accountRef.update({
-      accepted: FieldValue.arrayUnion(bank_id),
-    })
-    return { status: 200 }
-  } catch (error) {
-    console.error("Error updating offer: ", error)
-    return { error: error.message, status: 500 }
-  }
-}
+
+export const add_propuesta = async (id: string, offer_data: any) => {
+    
+    const Firestore = getFirestore();
+    const accountRef = Firestore.collection('solicitudes').doc(id)
+    const propuestasRef = Firestore.collection('propuestas')
+    try {
+    const newDocRef = await propuestasRef.add(offer_data);
+    const newDocId = newDocRef.id;
+    console.log("New document ID: ", newDocId);
+      
+     await accountRef.update({
+            accepted: FieldValue.arrayUnion(newDocId)
+        });
+        return { status: 200 };
+    } catch (error) {
+        console.error("Error updating offer: ", error);
+        return { error: error.message, status: 500 };
 
 export async function delete_subaccount_doc(userId: string) {
   try {
@@ -81,6 +86,7 @@ export async function delete_subaccount_doc(userId: string) {
     return {
       status: 500,
       error: `Error al eliminar documento en Firestore: ${error.message}`,
+
     }
   }
 }

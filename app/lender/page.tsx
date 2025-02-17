@@ -183,6 +183,30 @@ export default function LenderPage() {
     }
   };
 
+    const updateOffer = async (id: string) => {
+      console.log("updating offer", id);
+      console.log("proposaldata", proposaldata);
+      try {
+        const response = await fetch('/api/addOfferAcepted', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ id: id, offer_data: proposaldata }),
+        });
+
+        if (response.ok) {
+          setIsEditing(false);
+
+          } else {
+            console.error("Error fetching user data:", response.error);
+          }
+      } catch (error) {
+        console.error("Error getting data:", error);
+      }
+    };
+    
+
   const handleSubmitOffer = async () => {
     const success = await submitProposal();
     if (success) {
