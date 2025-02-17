@@ -6,18 +6,19 @@ import {
   signOut,
   onAuthStateChanged,
 } from "firebase/auth";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { doc, getDoc, getFirestore } from "firebase/firestore";
+import { collection, query, where, getDocs } from "firebase/firestore";
 
 export default function LoginPage() {
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
-  const [error, setError] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [user, setUser] = useState("");
+  const [user, setUser] = useState<string | null>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -26,6 +27,7 @@ export default function LoginPage() {
         setUser(user.uid);
         console.log("uid", user.uid);
       } else {
+        setUser(null);
         console.log("user is logged out");
       }
     });
@@ -38,52 +40,69 @@ export default function LoginPage() {
       ...prev,
       [field]: value,
     }));
-    setError(false);
+    setError(null);
   };
 
   const signIn = async () => {
     if (!formData.email || !formData.password) {
-      setError(true);
+      setError("Todos los campos son obligatorios");
       return;
     }
 
     setIsLoading(true);
     try {
+      // 1. Autenticación con Firebase
       const userCredential = await signInWithEmailAndPassword(
         auth,
         formData.email,
         formData.password
       );
-      setUser(userCredential.user.uid);
 
       const db = getFirestore();
-      const userDocRef = doc(db, "cuentas", userCredential.user.uid);
-      const userDocSnap = await getDoc(userDocRef);
+      // 2. Buscar usuario por email
+      const querySnapshot = await getDocs(
+        query(collection(db, "cuentas"), where("email", "==", formData.email))
+      );
 
-      if (userDocSnap.exists()) {
-        const userData = userDocSnap.data();
+      if (!querySnapshot.empty) {
+        const userData = querySnapshot.docs[0].data();
+
+        // 3. Redirección basada en el tipo de usuario
         switch (userData.type) {
           case "b_admin":
+            if (userData.Empresa) {
+              throw new Error("Cuenta de administrador no válida");
+            }
             router.push("/admin_dashboard");
             break;
+
+          case "b_sale":
+            // Solo verificamos Empresa_id para vendedores
+            if (!userData.Empresa_id) {
+              throw new Error("Cuenta de vendedor no válida");
+            }
+            router.push("/lender");
+            break;
+
           case "user":
             router.push("/user_dashboard");
             break;
-          case "b_sale":
-            router.push("/lender");
-            break;
+
           default:
-            console.error("Unknown account type");
+            throw new Error("Tipo de cuenta no válido");
         }
+      } else {
+        throw new Error("Usuario no encontrado");
       }
     } catch (error: any) {
       console.error("Login error:", error);
-      setError(true);
+      await signOut(auth);
+      // Mostrar mensaje de error más amigable
+      setError("Correo o contraseña incorrecta");
     } finally {
       setIsLoading(false);
     }
   };
-
   return (
     <div className="bg-white p-8 rounded-xl shadow-lg w-full border border-gray-100">
       <h1 className="text-2xl font-bold text-center text-gray-800 mb-8">
@@ -97,7 +116,7 @@ export default function LoginPage() {
           placeholder="correo@ejemplo.com"
           value={formData.email}
           onValueChange={(value) => handleInputChange(value, "email")}
-          isInvalid={error}
+          isInvalid={!!error}
           classNames={{
             input: "bg-transparent",
             inputWrapper: [
@@ -114,7 +133,7 @@ export default function LoginPage() {
           placeholder="••••••••"
           value={formData.password}
           onValueChange={(value) => handleInputChange(value, "password")}
-          isInvalid={error}
+          isInvalid={!!error}
           classNames={{
             input: "bg-transparent",
             inputWrapper: [
@@ -125,11 +144,7 @@ export default function LoginPage() {
           }}
         />
 
-        {error && (
-          <p className="text-red-500 text-sm text-center">
-            Correo o contraseña incorrecta
-          </p>
-        )}
+        {error && <p className="text-red-500 text-sm text-center">{error}</p>}
 
         <Button
           color="success"

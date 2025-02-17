@@ -1,125 +1,187 @@
-  'use client'
+// app/lender/page.tsx
+"use client";
 
-  import { useState } from 'react';
-  import { motion, AnimatePresence } from 'framer-motion';
-  import { LogOut } from 'lucide-react';
-  import { onAuthStateChanged, signOut} from "firebase/auth"
-  import { useEffect } from "react"
-  import { auth } from '../firebase'
-  import { useRouter } from 'next/navigation';
-  import {doc, getFirestore, collection, onSnapshot,getDoc } from 'firebase/firestore';
-  import { ProposalData, PartnerData } from '@/types';
+import { useState } from "react";
+import { useMemo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { LogOut } from "lucide-react";
+import { onAuthStateChanged, signOut } from "firebase/auth";
+import { useEffect } from "react";
+import { auth } from "../firebase";
+import { LenderSidebar } from "@/components/LenderSidebar";
+import { useRouter } from "next/navigation";
+import {
+  doc,
+  getFirestore,
+  collection,
+  onSnapshot,
+  getDoc,
+} from "firebase/firestore";
 
-  const adminData = {
-    name: "Admin User",
-    email: "admin@example.com",
-    avatar: "https://i.pravatar.cc/150?u=a042581f4e29026704d"
-  };
+import {
+  Input,
+  Select,
+  SelectItem,
+  Button,
+  Card,
+  Chip,
+} from "@nextui-org/react";
+import {
+  Search,
+  SlidersHorizontal,
+  DollarSign,
+  Clock,
+  Calendar,
+} from "lucide-react";
 
-  export default function Lender() {
-    const router = useRouter();
-    const [user, setUser] = useState("")
-    const [selectedOfferId, setSelectedOfferId] = useState<string | null>(null);
-    const [offers, setOffers] = useState<any[]>([]);
-    const selectedOffer = selectedOfferId ? offers.find(o => o.id === selectedOfferId) : null;
-    const [offeruserdata, setOfferuserdata] = useState<any>({});
-    const [isEditing, setIsEditing] = useState(false);
-    const [proposaldata, setproposaldata] = useState<ProposalData | null>(null);
-    const [partnerdata, setPartnerData] = useState<PartnerData>({ name: '', company: '', company_id: '' });
+// Hooks
+import { useLoans } from "./hooks/useLoans";
+import { useProposal } from "./hooks/useProposal";
 
-    
-  // INITIAL USE EFFECT
-    useEffect(() => {
-        onAuthStateChanged(auth, (user) => {
-          if (user) {
-            setUser(user.uid)
-            console.log("uid", user.uid)
-            get_partner_data(user.uid)
-            get_offer()
-            
-          } else {
-            console.log("user is logged out")
-          }
-        })
-      }, [])
+// Components
+import LoanRequestList from "@/components/LoanRequestList";
+import LoanRequestDetails from "@/components/LoanRequestDetails";
+import { ProposalForm } from "@/components/ProposalForm";
 
-  // Basic Functions
-  const sign_out = () => {
-    signOut(auth).then(() => {
-      console.log("user is logged out")
-      setUser("");
-      router.push('/login')
-    }).catch((error) => {
-      console.log("error", error)
+// Types
+import type {
+  PublicUserData,
+  LoanRequest,
+} from "@/app/lender/types/loan.types";
+
+export default function LenderPage() {
+  const router = useRouter();
+  const [user, setUser] = useState<string>("");
+  const [activeTab, setActiveTab] = useState("marketplace");
+  const [selectedRequestId, setSelectedRequestId] = useState<string | null>(
+    null
+  );
+  const [isCreatingOffer, setIsCreatingOffer] = useState(false);
+  const [partnerData, setPartnerData] = useState({
+    name: "",
+    company: "",
+    company_id: "",
+  });
+
+  const [filters, setFilters] = useState({
+    search: "",
+    amount: "all",
+    term: "all",
+  });
+  const [userData, setUserData] = useState<PublicUserData | null>(null);
+
+  const { loans: requests, loading } = useLoans();
+  const selectedRequest = selectedRequestId
+    ? requests.find((r) => r.id === selectedRequestId)
+    : null;
+
+  const {
+    proposalData,
+    updateProposal,
+    submitProposal,
+    loading: submitting,
+    error: submitError,
+    resetProposal,
+  } = useProposal(selectedRequest);
+
+  const filteredRequests = useMemo(() => {
+    return requests.filter((request) => {
+      // Filtro de búsqueda
+      const searchMatch =
+        !filters.search ||
+        request.amount.toString().includes(filters.search) ||
+        request.term.toLowerCase().includes(filters.search.toLowerCase());
+
+      // Filtro de monto
+      let amountMatch = true;
+      if (filters.amount !== "all") {
+        switch (filters.amount) {
+          case "0-50000":
+            amountMatch = request.amount <= 50000;
+            break;
+          case "50000-100000":
+            amountMatch = request.amount > 50000 && request.amount <= 100000;
+            break;
+          case "100000+":
+            amountMatch = request.amount > 100000;
+            break;
+        }
+      }
+
+      // Filtro de plazo
+      let termMatch = true;
+      if (filters.term !== "all") {
+        const months = parseInt(request.term);
+        switch (filters.term) {
+          case "1-12":
+            termMatch = months <= 12;
+            break;
+          case "13-24":
+            termMatch = months > 12 && months <= 24;
+            break;
+          case "25+":
+            termMatch = months > 24;
+            break;
+        }
+      }
+
+      return searchMatch && amountMatch && termMatch;
     });
-  };
+  }, [requests, filters]);
 
-  const get_partner_data = async(uid) =>{
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setUser(user.uid);
+        getPartnerData(user.uid);
+      } else {
+        router.push("/login");
+      }
+    });
 
+    return () => unsubscribe();
+  }, [router]);
+
+  const getPartnerData = async (uid: string) => {
     const db = getFirestore();
-    const partnersRef = collection(db, "cuentas");
-    const query = doc(partnersRef, uid);
-    const docSnap = await getDoc(query);
+    const docRef = doc(db, "cuentas", uid);
+    const docSnap = await getDoc(docRef);
+
     if (docSnap.exists()) {
-      console.log("Document data:", docSnap.data());
-      setPartnerData((prev) => ({
-        ...prev,
+      setPartnerData({
         name: docSnap.data().name,
+        company: docSnap.data().Empresa,
         company_id: docSnap.data().company_id,
-        company: docSnap.data().Empresa
-      }));
-    } else {
-      console.log("No such document!");
-    } 
+      });
+    }
   };
-      
 
-    const get_offer = async() =>{
-      const db = getFirestore();
-      const solicitudesRef = collection(db, "solicitudes");
-
-      onSnapshot(solicitudesRef, (querySnapshot) => {
-        const fetchedOffers = [];
-        querySnapshot.forEach((doc) => {
-          const temp = doc.data();
-          temp['id'] = doc.id;
-          fetchedOffers.push(temp);
-        });
-        setOffers(fetchedOffers);
-        console.log(fetchedOffers);
+  const getUserData = async (userId: string) => {
+    try {
+      const response = await fetch("/api/getUserOfferData", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ userId }),
       });
 
-    }
-
-    const get_user_data = async(id, userId) =>{
-      try {
-        const response = await fetch('/api/getUserOfferData', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ userId: userId }),
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          if (response.status === 200) {
-            console.log("Datas:", data.data);
-            setOfferuserdata(JSON.parse(data.data));
-            setSelectedOfferId(id);
-
-          } else {
-            console.error("Error fetching user data:", response.error);
-          }
-        } else {
-          const errorData = await response.json();
-          console.error("Error getting data:", errorData.error);
-        }
-      } catch (error) {
-        console.error("Error getting data:", error);
+      if (response.ok) {
+        const data = await response.json();
+        setUserData(data.data ? JSON.parse(data.data) : null);
       }
+    } catch (error) {
+      console.error("Error getting data:", error);
     }
+  };
 
+  const handleSelectRequest = async (requestId: string) => {
+    const request = requests.find((r) => r.id === requestId);
+    if (request) {
+      setSelectedRequestId(requestId);
+      await getUserData(request.userId);
+    }
+  };
 
     const updateOffer = async (id: string) => {
       console.log("updating offer", id);
@@ -145,261 +207,215 @@
     };
     
 
+  const handleSubmitOffer = async () => {
+    const success = await submitProposal();
+    if (success) {
+      setIsCreatingOffer(false);
+      resetProposal();
+    }
+  };
 
-    return (
-      <div className="min-h-screen flex flex-col bg-gray-100">
-        {/* Navbar */}
-        <nav className="bg-white shadow-md">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between h-16">
-              <div className="flex">
-                <div className="flex-shrink-0 flex items-center">
-                  <span className="font-bold text-xl text-gray-800">Admin Dashboard</span>
-                </div>
-              </div>
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <img
-                    className="h-8 w-8 rounded-full"
-                    src={adminData.avatar}
-                    alt="Admin user"
-                  />
-                </div>
-                <div className="ml-3">
-                  <div className="text-base font-medium text-gray-800">{adminData.name}</div>
-                  <div className="text-sm font-medium text-gray-500">{adminData.email}</div>
-                </div>
-                <motion.button
-                  onClick={sign_out}
-                  className="ml-4 px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+  const handleSignOut = () => {
+    signOut(auth)
+      .then(() => {
+        router.push("/login");
+      })
+      .catch((error) => {
+        console.error("Error signing out:", error);
+      });
+  };
+  return (
+    <div className="flex min-h-screen bg-gray-50">
+      <LenderSidebar
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        handleSignOut={handleSignOut}
+        companyName={partnerData.company}
+      />
+
+      <div className="flex-1">
+        {activeTab === "marketplace" && (
+          <div className="p-8">
+            {/* Barra de Filtros */}
+            <Card className="mb-6 p-4">
+              <div className="flex flex-wrap gap-4">
+                {/* Los filtros se mantienen igual */}
+                <Input
+                  type="text"
+                  placeholder="Buscar por monto o plazo..."
+                  startContent={<Search className="w-4 h-4 text-gray-400" />}
+                  value={filters.search}
+                  onChange={(e) =>
+                    setFilters((prev) => ({ ...prev, search: e.target.value }))
+                  }
+                  className="w-full md:w-72"
+                />
+                <Select
+                  placeholder="Monto"
+                  size="sm"
+                  selectedKeys={[filters.amount]}
+                  onChange={(e) =>
+                    setFilters((prev) => ({ ...prev, amount: e.target.value }))
+                  }
+                  className="w-full md:w-48"
                 >
-                  <LogOut className="h-5 w-5" />
-                  <span className="sr-only">Logout</span>
-                </motion.button>
+                  <SelectItem key="all">Todos los montos</SelectItem>
+                  <SelectItem key="0-50000">Hasta $50,000</SelectItem>
+                  <SelectItem key="50000-100000">$50,000 - $100,000</SelectItem>
+                  <SelectItem key="100000+">Más de $100,000</SelectItem>
+                </Select>
+                <Select
+                  placeholder="Plazo"
+                  size="sm"
+                  selectedKeys={[filters.term]}
+                  onChange={(e) =>
+                    setFilters((prev) => ({ ...prev, term: e.target.value }))
+                  }
+                  className="w-full md:w-48"
+                >
+                  <SelectItem key="all">Todos los plazos</SelectItem>
+                  <SelectItem key="1-12">1-12 meses</SelectItem>
+                  <SelectItem key="13-24">13-24 meses</SelectItem>
+                  <SelectItem key="25+">Más de 24 meses</SelectItem>
+                </Select>
+                <Button
+                  variant="flat"
+                  startContent={<SlidersHorizontal className="w-4 h-4" />}
+                  onClick={() =>
+                    setFilters({
+                      search: "",
+                      amount: "all",
+                      term: "all",
+                    })
+                  }
+                >
+                  Limpiar filtros
+                </Button>
               </div>
-            </div>
-          </div>
-        </nav>
+            </Card>
 
-        {/* Main content */}
-        <main className="flex-grow container mx-auto p-4">
-          <h1 className="text-2xl font-bold mb-4">Worker Dashboard</h1>
-          <div className="flex flex-col md:flex-row gap-4">
-            {/* Offer list */}
-            <div className="w-full md:w-1/2">
-              <div className="grid gap-4 md:grid-cols-1 lg:grid-cols-2">
-                {offers.map((offer, index) => (
-                  <motion.div
-                    key={offer.id}
-                    layoutId={`offer-${offer.id}`}
-                    onClick={() => get_user_data(offer.id, offer.userId)}
-                    className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow p-4 cursor-pointer"
-                    whileHover={{ scale: 1.03 }}  
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    <h2 className="text-xl font-semibold mb-2">Offer #{index + 1}</h2>
-                    <p>Amount: ${offer.amount}</p>
-                    <p>Income: {offer.income}</p>
-                    <p>Term: {offer.term}</p>
-                    <span className="inline-block mt-2 px-2 py-1 text-sm rounded-full bg-gray-200">
-                      {offer.status}
-                    </span>
-                  </motion.div>
-                ))}
-              </div>
-            </div>
+            {/* Contenido Principal */}
+            {!selectedRequestId ? (
+              <>
+                {/* Contador de solicitudes */}
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-lg font-semibold">Solicitudes</h2>
+                  <p className="text-sm text-gray-500">
+                    {filteredRequests.length} de {requests.length} disponibles
+                  </p>
+                </div>
 
-            {/* Offer details */}
-            <div className="w-full md:w-1/2">
-              <AnimatePresence mode="wait">
-                {selectedOffer && offeruserdata ? (
-                  <motion.div
-                    key={selectedOffer.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
-                    transition={{ duration: 0.3 }}
-                    className="bg-white rounded-lg shadow-md p-4"
-                  >
-                    <h2 className="text-2xl font-semibold mb-4">Detalles de solicitud</h2>
-                    <div className="grid gap-4 md:grid-cols-2">
-                      <div>
-                        <h3 className="text-lg font-semibold mb-2">Solicitud</h3>
-                        <p>Cantidad: ${selectedOffer.amount}</p>
-                        <p>Ganancias: {selectedOffer.income}</p>
-                        <p>Plazo: {selectedOffer.term}</p>
-                        <p>Amortizacion: {selectedOffer.payment}</p>
-                        {/* <p>Created At: {new Date(selectedOffer.createdAt).toLocaleString()}</p> */}
-                        <span className="inline-block mt-2 px-2 py-1 text-sm rounded-full bg-gray-200">
-                          {selectedOffer.status}
-                        </span>
+                {/* Grid de solicitudes filtradas */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {filteredRequests.map((request, index) => (
+                    <motion.div
+                      key={request.id}
+                      onClick={() => handleSelectRequest(request.id)}
+                      className="bg-white rounded-lg shadow hover:shadow-md transition-all duration-200 cursor-pointer p-6"
+                      whileHover={{ translateY: -4 }}
+                      whileTap={{ translateY: 0 }}
+                    >
+                      <div className="flex justify-between items-start mb-4">
+                        <div>
+                          <h3 className="text-lg font-semibold">
+                            Solicitud #{index + 1}
+                          </h3>
+                          <p className="text-[#2EA043] font-medium text-2xl mt-1">
+                            ${request.amount.toLocaleString()}
+                          </p>
+                        </div>
+                        <Chip color="success" variant="flat" size="sm">
+                          Nueva
+                        </Chip>
                       </div>
-                      <div>
-                        <h3 className="text-lg font-semibold mb-2">Detalles del prestatario</h3>
-                        <p>Pais: {offeruserdata.country}</p>
-                        <p>Motivo: {offeruserdata.country}</p>
+
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-2 text-gray-600">
+                          <Clock className="w-4 h-4" />
+                          <span>
+                            Plazo:{" "}
+                            <span className="font-medium">{request.term}</span>
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 text-gray-600">
+                          <Calendar className="w-4 h-4" />
+                          <span>
+                            Pago:{" "}
+                            <span className="font-medium">
+                              {request.payment}
+                            </span>
+                          </span>
+                        </div>
                       </div>
-                    </div>
-                    <div className="flex justify-end space-x-4 mt-4">
-                    
-                      <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={() => {
-                          setproposaldata({
-                            company: partnerdata.company,
-                            amount: selectedOffer.amount,
-                            comision: selectedOffer.comision,
-                            amortization: selectedOffer.amortization,
-                            partner: offeruserdata.partner,
-                            deadline: parseInt(selectedOffer.term.split(' ')[0]) || 0,
-                            interest_rate: -1,
-                            medical_balance: -1,
-                          });
-                          setIsEditing(true);
-                        }}
-                        className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors"
-                      >
-                        Generar propuesta
-                      </motion.button>
-                    </div>
-
-
-                    {isEditing && (
-  <div className='fixed top-0 left-0 w-full h-full bg-gray-900 bg-opacity-50 flex items-center justify-center'>
-    <div className="fixed mt-4 p-4 px-6 border bg-white rounded-lg shadow-md justify-center items-center flex flex-col">
-      <button onClick={() => setIsEditing(false)} className="absolute top-2 right-2 text-red-500">X</button>
-      <h2 className="text-2xl font-semibold mb-4">Generar propuesta</h2>
-      <div className="flex items-center justify-center flex-row">
-        {/* First Column */}
-        <div className="flex items-left flex-col mr-2">
-          <label className="block mb-2 font-black">Empresa:</label>
-          <div className="mb-2 p-1 text-gray-700">{proposaldata.company}</div>
-
-          <label className="block mb-2 font-black">Monto:</label>
-          <input
-            type="number"
-            min="0"
-            className="border mb-2 p-1 border-[#858585] rounded-md"
-            value={proposaldata.amount}
-            onChange={(e) => {
-              const value = Math.max(0, parseFloat(e.target.value) || 0);
-              setproposaldata({ ...proposaldata, amount: value });
-            }}
-          />
-
-          <label className="block mb-2 font-black">Comision:</label>
-          <input
-            type="number"
-            min="0"
-            className="border mb-2 p-1 border-[#858585] rounded-md"
-            value={proposaldata.comision}
-            onChange={(e) => {
-              const value = Math.max(0, parseFloat(e.target.value) || 0);
-              setproposaldata({ ...proposaldata, comision: value });
-            }}
-          />
-
-          <label className="block mb-2 font-black">Amortizacion:</label>
-          <select
-            className="border mb-2 p-1 border-[#858585] rounded-md"
-            value={proposaldata.amortization}
-            onChange={(e) => setproposaldata({ 
-              ...proposaldata, 
-              amortization: e.target.value as ''|'mensual'|'quincenal'|'semanal'
-            })}
-          >
-            <option value="">Seleccionar</option>
-            <option value="mensual">Mensual</option>
-            <option value="quincenal">Quincenal</option>
-            <option value="semanal">Semanal</option>
-          </select>
-        </div>
-
-        {/* Second Column */}
-        <div className="flex items-left flex-col px-2">
-          <label className="block mb-2 font-black">Representante:</label>
-          <div className="mb-2 p-1 text-gray-700">{proposaldata.partner}</div>
-
-          <label className="block mb-2 font-black">Plazo:</label>
-          <div className="flex items-center">
-            <input
-              type="number"
-              min="0"
-              className="border mb-2 p-1 border-[#858585] rounded-md mr-2"
-              value={proposaldata.deadline}
-              onChange={(e) => {
-                const value = Math.max(0, parseInt(e.target.value) || 0);
-                setproposaldata({ ...proposaldata, deadline: value });
-              }}
-            />
-            <span>semanas</span>
-          </div>
-
-          <label className="block mb-2 font-black">Tasa de interes (%):</label>
-          <input
-            type="number"
-            step="0.01"
-            min="0"
-            className="border mb-2 p-1 border-[#858585] rounded-md"
-            value={proposaldata.interest_rate === -1 ? '' : proposaldata.interest_rate}
-            onChange={(e) => {
-              const value = Math.max(0, parseFloat(e.target.value) || 0);
-              setproposaldata({ ...proposaldata, interest_rate: value });
-            }}
-          />
-
-          <label className="block mb-2 font-black">Seguro de Vida saldo deudor (%):</label>
-          <input
-            type="number"
-            step="0.01"
-            min="0"
-            className="border mb-2 p-1 border-[#858585] rounded-md"
-            value={proposaldata.medical_balance === -1 ? '' : proposaldata.medical_balance}
-            onChange={(e) => {
-              const value = Math.max(0, parseFloat(e.target.value) || 0);
-              setproposaldata({ ...proposaldata, medical_balance: value });
-            }}
-          />
-        </div>
-      </div>
-      <motion.button
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-        onClick={() => updateOffer(selectedOffer.id)}
-        className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors mt-6"
-      >
-        Enviar propuesta
-      </motion.button>
-    </div>
-  </div>
-)}
-                  </motion.div>
+                    </motion.div>
+                  ))}
+                </div>
+              </>
+            ) : (
+              // Vista de detalles o formulario de propuesta
+              <motion.div layout className="max-w-4xl mx-auto">
+                {isCreatingOffer ? (
+                  <ProposalForm
+                    proposal={proposalData}
+                    loading={submitting}
+                    error={submitError}
+                    onUpdate={updateProposal}
+                    onSubmit={handleSubmitOffer}
+                    onCancel={() => {
+                      setIsCreatingOffer(false);
+                      resetProposal();
+                    }}
+                  />
                 ) : (
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.3 }}
-                    className="bg-white rounded-lg shadow-md p-4"
-                  >
-                    <p className="text-gray-500">Select an offer to view details</p>
-                  </motion.div>
+                  <Card className="p-6">
+                    <div className="flex justify-between items-center mb-6">
+                      <h2 className="text-xl font-semibold">
+                        Detalles de la Solicitud
+                      </h2>
+                      <Button
+                        variant="light"
+                        onClick={() => setSelectedRequestId(null)}
+                      >
+                        Volver al mercado
+                      </Button>
+                    </div>
+                    <LoanRequestDetails
+                      request={selectedRequest}
+                      userData={userData}
+                      onMakeOffer={() => {
+                        updateProposal({
+                          company: partnerData.company,
+                          partner: partnerData.name,
+                        });
+                        setIsCreatingOffer(true);
+                      }}
+                    />
+                  </Card>
                 )}
-              </AnimatePresence>
-            </div>
+              </motion.div>
+            )}
           </div>
-        </main>
+        )}
 
-        {/* Footer */}
-        <footer className="bg-gray-200 text-gray-600 p-4">
-          <div className="container mx-auto text-center">
-            © 2023 Worker Dashboard. All rights reserved.
+        {/* Resto de las pestañas se mantienen igual */}
+        {activeTab === "myoffers" && (
+          <div className="p-8">
+            <h1 className="text-2xl font-bold text-gray-900">Mis Ofertas</h1>
           </div>
-        </footer>
+        )}
+
+        {activeTab === "settings" && (
+          <div className="p-8">
+            <h1 className="text-2xl font-bold text-gray-900">Configuración</h1>
+          </div>
+        )}
+
+        {activeTab === "help" && (
+          <div className="p-8">
+            <h1 className="text-2xl font-bold text-gray-900">Ayuda</h1>
+          </div>
+        )}
       </div>
-    );
-  }
-
+    </div>
+  );
+}
