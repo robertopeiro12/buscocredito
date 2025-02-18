@@ -149,10 +149,11 @@ export default function LenderPage() {
 
     if (docSnap.exists()) {
       setPartnerData({
-        name: docSnap.data().name,
+        name: docSnap.data().Nombre,
         company: docSnap.data().Empresa,
         company_id: docSnap.data().company_id,
       });
+      console.log("partner data", docSnap.data());
     }
   };
 
@@ -185,19 +186,18 @@ export default function LenderPage() {
 
     const updateOffer = async (id: string) => {
       console.log("updating offer", id);
-      console.log("proposaldata", proposaldata);
+      console.log("proposaldata", proposalData);
       try {
         const response = await fetch('/api/addOfferAcepted', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ id: id, offer_data: proposaldata }),
+          body: JSON.stringify({ id: id, offer_data: proposalData }),
         });
 
         if (response.ok) {
-          setIsEditing(false);
-
+          console.log("xd")
           } else {
             console.error("Error fetching user data:", response.error);
           }
@@ -385,7 +385,7 @@ export default function LenderPage() {
                       onMakeOffer={() => {
                         updateProposal({
                           company: partnerData.company,
-                          partner: partnerData.name,
+                          partner: user,
                         });
                         setIsCreatingOffer(true);
                       }}

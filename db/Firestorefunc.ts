@@ -6,13 +6,14 @@ export const create_subaccount_doc = async (
   email: string,
   admin_uid: string,
   account_uid: string,
+  Empresa: string
 ): Promise<{ status: number; error?: string }> => {
   const Firestore = getFirestore();
   const docRef = Firestore.collection("cuentas").doc(account_uid);
 
   try {
     await docRef.set({
-      Empresa: "",
+      Empresa: Empresa,
       Empresa_id: admin_uid,
       Nombre: name,
       email: email,
@@ -75,7 +76,8 @@ export const add_propuesta = async (id: string, offer_data: any) => {
     } catch (error) {
         console.error("Error updating offer: ", error);
         return { error: error.message, status: 500 };
-
+    }
+  }
 export async function delete_subaccount_doc(userId: string) {
   try {
     const db = getFirestore()

@@ -35,10 +35,11 @@ type Subaccount = {
   email: string;
   password: string;
   userId: string;
+  Empresa: string;
 };
 
 type AdminData = {
-  company_name: string;
+  Empresa: string;
   email: string;
 };
 
@@ -54,7 +55,7 @@ export default function AdminDashboard() {
   });
   const [user, setUser] = useState("");
   const [adminData, setAdminData] = useState<AdminData>({
-    company_name: "",
+    Empresa: "",
     email: "",
   });
   const [newSubaccount, setNewSubaccount] = useState<Omit<Subaccount, "id">>({
@@ -62,6 +63,7 @@ export default function AdminDashboard() {
     email: "",
     password: "",
     userId: "",
+    Empresa: ""
   });
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("subaccounts");
@@ -88,13 +90,14 @@ export default function AdminDashboard() {
   const fetchAdminData = async (userId: string) => {
     const db = getFirestore();
     try {
-      const adminDoc = await getDoc(doc(db, "empresas", userId));
+      const adminDoc = await getDoc(doc(db, "cuentas", userId));
       if (adminDoc.exists()) {
         const data = adminDoc.data();
         setAdminData({
-          company_name: data.company_name || "",
+          Empresa: data.Empresa || "",
           email: data.email || "",
         });
+        console.log("empresa get ",data.Empresa);
       }
     } catch (error) {
       console.error("Error al obtener datos del administrador:", error);
@@ -198,7 +201,7 @@ export default function AdminDashboard() {
         const data = await response.json();
         setSubaccounts([
           ...subaccounts,
-          { ...newSubaccount, id: subaccounts.length + 1, userId: data.userId },
+          { ...newSubaccount, id: subaccounts.length + 1, userId: data.userId , },
         ]);
         setIsModalOpen(false);
       } else {
@@ -220,8 +223,9 @@ export default function AdminDashboard() {
 
     setIsCreating(true);
     try {
-      await createSubaccount({ ...newSubaccount, userId: user });
-      setNewSubaccount({ name: "", email: "", password: "", userId: "" });
+      console.log("empresa name ", adminData.Empresa)
+      await createSubaccount({ ...newSubaccount, userId: user, Empresa: adminData.Empresa });
+      setNewSubaccount({ name: "", email: "", password: "", userId: "" , Empresa: "" });
       setFormErrors({ name: "", email: "", password: "" });
       toast.success("¡Subcuenta creada exitosamente!", {
         icon: "✅",
@@ -357,7 +361,7 @@ export default function AdminDashboard() {
                   </div>
                   <div>
                     <h2 className="text-2xl font-semibold text-gray-900">
-                      {adminData.company_name || "Nombre de la Empresa"}
+                      {adminData.Empresa || "Nombre de la Empresa"}
                     </h2>
                     <p className="text-gray-500">{userEmail}</p>
                   </div>
@@ -375,7 +379,7 @@ export default function AdminDashboard() {
                           Nombre de la Empresa
                         </p>
                         <p className="text-gray-900">
-                          {adminData.company_name}
+                          {adminData.Empresa}
                         </p>
                       </div>
                       <div>

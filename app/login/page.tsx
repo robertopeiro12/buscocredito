@@ -70,7 +70,7 @@ export default function LoginPage() {
         // 3. Redirección basada en el tipo de usuario
         switch (userData.type) {
           case "b_admin":
-            if (userData.Empresa) {
+            if (!userData.Empresa) {
               throw new Error("Cuenta de administrador no válida");
             }
             router.push("/admin_dashboard");

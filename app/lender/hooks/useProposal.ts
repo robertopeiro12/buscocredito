@@ -46,6 +46,10 @@ export function useProposal(loan: LoanRequest | null) {
 
     try {
       const db = getFirestore();
+      console.log("proposal data ", proposalData)
+      console.log("loan id ", loan.id)
+      console.log("userid", loan.userId)
+      console.log("created at ", new Date())
       await addDoc(collection(db, 'propuestas'), {
         ...proposalData,
         loanId: loan.id,
