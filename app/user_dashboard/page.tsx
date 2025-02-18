@@ -49,6 +49,7 @@ export default function DashboardPage() {
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [solicitudes, setSolicitudes] = useState([]);
   const [selectedSolicitud, setSelectedSolicitud] = useState(null);
+  const [offer_data, set_offer_Data ] = useState([]);
   const [userData, setUserData] = useState({
     name: "",
     last_name: "",
@@ -82,6 +83,25 @@ export default function DashboardPage() {
 
     return () => unsubscribe();
   }, [router]);
+
+  const fetch_offer_data = async (loanId: string) => {
+    try {
+      const response = await fetch("/api/fetch_loan_offer", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: loanId,
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        set_offer_Data(data.data ? JSON.parse(data.data) : null);
+      }
+    } catch (error) {
+      console.error("Error getting data:", error);
+    }
+  };
 
   const fetchUserData = async (userId) => {
     const db = getFirestore();
