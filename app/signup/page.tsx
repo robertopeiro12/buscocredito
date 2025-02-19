@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { doc, getFirestore, setDoc, Timestamp } from "firebase/firestore";
@@ -17,6 +17,29 @@ import {
   MapPin,
   CreditCard,
 } from "lucide-react";
+import PhoneInput from "react-phone-input-2";
+import "react-phone-input-2/lib/style.css";
+
+interface StepHeaderProps {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+}
+
+interface StepIndicatorProps {
+  currentStep: number;
+}
+
+interface InputFieldProps {
+  id: string;
+  name?: string;
+  label: string;
+  type?: string;
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  error?: string;
+  placeholder?: string;
+}
 
 export default function SignUpPage() {
   const [step, setStep] = useState(1);
@@ -42,6 +65,7 @@ export default function SignUpPage() {
   });
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoadingCP, setIsLoadingCP] = useState(false);
   const router = useRouter();
 
   const handleInputChange = (e) => {
@@ -62,7 +86,62 @@ export default function SignUpPage() {
         [name]: value,
       },
     }));
+
+    // Si el campo es código postal y tiene 5 dígitos, buscar información
+    if (name === "zipCode" && value.length === 5 && /^\d{5}$/.test(value)) {
+      fetchPostalCodeData(value);
+    }
+
     validateField(`address.${name}`, value);
+  };
+
+  const validateRFC = (rfc: string): { isValid: boolean; error?: string } => {
+    // Remover espacios y convertir a mayúsculas
+    rfc = rfc.trim().toUpperCase();
+
+    // Validar longitud
+    if (rfc.length !== 13 && rfc.length !== 12) {
+      return {
+        isValid: false,
+        error: `El RFC debe tener ${rfc.length < 13 ? "13" : "12"} caracteres`,
+      };
+    }
+
+    // Expresiones regulares para personas físicas y morales
+    const rfcPersonaFisica = /^[A-ZÑ&]{4}[0-9]{6}[A-V1-9][A-Z1-9][0-9A-Z]$/;
+    const rfcPersonaMoral = /^[A-ZÑ&]{3}[0-9]{6}[A-V1-9][A-Z1-9][0-9A-Z]$/;
+
+    // Validar formato
+    if (!rfcPersonaFisica.test(rfc) && !rfcPersonaMoral.test(rfc)) {
+      return {
+        isValid: false,
+        error: "Formato de RFC inválido",
+      };
+    }
+
+    // Validar fecha
+    const fechaRFC = rfc.slice(rfc.length === 13 ? 4 : 3, 10);
+    const año = parseInt(fechaRFC.slice(0, 2));
+    const mes = parseInt(fechaRFC.slice(2, 4));
+    const dia = parseInt(fechaRFC.slice(4, 6));
+
+    // Convertir a fecha completa (asumiendo el siglo correcto)
+    const añoCompleto = año + (año < 30 ? 2000 : 1900);
+    const fecha = new Date(añoCompleto, mes - 1, dia);
+
+    // Validar que la fecha sea válida
+    if (
+      fecha.getFullYear() !== añoCompleto ||
+      fecha.getMonth() + 1 !== mes ||
+      fecha.getDate() !== dia
+    ) {
+      return {
+        isValid: false,
+        error: "La fecha en el RFC es inválida",
+      };
+    }
+
+    return { isValid: true };
   };
 
   const validateField = (name, value) => {
@@ -82,21 +161,27 @@ export default function SignUpPage() {
       case "rfc":
         if (!value.trim()) {
           newErrors[name] = "RFC es requerido";
-        } else if (
-          !/^[A-Z&Ñ]{3,4}[0-9]{2}(0[1-9]|1[012])(0[1-9]|[12][0-9]|3[01])[A-Z0-9]{2}[0-9A]$/.test(
-            value
-          )
-        ) {
-          newErrors[name] = "RFC inválido";
         } else {
-          delete newErrors[name];
+          const rfcValidation = validateRFC(value);
+          if (!rfcValidation.isValid) {
+            newErrors[name] = rfcValidation.error;
+          } else {
+            delete newErrors[name];
+          }
         }
         break;
       case "phone":
         if (!value.trim()) {
           newErrors[name] = "Teléfono es requerido";
-        } else if (!/^\d{10}$/.test(value)) {
-          newErrors[name] = "Teléfono inválido (10 dígitos)";
+        } else if (value.startsWith("52") && value.length !== 12) {
+          newErrors[name] = "El número debe tener 10 dígitos";
+        } else if (
+          !value.startsWith("52") &&
+          (value.length < 10 || value.length > 15)
+        ) {
+          newErrors[name] = "El número de teléfono es inválido";
+        } else if (!/^\+?[\d\s-]+$/.test(value)) {
+          newErrors[name] = "Formato de teléfono inválido";
         } else {
           delete newErrors[name];
         }
@@ -107,11 +192,7 @@ export default function SignUpPage() {
         } else {
           const birthDate = new Date(value);
           const today = new Date();
-          let age = today.getFullYear() - birthDate.getFullYear();
-          const m = today.getMonth() - birthDate.getMonth();
-          if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
-            age--;
-          }
+          const age = today.getFullYear() - birthDate.getFullYear();
           if (age < 18) {
             newErrors[name] = "Debes ser mayor de 18 años";
           } else {
@@ -146,6 +227,15 @@ export default function SignUpPage() {
           newErrors[name] = "Confirma tu contraseña";
         } else if (value !== formData.password) {
           newErrors[name] = "Las contraseñas no coinciden";
+        } else {
+          delete newErrors[name];
+        }
+        break;
+      case "address.zipCode":
+        if (!value.trim()) {
+          newErrors[name] = "Código postal es requerido";
+        } else if (!/^\d{5}$/.test(value)) {
+          newErrors[name] = "El código postal debe tener 5 dígitos";
         } else {
           delete newErrors[name];
         }
@@ -189,20 +279,46 @@ export default function SignUpPage() {
         break;
     }
 
+    // Validate all fields in current step
     fieldsToValidate.forEach((field) => {
       const value = field.includes("address.")
         ? formData.address[field.split(".")[1]]
         : formData[field];
+
+      // Validate empty fields
+      if (!value || !value.trim()) {
+        stepErrors[field] = `Este campo es requerido`;
+      }
+
+      // Run field-specific validation
       validateField(field, value);
-      if (errors[field]) stepErrors[field] = errors[field];
+      if (errors[field]) {
+        stepErrors[field] = errors[field];
+      }
     });
 
-    return Object.keys(stepErrors).length === 0;
+    const isValid = Object.keys(stepErrors).length === 0;
+
+    // If not valid, show errors for all fields in the step
+    if (!isValid) {
+      setErrors((prev) => ({
+        ...prev,
+        ...stepErrors,
+      }));
+    }
+
+    return isValid;
   };
 
   const handleNextStep = () => {
     if (validateStep()) {
       setStep((prev) => prev + 1);
+    } else {
+      // Add visual feedback when validation fails
+      const firstErrorField = document.querySelector('[aria-invalid="true"]');
+      if (firstErrorField) {
+        firstErrorField.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
     }
   };
 
@@ -274,16 +390,50 @@ export default function SignUpPage() {
     }
   };
 
+  const renderStepHeader = () => {
+    switch (step) {
+      case 1:
+        return (
+          <StepHeader
+            icon={<User />}
+            title="Información Personal"
+            description="Ingresa tus datos personales"
+          />
+        );
+      case 2:
+        return (
+          <StepHeader
+            icon={<Phone />}
+            title="Contacto y RFC"
+            description="Ingresa tus datos de contacto y RFC"
+          />
+        );
+      case 3:
+        return (
+          <StepHeader
+            icon={<MapPin />}
+            title="Dirección"
+            description="Ingresa tu dirección de residencia"
+          />
+        );
+      case 4:
+        return (
+          <StepHeader
+            icon={<Lock />}
+            title="Cuenta"
+            description="Crea tu cuenta para acceder"
+          />
+        );
+      default:
+        return null;
+    }
+  };
+
   const renderStepContent = () => {
     switch (step) {
       case 1:
         return (
-          <div className="space-y-6">
-            <StepHeader
-              icon={<User className="w-6 h-6" />}
-              title="Información Personal"
-              description="Ingresa tus datos personales para comenzar"
-            />
+          <div className="mt-6">
             <div className="space-y-4">
               <InputField
                 id="name"
@@ -314,12 +464,7 @@ export default function SignUpPage() {
         );
       case 2:
         return (
-          <div className="space-y-6">
-            <StepHeader
-              icon={<CreditCard className="w-6 h-6" />}
-              title="Información de Contacto"
-              description="Proporciona tu información de contacto y documentos"
-            />
+          <div className="mt-6">
             <div className="space-y-4">
               <InputField
                 id="rfc"
@@ -329,15 +474,59 @@ export default function SignUpPage() {
                 error={errors.rfc}
                 placeholder="PECJ880101XXX"
               />
-              <InputField
-                id="phone"
-                label="Número de Teléfono"
-                type="tel"
-                value={formData.phone}
-                onChange={handleInputChange}
-                error={errors.phone}
-                placeholder="5512345678"
-              />
+              <div>
+                <label
+                  htmlFor="phone"
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  Teléfono <span className="text-red-500">*</span>
+                </label>
+                <div className="mt-1">
+                  <PhoneInput
+                    country={"mx"}
+                    value={formData.phone}
+                    onChange={(phone) => {
+                      setFormData((prev) => ({
+                        ...prev,
+                        phone,
+                      }));
+                      validateField("phone", phone);
+                    }}
+                    inputProps={{
+                      id: "phone",
+                      name: "phone",
+                      required: true,
+                      "aria-invalid": errors.phone ? "true" : "false",
+                    }}
+                    containerClass="phone-input-container"
+                    inputClass={`block w-full px-4 py-3 rounded-md border ${
+                      errors.phone
+                        ? "border-red-300 text-red-900 focus:ring-red-500 focus:border-red-500"
+                        : formData.phone &&
+                          (!formData.phone.startsWith("52") ||
+                            formData.phone.length === 12)
+                        ? "border-green-300 text-green-900 focus:ring-green-500 focus:border-green-500"
+                        : "border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+                    } shadow-sm`}
+                    buttonClass={
+                      errors.phone ? "phone-input-flag-button-error" : ""
+                    }
+                  />
+                  {errors.phone ? (
+                    <div className="mt-1 text-sm text-red-600 flex items-center gap-1">
+                      <AlertCircle className="h-4 w-4 inline" />
+                      <span>{errors.phone}</span>
+                    </div>
+                  ) : formData.phone &&
+                    (!formData.phone.startsWith("52") ||
+                      formData.phone.length === 12) ? (
+                    <div className="mt-1 text-sm text-green-600 flex items-center gap-1">
+                      <CheckCircle className="h-4 w-4 inline" />
+                      <span>Campo válido</span>
+                    </div>
+                  ) : null}
+                </div>
+              </div>
               <InputField
                 id="birthday"
                 label="Fecha de Nacimiento"
@@ -351,15 +540,11 @@ export default function SignUpPage() {
         );
       case 3:
         return (
-          <div className="space-y-6">
-            <StepHeader
-              icon={<MapPin className="w-6 h-6" />}
-              title="Dirección"
-              description="Ingresa los detalles de tu domicilio"
-            />
+          <div className="mt-6">
             <div className="space-y-4">
               <InputField
                 id="street"
+                name="street"
                 label="Calle"
                 value={formData.address.street}
                 onChange={handleAddressChange}
@@ -369,6 +554,7 @@ export default function SignUpPage() {
               <div className="grid grid-cols-2 gap-4">
                 <InputField
                   id="number"
+                  name="number"
                   label="Número"
                   value={formData.address.number}
                   onChange={handleAddressChange}
@@ -377,6 +563,7 @@ export default function SignUpPage() {
                 />
                 <InputField
                   id="zipCode"
+                  name="zipCode"
                   label="Código Postal"
                   value={formData.address.zipCode}
                   onChange={handleAddressChange}
@@ -384,8 +571,34 @@ export default function SignUpPage() {
                   placeholder="06100"
                 />
               </div>
+              {isLoadingCP && (
+                <div className="mt-1 text-sm text-blue-600 flex items-center gap-1">
+                  <svg
+                    className="animate-spin h-4 w-4"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
+                  </svg>
+                  <span>Verificando código postal...</span>
+                </div>
+              )}
               <InputField
                 id="colony"
+                name="colony"
                 label="Colonia"
                 value={formData.address.colony}
                 onChange={handleAddressChange}
@@ -395,6 +608,7 @@ export default function SignUpPage() {
               <div className="grid grid-cols-2 gap-4">
                 <InputField
                   id="city"
+                  name="city"
                   label="Ciudad"
                   value={formData.address.city}
                   onChange={handleAddressChange}
@@ -403,6 +617,7 @@ export default function SignUpPage() {
                 />
                 <InputField
                   id="state"
+                  name="state"
                   label="Estado"
                   value={formData.address.state}
                   onChange={handleAddressChange}
@@ -415,12 +630,7 @@ export default function SignUpPage() {
         );
       case 4:
         return (
-          <div className="space-y-6">
-            <StepHeader
-              icon={<Lock className="w-6 h-6" />}
-              title="Información de la Cuenta"
-              description="Crea tus credenciales de acceso"
-            />
+          <div className="mt-6">
             <div className="space-y-4">
               <InputField
                 id="email"
@@ -457,6 +667,23 @@ export default function SignUpPage() {
     }
   };
 
+  const fetchPostalCodeData = async (zipCode: string) => {
+    if (zipCode.length === 5) {
+      setIsLoadingCP(true);
+      try {
+        // Aquí irá la implementación con Google Maps API
+        setIsLoadingCP(false);
+      } catch (error) {
+        console.error("Error al consultar el código postal:", error);
+        setErrors((prev) => ({
+          ...prev,
+          "address.zipCode": "Error al verificar el código postal",
+        }));
+        setIsLoadingCP(false);
+      }
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-green-50 to-blue-50">
       <NavBar />
@@ -477,25 +704,15 @@ export default function SignUpPage() {
 
             <div className="p-6 sm:p-10">
               <form onSubmit={handleSubmit} className="space-y-8">
+                {renderStepHeader()}
                 {renderStepContent()}
 
-                {errors.submit && (
-                  <div className="rounded-md bg-red-50 p-4">
-                    <div className="flex">
-                      <AlertCircle className="h-5 w-5 text-red-400" />
-                      <div className="ml-3">
-                        <p className="text-sm text-red-700">{errors.submit}</p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                <div className="flex justify-between pt-4">
+                <div className="mt-8 flex justify-between">
                   {step > 1 && (
                     <button
                       type="button"
                       onClick={handlePrevStep}
-                      className="inline-flex items-center px-6 py-3 border border-gray-300 shadow-sm text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-200"
+                      className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                     >
                       Anterior
                     </button>
@@ -504,15 +721,13 @@ export default function SignUpPage() {
                     type="submit"
                     disabled={isSubmitting}
                     className={`${
-                      step === 1 ? "w-full" : "ml-auto"
-                    } inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all duration-200 ${
-                      isSubmitting ? "opacity-50 cursor-not-allowed" : ""
-                    }`}
+                      step === 1 ? "ml-auto" : ""
+                    } inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed`}
                   >
                     {isSubmitting ? (
-                      <span className="flex items-center">
+                      <>
                         <svg
-                          className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                          className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
                           xmlns="http://www.w3.org/2000/svg"
                           fill="none"
                           viewBox="0 0 24 24"
@@ -532,14 +747,25 @@ export default function SignUpPage() {
                           ></path>
                         </svg>
                         Creando cuenta...
-                      </span>
+                      </>
                     ) : step === 4 ? (
-                      "Crear Cuenta"
+                      "Registrarse"
                     ) : (
                       "Siguiente"
                     )}
                   </button>
                 </div>
+
+                {errors.submit && (
+                  <div className="rounded-md bg-red-50 p-4 mt-4">
+                    <div className="flex">
+                      <AlertCircle className="h-5 w-5 text-red-400" />
+                      <div className="ml-3">
+                        <p className="text-sm text-red-700">{errors.submit}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </form>
             </div>
           </div>
@@ -549,7 +775,7 @@ export default function SignUpPage() {
   );
 }
 
-const StepHeader = ({ icon, title, description }) => (
+const StepHeader = ({ icon, title, description }: StepHeaderProps) => (
   <div className="text-center">
     <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
       {React.cloneElement(icon, { className: "h-6 w-6 text-green-600" })}
@@ -559,7 +785,7 @@ const StepHeader = ({ icon, title, description }) => (
   </div>
 );
 
-const StepIndicator = ({ currentStep }) => {
+const StepIndicator = ({ currentStep }: StepIndicatorProps) => {
   const steps = [
     { number: 1, title: "Personal" },
     { number: 2, title: "Contacto" },
@@ -603,37 +829,171 @@ const StepIndicator = ({ currentStep }) => {
 
 const InputField = ({
   id,
+  name,
   label,
   type = "text",
   value,
   onChange,
   error,
   placeholder,
-}) => (
-  <div>
-    <label htmlFor={id} className="block text-sm font-medium text-gray-700">
-      {label}
-    </label>
-    <div className="mt-1 relative rounded-md shadow-sm">
-      <input
-        id={id}
-        name={id}
-        type={type}
-        value={value}
-        onChange={onChange}
-        placeholder={placeholder}
-        className={`block w-full px-4 py-3 rounded-md border ${
-          error
-            ? "border-red-300 text-red-900 placeholder-red-300 focus:ring-red-500 focus:border-red-500"
-            : "border-gray-300 focus:ring-green-500 focus:border-green-500"
-        } shadow-sm transition-colors duration-200`}
-      />
-      {error && (
-        <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-          <AlertCircle className="h-5 w-5 text-red-500" />
+}: InputFieldProps) => {
+  const [isFocused, setIsFocused] = useState(false);
+  const [debouncedValue, setDebouncedValue] = useState(value);
+  const hasValue = debouncedValue && debouncedValue.trim().length > 0;
+  const isValid = hasValue && !error;
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    onChange(e);
+    if (validationMessage && validationMessage !== "Campo válido") {
+      setDebouncedValue("");
+    }
+  };
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedValue(value);
+    }, 300);
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [value]);
+
+  const getValidationMessage = () => {
+    if (error) {
+      // Si es un error de RFC, mostrar el mensaje específico
+      if (id === "rfc" && error !== "RFC es requerido") {
+        return error;
+      }
+      return error;
+    }
+    if (isValid) return "Campo válido";
+    if (isFocused) {
+      switch (id) {
+        case "name":
+        case "lastName":
+        case "secondLastName":
+          return "Solo letras y espacios permitidos";
+        case "rfc":
+          return "Formato: AAAA999999AA9 (Persona Física) o AAA999999AA9 (Persona Moral)";
+        case "phone":
+          return "10 dígitos numéricos";
+        case "email":
+          return "ejemplo@dominio.com";
+        case "password":
+          return "Mínimo 8 caracteres, incluir mayúsculas, minúsculas y números";
+        case "confirmPassword":
+          return "Debe coincidir con la contraseña";
+        default:
+          return "Campo requerido";
+      }
+    }
+    return "";
+  };
+
+  const validationMessage = getValidationMessage();
+  const messageColor = error
+    ? "text-red-600"
+    : isValid
+    ? "text-green-600"
+    : "text-gray-500";
+
+  return (
+    <div>
+      <label htmlFor={id} className="block text-sm font-medium text-gray-700">
+        {label} <span className="text-red-500">*</span>
+      </label>
+      <div className="mt-1 relative rounded-md shadow-sm">
+        <input
+          id={id}
+          name={name || id}
+          type={type}
+          value={value}
+          onChange={handleChange}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
+          placeholder={placeholder}
+          aria-invalid={error ? "true" : "false"}
+          aria-describedby={`${id}-description`}
+          required
+          className={`block w-full px-4 py-3 rounded-md border ${
+            error
+              ? "border-red-300 text-red-900 placeholder-red-300 focus:ring-red-500 focus:border-red-500"
+              : isValid
+              ? "border-green-300 text-green-900 focus:ring-green-500 focus:border-green-500"
+              : "border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+          } shadow-sm transition-all duration-200 ${
+            isFocused ? "ring-2 ring-opacity-50" : ""
+          }`}
+        />
+      </div>
+      {validationMessage && (
+        <div
+          id={`${id}-description`}
+          className={`mt-1 text-sm ${messageColor} transition-all duration-200 flex items-center gap-1`}
+        >
+          {error ? (
+            <AlertCircle className="h-4 w-4 inline" />
+          ) : isValid ? (
+            <CheckCircle className="h-4 w-4 inline" />
+          ) : (
+            <span className="h-4 w-4 inline-block" />
+          )}
+          <span>{validationMessage}</span>
         </div>
       )}
     </div>
-    {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
-  </div>
-);
+  );
+};
+
+const styles = `
+  .phone-input-container {
+    width: 100% !important;
+  }
+  
+  .phone-input-container .form-control {
+    width: 100% !important;
+    height: 46px !important;
+  }
+  
+  .phone-input-container .flag-dropdown {
+    background-color: transparent !important;
+    border: none !important;
+    border-right: 1px solid #e5e7eb !important;
+  }
+  
+  .phone-input-container .selected-flag {
+    background-color: transparent !important;
+  }
+  
+  .phone-input-flag-button-error {
+    border-color: #FCA5A5 !important;
+  }
+  
+  .phone-input-container .country-list {
+    margin: 0;
+    padding: 0;
+    background-color: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.375rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+  
+  .phone-input-container .country-list .country {
+    padding: 8px 12px;
+  }
+  
+  .phone-input-container .country-list .country:hover {
+    background-color: #f3f4f6;
+  }
+  
+  .phone-input-container .country-list .country.highlight {
+    background-color: #e5e7eb;
+  }
+`;
+
+if (typeof document !== "undefined") {
+  const styleElement = document.createElement("style");
+  styleElement.textContent = styles;
+  document.head.appendChild(styleElement);
+}
