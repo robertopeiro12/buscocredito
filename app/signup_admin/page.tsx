@@ -18,6 +18,7 @@ export default function SignUpAdmin() {
   const [accessToken, setAccessToken] = useState("");
   const [isVerified, setIsVerified] = useState(false);
   const [email, setEmail] = useState("");
+  const [b_name, setb_Name] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -39,7 +40,7 @@ export default function SignUpAdmin() {
   };
 
   async function signUp() {
-    if (!email || !password) {
+    if (!email || !password || !b_name) {
       setError("Por favor completa todos los campos");
       return;
     }
@@ -57,7 +58,7 @@ export default function SignUpAdmin() {
 
       const db = getFirestore();
       await setDoc(doc(db, "cuentas", userId), {
-        Empresa: "",
+        Empresa: b_name,
         type: "b_admin",
         email: email,
         // Removed createdAt field
@@ -137,6 +138,17 @@ export default function SignUpAdmin() {
           </div>
         ) : (
           <form onSubmit={handleSignUp} className="space-y-6">
+            <Input
+              label="Nombre de la empresa"
+              type="text"
+              placeholder="Nombre de la empresa"
+              value={b_name}  
+              onChange={(e) => setb_Name(e.target.value)}
+              isRequired
+              size="lg"
+              isDisabled={loading}
+              className="w-full"
+            />
             <Input
               label="Correo Electrónico"
               type="email"

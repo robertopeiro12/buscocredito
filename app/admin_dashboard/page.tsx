@@ -1,333 +1,519 @@
-"use client"
-
-import { useState } from "react"
-import { useEffect } from "react"
-import { SearchIcon } from '@/components/SearchIcon'
-import { AddIcon } from '@/components/AddIcon'
-import { LogoutIcon } from '@/components/LogoutIcon'
-import { ViewIcon } from '@/components/ViewIcon'
-import { EditIcon } from '@/components/EditIcon'
-import {DeleteIcon} from "@/components/DeleteIcon";
-import { useRouter } from 'next/navigation';
-import { auth } from '../firebase'
-import { createUserWithEmailAndPassword, onAuthStateChanged, signOut} from "firebase/auth"
-import { doc, getFirestore, setDoc, Timestamp, collection, query, where, getDocs} from "firebase/firestore"
-import { TemplateContext } from "next/dist/shared/lib/app-router-context.shared-runtime"
+"use client";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
+import { auth } from "../firebase";
+import { onAuthStateChanged, signOut } from "firebase/auth";
+import {
+  getFirestore,
+  collection,
+  query,
+  where,
+  getDocs,
+  getDoc,
+  doc,
+} from "firebase/firestore";
+import {
+  Button,
+  Card,
+  CardBody,
+  Input,
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  Spinner,
+} from "@nextui-org/react";
+import { Search, PlusCircle, User } from "lucide-react";
+import { AdminSidebar } from "@/components/AdminSidebar";
+import { SubaccountCard } from "@/components/SubaccountCard";
 
 type Subaccount = {
-  id: number
-  name: string
-  email: string
-  password: string
-  userId: string
-}
+  id: number;
+  name: string;
+  email: string;
+  password: string;
+  userId: string;
+  Empresa: string;
+};
+
+type AdminData = {
+  Empresa: string;
+  email: string;
+};
 
 export default function AdminDashboard() {
-  const [subaccounts, setSubaccounts] = useState<Subaccount[]>([])
-  const [user, setUser] = useState("")
+  const [subaccounts, setSubaccounts] = useState<Subaccount[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [isCreating, setIsCreating] = useState(false);
+  const [userEmail, setUserEmail] = useState("");
+  const [formErrors, setFormErrors] = useState({
+    name: "",
+    email: "",
+    password: "",
+  });
+  const [user, setUser] = useState("");
+  const [adminData, setAdminData] = useState<AdminData>({
+    Empresa: "",
+    email: "",
+  });
   const [newSubaccount, setNewSubaccount] = useState<Omit<Subaccount, "id">>({
     name: "",
     email: "",
     password: "",
-    userId:""
-  })
-  const [isModalOpen, setIsModalOpen] = useState(false)
+    userId: "",
+    Empresa: ""
+  });
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("subaccounts");
+  const filteredSubaccounts = subaccounts.filter(
+    (account) =>
+      account.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      account.email.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+  const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
   useEffect(() => {
     onAuthStateChanged(auth, (user) => {
       if (user) {
-        setUser(user.uid)
-        console.log("uid", user.uid)
-        fetchUsers(user.uid)
-        
-
+        setUser(user.uid);
+        setUserEmail(user.email || ""); // Guardamos el email aquí
+        fetchUsers(user.uid);
+        fetchAdminData(user.uid);
       } else {
-        console.log("user is logged out")
+        router.push("/login");
       }
-    })
-  }, [])
-  const fetchUsers = async (userId) => {
-    const db = getFirestore();
-    const solicitudesRef = collection(db, "cuentas");
-    console.log("useridtest", userId)
-    const q = query(solicitudesRef, where("Empresa_id", "==", userId));
-    const querySnapshot = await getDocs(q);
-    console.log("querySnapshot", querySnapshot)
-    const newSubaccounts = [];
-    querySnapshot.forEach((doc) => {
-      const temp = doc.data();
-      const newSubaccountData = { name: temp['Nombre'], email: temp['email'], password: "", userId: String(doc.id) };
-      newSubaccounts.push({ ...newSubaccountData, id: newSubaccounts.length + 1 });
-      setSubaccounts(newSubaccounts);
     });
+  }, [router]);
+
+  const fetchAdminData = async (userId: string) => {
+    const db = getFirestore();
+    try {
+      const adminDoc = await getDoc(doc(db, "cuentas", userId));
+      if (adminDoc.exists()) {
+        const data = adminDoc.data();
+        setAdminData({
+          Empresa: data.Empresa || "",
+          email: data.email || "",
+        });
+        console.log("empresa get ",data.Empresa);
+      }
+    } catch (error) {
+      console.error("Error al obtener datos del administrador:", error);
+    }
+  };
+  const validateForm = () => {
+    let isValid = true;
+    const newErrors = {
+      name: "",
+      email: "",
+      password: "",
+    };
+
+    // Validar nombre
+    if (!newSubaccount.name.trim()) {
+      newErrors.name = "El nombre es requerido";
+      isValid = false;
+    } else if (newSubaccount.name.trim().length < 3) {
+      newErrors.name = "El nombre debe tener al menos 3 caracteres";
+      isValid = false;
+    }
+
+    // Validar email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!newSubaccount.email) {
+      newErrors.email = "El email es requerido";
+      isValid = false;
+    } else if (!emailRegex.test(newSubaccount.email)) {
+      newErrors.email = "Email inválido";
+      isValid = false;
+    }
+
+    // Validar contraseña
+    if (!newSubaccount.password) {
+      newErrors.password = "La contraseña es requerida";
+      isValid = false;
+    } else if (newSubaccount.password.length < 6) {
+      newErrors.password = "La contraseña debe tener al menos 6 caracteres";
+      isValid = false;
+    }
+
+    setFormErrors(newErrors);
+    return isValid;
   };
 
-
-  const createSubaccount = async (newSubaccount) => {
+  const fetchUsers = async (userId: string) => {
+    setIsLoading(true);
     try {
-      const response = await fetch('/api/createSubaccount', {
-        method: 'POST',
+      const db = getFirestore();
+      const solicitudesRef = collection(db, "cuentas");
+      const q = query(solicitudesRef, where("Empresa_id", "==", userId));
+      const querySnapshot = await getDocs(q);
+      const newSubaccounts: Subaccount[] = [];
+
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        const newSubaccountData = {
+          name: data["Nombre"],
+          email: data["email"],
+          password: "",
+          userId: doc.id,
+        };
+
+        newSubaccounts.push({
+          ...newSubaccountData,
+          id: newSubaccounts.length + 1,
+        });
+      });
+
+      setSubaccounts(newSubaccounts);
+    } catch (error: any) {
+      toast.error("Error al cargar las subcuentas. Verifica tu conexión.", {
+        icon: "🔄",
+        duration: 5000,
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const formatDate = (timestamp: any) => {
+    if (!timestamp) return "";
+    const date = timestamp.toDate();
+    return new Intl.DateTimeFormat("es-MX", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    }).format(date);
+  };
+  const createSubaccount = async (newSubaccount: Omit<Subaccount, "id">) => {
+    try {
+      const response = await fetch("/api/createSubaccount", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(newSubaccount),
       });
 
       if (response.ok) {
         const data = await response.json();
-        setNewSubaccount({ ...newSubaccount, userId: data.userId });
-        console.log("User created:", data.userId);
+        setSubaccounts([
+          ...subaccounts,
+          { ...newSubaccount, id: subaccounts.length + 1, userId: data.userId , },
+        ]);
+        setIsModalOpen(false);
       } else {
         const errorData = await response.json();
-        console.error("Error creating new user:", errorData.error);
+        console.error("Error al crear nuevo usuario:", errorData.error);
       }
     } catch (error) {
-      console.error("Error creating new user:", error);
+      console.error("Error al crear nuevo usuario:", error);
     }
   };
-  
-  // Call createSubaccount with the newSubaccount object
- 
 
-
-
-
-
-
-
-  function UserAdd() {
-    newSubaccount.userId = user 
-    createSubaccount(newSubaccount);
-    // createUserWithEmailAndPassword(auth, newSubaccount.email, newSubaccount.password)
-    //   .then(async (userCredential) => {
-    //     const userId = userCredential.user.uid
-    //     console.log("user", userId)
-    //     const db = getFirestore()
-    //     const cityRef = doc(db, "cuentas", userId)
-    //     console.log(cityRef)
-    //     await setDoc(cityRef, {
-    //       Nombre: newSubaccount.name,
-    //       Empresa: "",
-    //       Empresa_id: user,
-    //       type: "b_sale",
-    //       email: newSubaccount.email
-    //     })
-    //     setNewSubaccount({ name: newSubaccount.name, email:newSubaccount.email ,password: "", userId:userCredential.user.uid})
-    //     console.log("user created")
-    //     // sign_out()
-    //   })
-    //   .catch((error_console) => {
-    //     var errorCode = error_console.code
-    //     var errorMessage = error_console.message
-    //     console.log("error", errorCode, errorMessage)
-    //   })
-  }
-
-  const handleCreateSubaccount = () => {
-
-    UserAdd();
-
-    setSubaccounts([
-      ...subaccounts,
-      { ...newSubaccount, id: subaccounts.length + 1 },
-    ])
-    
-    setNewSubaccount({ name: "", email: "" ,password: "", userId:""})
-    setIsModalOpen(false)
-  }
-
-  const handleLogout = () => {
-    // Implement logout functionality here
-    console.log("Logging out...")
-  }
-  function sign_out() {
-    signOut(auth).then(() => {
-        console.log("user is logged out")
-        router.push('/login')
-      }).catch((error) => {
-        console.log("error", error)
+  const handleCreateSubaccount = async () => {
+    if (!validateForm()) {
+      toast.error("Por favor, completa todos los campos correctamente", {
+        icon: "⚠️",
       });
-  
-}
+      return;
+    }
+
+    setIsCreating(true);
+    try {
+      console.log("empresa name ", adminData.Empresa)
+      await createSubaccount({ ...newSubaccount, userId: user, Empresa: adminData.Empresa });
+      setNewSubaccount({ name: "", email: "", password: "", userId: "" , Empresa: "" });
+      setFormErrors({ name: "", email: "", password: "" });
+      toast.success("¡Subcuenta creada exitosamente!", {
+        icon: "✅",
+      });
+    } catch (error: any) {
+      toast.error("No se pudo crear la subcuenta. Intenta nuevamente.", {
+        icon: "❌",
+      });
+    } finally {
+      setIsCreating(false);
+      setIsModalOpen(false);
+    }
+  };
+  const handleDeleteSubaccount = async (id: number) => {
+    try {
+      const subaccount = subaccounts.find((acc) => acc.id === id);
+      if (!subaccount) {
+        toast.error("No se encontró la subcuenta", {
+          icon: "❌",
+        });
+        return;
+      }
+
+      setSubaccounts((prevAccounts) =>
+        prevAccounts.filter((account) => account.id !== id)
+      );
+      toast.success("Subcuenta eliminada correctamente", {
+        icon: "✅",
+      });
+      await fetchUsers(user);
+    } catch (error: any) {
+      toast.error("Error al eliminar la subcuenta. Intenta nuevamente.", {
+        icon: "❌",
+      });
+      await fetchUsers(user);
+    }
+  };
+
+  const handleSignOut = () => {
+    signOut(auth)
+      .then(() => {
+        toast.success("¡Hasta pronto! Sesión cerrada exitosamente", {
+          icon: "👋",
+        });
+        router.push("/login");
+      })
+      .catch((error) => {
+        toast.error("No se pudo cerrar sesión. Intenta nuevamente.", {
+          icon: "❌",
+        });
+      });
+  };
   return (
-    <div className="min-h-screen bg-gray-100">
-      {/* Navbar */}
-      <nav className="bg-white shadow-md">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex">
-              <div className="flex-shrink-0 flex items-center">
-                <span className="font-bold text-xl text-gray-800">Admin Dashboard</span>
-              </div>
-            </div>
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <img
-                  className="h-8 w-8 rounded-full"
-                  src="https://i.pravatar.cc/150?u=a042581f4e29026704d"
-                  alt="Admin user"
-                />
-              </div>
-              <div className="ml-3">
-                <div className="text-base font-medium text-gray-800">Admin User</div>
-                <div className="text-sm font-medium text-gray-500">admin@example.com</div>
-              </div>
-              <button
-                onClick={sign_out}
-                className="ml-4 px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+    <div className="flex min-h-screen bg-gray-50">
+      <AdminSidebar
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        handleSignOut={handleSignOut}
+      />
+
+      <div className="flex-1 flex flex-col">
+        <header className="bg-white border-b border-gray-200 shadow-sm">
+          <div className="px-8 py-6 flex justify-between items-center">
+            <h1 className="text-2xl font-semibold text-gray-900">
+              {activeTab === "subaccounts" && "Gestionar Subcuentas"}
+              {activeTab === "settings" && "Configuración de Administrador"}
+              {activeTab === "help" && "Centro de Ayuda"}
+            </h1>
+            <div className="flex items-center space-x-4">
+              {activeTab === "subaccounts" && (
+                <Button
+                  color="success"
+                  endContent={<PlusCircle className="w-4 h-4" />}
+                  onPress={() => setIsModalOpen(true)}
+                >
+                  Crear Subcuenta
+                </Button>
+              )}
+              <Button
+                isIconOnly
+                color="default"
+                variant="light"
+                aria-label="User profile"
               >
-                <LogoutIcon className="h-5 w-5" />
-                <span className="sr-only">Logout</span>
-              </button>
+                <User className="w-5 h-5" />
+              </Button>
             </div>
           </div>
-        </div>
-      </nav>
+        </header>
 
-      {/* Main content */}
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <div className="px-4 py-6 sm:px-0">
-          <h1 className="text-2xl font-semibold text-gray-900">Manage Subaccounts</h1>
-          
-          {/* Search and Create */}
-          <div className="mt-4 flex justify-between items-center">
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Search subaccounts..."
-                className="pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm"
-              />
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <SearchIcon className="h-5 w-5 text-gray-400" />
-              </div>
-            </div>
-            <button
-              onClick={() => setIsModalOpen(true)}
-              className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-            >
-              <AddIcon className="h-5 w-5 mr-2" />
-              Create Subaccount
-            </button>
-          </div>
+        <main className="flex-1 p-8 overflow-auto">
+          {activeTab === "subaccounts" && (
+            <div className="space-y-6">
+              <Card className="bg-white shadow-sm">
+                <CardBody className="p-4">
+                  <Input
+                    type="text"
+                    placeholder="Buscar subcuentas..."
+                    startContent={<Search className="text-gray-400" />}
+                    className="w-full max-w-md"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                </CardBody>
+              </Card>
 
-          {/* Subaccounts Table */}
-          <div className="mt-8 flex flex-col">
-            <div className="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
-              <div className="py-2 align-middle inline-block min-w-full sm:px-6 lg:px-8">
-                <div className="shadow overflow-hidden border-b border-gray-200 sm:rounded-lg">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          ID
-                        </th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Name
-                        </th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Email
-                        </th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Actions
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                      {subaccounts.map((subaccount) => (
-                        <tr key={subaccount.id}>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                            {subaccount.id}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {subaccount.name}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {subaccount.email}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                            <button className="text-indigo-600 hover:text-indigo-900 mr-2">
-                              <ViewIcon className="h-5 w-5" />
-                              <span className="sr-only">View</span>
-                            </button>
-                            <button className="text-indigo-600 hover:text-indigo-900 mr-2">
-                              <EditIcon className="h-5 w-5" />
-                              <span className="sr-only">Edit</span>
-                            </button>
-                            <button className="text-red-600 hover:text-red-900">
-                              <DeleteIcon className="h-5 w-5" />
-                              <span className="sr-only">Delete</span>
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+              {isLoading ? (
+                <div className="flex justify-center items-center h-64">
+                  <Spinner color="success" size="lg" />
                 </div>
-              </div>
+              ) : (
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                  {filteredSubaccounts.map((subaccount) => (
+                    <SubaccountCard
+                      key={subaccount.id}
+                      subaccount={subaccount}
+                      onDelete={handleDeleteSubaccount}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
-          </div>
-        </div>
-      </main>
+          )}
 
-      {/* Modal */}
-      {isModalOpen && (
-        <div className="fixed z-10 inset-0 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-          <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
-            <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-            <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-              <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                <div className="sm:flex sm:items-start">
-                  <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-                    <h3 className="text-lg leading-6 font-medium text-gray-900" id="modal-title">
-                      Create Subaccount
+          {activeTab === "settings" && (
+            <Card className="bg-white max-w-4xl mx-auto">
+              <CardBody className="p-6">
+                <div className="flex items-center gap-6 mb-6">
+                  <div className="relative">
+                    <div className="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center">
+                      <User className="w-12 h-12 text-gray-400" />
+                    </div>
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-semibold text-gray-900">
+                      {adminData.Empresa || "Nombre de la Empresa"}
+                    </h2>
+                    <p className="text-gray-500">{userEmail}</p>
+                  </div>
+                </div>
+
+                <div className="space-y-8">
+                  {/* Datos de la Empresa */}
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4 border-b pb-2">
+                      DATOS DE LA EMPRESA
                     </h3>
-                    <div className="mt-2">
-                      <input
-                        type="text"
-                        placeholder="Name"
-                        value={newSubaccount.name}
-                        onChange={(e) => setNewSubaccount({ ...newSubaccount, name: e.target.value })}
-                        className="mt-2 p-2 block w-full border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
-                      />
-                      <input
-                        type="email"
-                        placeholder="Email"
-                        value={newSubaccount.email}
-                        onChange={(e) => setNewSubaccount({ ...newSubaccount, email: e.target.value })}
-                        className="mt-2 p-2 block w-full border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
-                      />
-                      <input
-                        type="password"
-                        placeholder="Password"
-                        value={newSubaccount.password}
-                        onChange={(e) => setNewSubaccount({ ...newSubaccount, password: e.target.value })}
-                        className="mt-2 p-2 block w-full border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
-                      />
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-sm text-gray-500">
+                          Nombre de la Empresa
+                        </p>
+                        <p className="text-gray-900">
+                          {adminData.Empresa}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500">
+                          Correo electrónico
+                        </p>
+                        <p className="text-gray-900">{adminData.email}</p>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-              <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-                <button
-                  type="button"
-                  onClick={handleCreateSubaccount}
-                  className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm"
-                >
-                  Create
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setIsModalOpen(false)}
-                  className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+
+                <div className="mt-8 flex justify-end">
+                  <Button color="primary">Modificar Información</Button>
+                </div>
+              </CardBody>
+            </Card>
+          )}
+
+          {activeTab === "help" && (
+            <Card className="bg-white max-w-2xl mx-auto">
+              <CardBody className="p-6">
+                <h2 className="text-xl font-semibold text-gray-900 mb-6">
+                  Centro de Ayuda para Administradores
+                </h2>
+                <div className="space-y-6">
+                  <div>
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">
+                      Gestión de Subcuentas
+                    </h3>
+                    <div className="space-y-4">
+                      <div className="p-4 bg-gray-50 rounded-lg">
+                        <h4 className="font-medium text-gray-900 mb-2">
+                          ¿Cómo crear una subcuenta?
+                        </h4>
+                        <p className="text-gray-600">
+                          Para crear una subcuenta, ve a la sección de
+                          "Subcuentas" y haz clic en el botón "Crear Subcuenta".
+                          Completa el formulario con la información del
+                          trabajador y guarda los cambios.
+                        </p>
+                      </div>
+                      <div className="p-4 bg-gray-50 rounded-lg">
+                        <h4 className="font-medium text-gray-900 mb-2">
+                          ¿Cómo gestionar los permisos?
+                        </h4>
+                        <p className="text-gray-600">
+                          Los trabajadores tendrán acceso al marketplace para
+                          ver y hacer ofertas a las solicitudes de préstamo.
+                          Como administrador, puedes crear y eliminar cuentas
+                          según sea necesario.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">
+                      Soporte Técnico
+                    </h3>
+                    <div className="bg-gray-50 p-4 rounded-lg">
+                      <p className="text-gray-600 mb-2">
+                        Si necesitas asistencia técnica, contáctanos:
+                      </p>
+                      <ul className="space-y-2 text-gray-600">
+                        <li>Email: soporte@buscocredito.com</li>
+                        <li>Teléfono: (55) 1234-5678</li>
+                        <li>Horario: Lunes a Viernes, 9:00 AM - 6:00 PM</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </CardBody>
+            </Card>
+          )}
+        </main>
+      </div>
+
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
+        <ModalContent>
+          <ModalHeader className="flex flex-col gap-1">
+            Crear Subcuenta
+          </ModalHeader>
+          <ModalBody>
+            <Input
+              label="Nombre"
+              placeholder="Ingrese nombre"
+              value={newSubaccount.name}
+              onChange={(e) =>
+                setNewSubaccount({ ...newSubaccount, name: e.target.value })
+              }
+              isInvalid={!!formErrors.name}
+              errorMessage={formErrors.name}
+            />
+            <Input
+              label="Correo electrónico"
+              placeholder="Ingrese correo electrónico"
+              value={newSubaccount.email}
+              onChange={(e) =>
+                setNewSubaccount({ ...newSubaccount, email: e.target.value })
+              }
+              isInvalid={!!formErrors.email}
+              errorMessage={formErrors.email}
+            />
+            <Input
+              label="Contraseña"
+              type="password"
+              placeholder="Ingrese contraseña"
+              value={newSubaccount.password}
+              onChange={(e) =>
+                setNewSubaccount({ ...newSubaccount, password: e.target.value })
+              }
+              isInvalid={!!formErrors.password}
+              errorMessage={formErrors.password}
+            />
+          </ModalBody>
+          <ModalFooter>
+            <Button
+              color="danger"
+              variant="light"
+              onPress={() => setIsModalOpen(false)}
+              isDisabled={isCreating}
+            >
+              Cancelar
+            </Button>
+            <Button
+              color="success"
+              onPress={handleCreateSubaccount}
+              isLoading={isCreating}
+            >
+              Crear
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
     </div>
-  )
+  );
 }

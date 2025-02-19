@@ -5,8 +5,8 @@ import { create_subaccount_doc } from '@/db/FirestoreFunc'; // Adjust the import
 import { create_subaccount } from '@/db/FireAuthFunc'; // Adjust the import path as necessary
 
 export async function POST(req: NextRequest) {
-  const { name, email, password,userId } = await req.json();
-  if(!name || !email || !password || !userId){
+  const { name, email, password,userId, Empresa } = await req.json();
+  if(!name || !email || !password || !userId || !Empresa){
     return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
   }
   try{
@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: user.error }, { status: 500 });
     }
     if (user.userId) {
-      const account = await create_subaccount_doc(name, email, userId, user.userId);
+      const account = await create_subaccount_doc(name, email, userId, user.userId, Empresa);
       if(account.status !== 200){
         return NextResponse.json({ error: account.error }, { status: 500 });
       }

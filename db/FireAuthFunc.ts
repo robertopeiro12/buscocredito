@@ -1,23 +1,40 @@
-import "server-only";
+import "server-only"
 import { getAuth } from "firebase-admin/auth"
 
-export const create_subaccount = async (name: string, email: string, password: string): Promise<{ status: number, error?: string, userId?: string }> => {
+export const create_subaccount = async (
+  name: string,
+  email: string,
+  password: string,
+): Promise<{ status: number; error?: string; userId?: string }> => {
+  try {
+    const auth = getAuth()
 
-try{
-const auth = getAuth();
-
-const userRecord = await auth.createUser({
-    email: email,
-    emailVerified: false,
-    password: password,
-    displayName: name,
-    disabled: false
-});
-    console.log('Successfully created new user:', userRecord.uid);
-    return { userId: userRecord.uid, status: 200 };
-}catch(error){
-    console.log('Error creating new user:', error);
-    return { error: error.message, status: 500 };
+    const userRecord = await auth.createUser({
+      email: email,
+      emailVerified: false,
+      password: password,
+      displayName: name,
+      disabled: false,
+    })
+    console.log("Successfully created new user:", userRecord.uid)
+    return { userId: userRecord.uid, status: 200 }
+  } catch (error) {
+    console.log("Error creating new user:", error)
+    return { error: error.message, status: 500 }
+  }
 }
 
+export async function delete_subaccount(userId: string) {
+  try {
+    const auth = getAuth()
+    await auth.deleteUser(userId)
+    return { status: 200, message: "Usuario eliminado correctamente" }
+  } catch (error: any) {
+    console.error("Error al eliminar usuario en Authentication:", error)
+    return {
+      status: 500,
+      error: `Error al eliminar usuario en Authentication: ${error.message}`,
+    }
+  }
 }
+

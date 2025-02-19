@@ -8,9 +8,17 @@ import { usePathname } from "next/navigation";
 export default function NavBar() {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
-  const isLoginPage = pathname === "/login";
-  const isSignupPage = pathname === "/signup";
-  const isUserDashboard = pathname === "/user_dashboard";
+
+  // Add admin dashboard path to the check
+  const shouldHideAuthButtons =
+    [
+      "/login",
+      "/signup",
+      "/user_dashboard",
+      "/admin_dashboard", // Added admin dashboard path
+      "/lender",
+      "/lender/offer",
+    ].includes(pathname) || pathname.startsWith("/lender");
 
   return (
     <nav className="w-full bg-white/95 backdrop-blur-sm border-b border-gray-100 px-4 py-3 fixed top-0 z-50 shadow-sm">
@@ -60,7 +68,7 @@ export default function NavBar() {
             ¿Cómo funciona?
           </Link>
           <div className="flex items-center space-x-4 ml-4">
-            {!(isLoginPage || isSignupPage || isUserDashboard) && (
+            {!shouldHideAuthButtons && (
               <>
                 <Link
                   href="/login"
@@ -136,24 +144,22 @@ export default function NavBar() {
               >
                 ¿Cómo funciona?
               </Link>
-              <div className="flex flex-col space-y-3 pt-2">
-                {!(isLoginPage || isSignupPage || isUserDashboard) && (
-                  <>
-                    <Link
-                      href="/login"
-                      className="w-full px-4 py-2.5 text-center text-[#2EA043] font-medium hover:text-green-700 transition-colors duration-200 border border-[#2EA043] rounded-lg"
-                    >
-                      Login
-                    </Link>
-                    <Link
-                      href="/signup"
-                      className="w-full px-4 py-2.5 text-center rounded-lg bg-[#2EA043] text-white font-medium hover:bg-green-700 transition-all duration-200 shadow-sm hover:shadow-md"
-                    >
-                      Sign up
-                    </Link>
-                  </>
-                )}
-              </div>
+              {!shouldHideAuthButtons && (
+                <div className="flex flex-col space-y-3 pt-2">
+                  <Link
+                    href="/login"
+                    className="w-full px-4 py-2.5 text-center text-[#2EA043] font-medium hover:text-green-700 transition-colors duration-200 border border-[#2EA043] rounded-lg"
+                  >
+                    Login
+                  </Link>
+                  <Link
+                    href="/signup"
+                    className="w-full px-4 py-2.5 text-center rounded-lg bg-[#2EA043] text-white font-medium hover:bg-green-700 transition-all duration-200 shadow-sm hover:shadow-md"
+                  >
+                    Sign up
+                  </Link>
+                </div>
+              )}
             </div>
           </div>
         )}
