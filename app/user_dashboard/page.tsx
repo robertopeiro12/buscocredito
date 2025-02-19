@@ -40,6 +40,55 @@ import {
   getDoc,
 } from "firebase/firestore";
 
+interface Address {
+  street: string;
+  number: string;
+  colony: string;
+  city: string;
+  state: string;
+  country: string;
+  zipCode: string;
+}
+
+interface UserData {
+  name: string;
+  last_name: string;
+  second_last_name: string;
+  email: string;
+  rfc: string;
+  birthday: any; // You might want to make this more specific
+  phone: string;
+  address: Address;
+}
+
+interface Solicitud {
+  id: string;
+  purpose: string;
+  type: string;
+  amount: number;
+  term: string;
+  payment: string;
+  income: number;
+  accepted?: string[];
+  userId: string;
+}
+
+interface Offer {
+  lender_name: string;
+  amount: number;
+  interest_rate: number;
+  term: string;
+  monthly_payment: number;
+  amortization?: {
+    payment: number;
+    principal: number;
+    interest: number;
+    balance: number;
+  }[];
+  medical_balance?: number;
+  comision?: number;
+}
+
 export default function DashboardPage() {
   const [user, setUser] = useState("");
   const [activeTab, setActiveTab] = useState("loans");
@@ -47,10 +96,10 @@ export default function DashboardPage() {
   const [banksData, setBanksData] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
-  const [solicitudes, setSolicitudes] = useState([]);
-  const [selectedSolicitud, setSelectedSolicitud] = useState(null);
-  const [offer_data, set_offer_Data ] = useState([]);
-  const [userData, setUserData] = useState({
+  const [solicitudes, setSolicitudes] = useState<Solicitud[]>([]);
+  const [selectedSolicitud, setSelectedSolicitud] = useState<Solicitud | null>(null);
+  const [offer_data, set_offer_Data] = useState<Offer[]>([]);
+  const [userData, setUserData] = useState<UserData>({
     name: "",
     last_name: "",
     second_last_name: "",
@@ -68,6 +117,8 @@ export default function DashboardPage() {
       zipCode: "",
     },
   });
+  const [offerCounts, setOfferCounts] = useState<{ [key: string]: number }>({});
+  const [selectedOffer, setSelectedOffer] = useState<Offer | null>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -91,7 +142,7 @@ export default function DashboardPage() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: loanId,
+        body: JSON.stringify({ loanId }),
       });
 
       if (response.ok) {
@@ -103,36 +154,61 @@ export default function DashboardPage() {
     }
   };
 
-  const fetchUserData = async (userId) => {
+  const fetchUserData = async (userId: string) => {
     const db = getFirestore();
     const userDoc = await getDoc(doc(db, "cuentas", userId));
     if (userDoc.exists()) {
-      setUserData(userDoc.data());
+      setUserData(userDoc.data() as UserData);
     }
   };
 
-  const fetchSolicitudes = async (userId) => {
+  const fetchOfferCount = async (loanId: string) => {
+    try {
+      const response = await fetch("/api/fetch_loan_offer", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ loanId }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const offers = data.data ? JSON.parse(data.data) : [];
+        setOfferCounts(prev => ({ ...prev, [loanId]: offers.length }));
+      }
+    } catch (error) {
+      console.error("Error getting offer count:", error);
+    }
+  };
+
+  const fetchSolicitudes = async (userId: string) => {
     const db = getFirestore();
     const solicitudesRef = collection(db, "solicitudes");
     const q = query(solicitudesRef, where("userId", "==", userId));
     const querySnapshot = await getDocs(q);
 
-    const fetchedSolicitudes = [];
+    const fetchedSolicitudes: Solicitud[] = [];
     querySnapshot.forEach((doc) => {
-      fetchedSolicitudes.push({ id: doc.id, ...doc.data() });
+      fetchedSolicitudes.push({ id: doc.id, ...doc.data() } as Solicitud);
     });
 
     setSolicitudes(fetchedSolicitudes);
+    
+    // Fetch offer counts for each solicitud
+    fetchedSolicitudes.forEach(solicitud => {
+      fetchOfferCount(solicitud.id);
+    });
   };
 
-  const deleteSolicitud = async (solicitudId) => {
+  const deleteSolicitud = async (solicitudId: string) => {
     const db = getFirestore();
     await deleteDoc(doc(db, "solicitudes", solicitudId));
     fetchSolicitudes(user);
     setShowDeleteConfirmation(false);
   };
 
-  const addSolicitud = async (solicitud) => {
+  const addSolicitud = async (solicitud: Omit<Solicitud, 'id'>) => {
     const db = getFirestore();
     await addDoc(collection(db, "solicitudes"), {
       ...solicitud,
@@ -142,9 +218,14 @@ export default function DashboardPage() {
     setShowForm(false);
   };
 
-  const openBanksModal = (banks) => {
-    setBanksData(banks || []);
-    setShowBanksModal(true);
+  const openBanksModal = async (solicitudId: string) => {
+    try {
+      console.log(solicitudId);
+      await fetch_offer_data(solicitudId);
+      setShowBanksModal(true);
+    } catch (error) {
+      console.error("Error fetching offers:", error);
+    }
   };
 
   const handleSignOut = () => {
@@ -314,14 +395,14 @@ export default function DashboardPage() {
                           <div className="pt-4">
                             <div className="flex justify-between items-center mb-2">
                               <span className="text-sm font-medium text-gray-700">
-                                Progreso de ofertas
+                                Ofertas disponibles
                               </span>
                               <span className="text-sm text-gray-500">
-                                {solicitud.accepted?.length || 0} ofertas
+                                {offerCounts[solicitud.id] || 0} ofertas
                               </span>
                             </div>
                             <Progress
-                              value={(solicitud.accepted?.length || 0) * 20}
+                              value={offerCounts[solicitud.id] ? (offerCounts[solicitud.id] * 20) : 0}
                               className="h-2"
                               color="success"
                             />
@@ -344,7 +425,7 @@ export default function DashboardPage() {
                             color="primary"
                             variant="flat"
                             endContent={<ChevronRight className="w-4 h-4" />}
-                            onPress={() => openBanksModal(solicitud.accepted)}
+                            onPress={() => openBanksModal(solicitud.id)}
                           >
                             Ver Ofertas
                           </Button>
@@ -527,31 +608,157 @@ export default function DashboardPage() {
 
       <Modal
         isOpen={showBanksModal}
-        onClose={() => setShowBanksModal(false)}
+        onClose={() => {
+          setShowBanksModal(false);
+          setSelectedOffer(null);
+        }}
+        size={selectedOffer ? "3xl" : "xl"}
         className="bg-white"
       >
         <ModalContent>
-          <ModalHeader className="border-b">Ofertas Disponibles</ModalHeader>
-          <ModalBody>
-            {banksData.length > 0 ? (
-              <ul className="divide-y divide-gray-200">
-                {banksData.map((bank, idx) => (
-                  <li key={idx} className="py-3 flex items-center gap-3">
-                    <div className="h-2 w-2 rounded-full bg-green-500"></div>
-                    <span className="text-gray-900">{bank}</span>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <div className="text-center py-6">
-                <p className="text-gray-500">
-                  No hay ofertas disponibles en este momento.
-                </p>
-              </div>
-            )}
-          </ModalBody>
+          {selectedOffer ? (
+            <>
+              <ModalHeader className="border-b">
+                <div className="flex justify-between items-center w-full">
+                  <h3 className="text-xl font-semibold">Detalles de la Oferta</h3>
+                  <Button
+                    variant="light"
+                    onPress={() => setSelectedOffer(null)}
+                    size="sm"
+                  >
+                    Volver a la lista
+                  </Button>
+                </div>
+              </ModalHeader>
+              <ModalBody>
+                <div className="space-y-6 py-4">
+                  <div className="grid grid-cols-2 gap-6">
+                    <div>
+                      <h4 className="font-medium text-gray-900 mb-4">Información del Préstamo</h4>
+                      <div className="space-y-3">
+                        <div className="flex justify-between">
+                          <span className="text-gray-500">Prestamista:</span>
+                          <span className="font-medium">{selectedOffer.lender_name}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-500">Monto del préstamo:</span>
+                          <span className="font-medium text-green-600">${selectedOffer.amount?.toLocaleString()}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-500">Tasa de interés:</span>
+                          <span className="font-medium">{selectedOffer.interest_rate}%</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-500">Plazo:</span>
+                          <span className="font-medium">{selectedOffer.term}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div>
+                      <h4 className="font-medium text-gray-900 mb-4">Costos y Pagos</h4>
+                      <div className="space-y-3">
+                        <div className="flex justify-between">
+                          <span className="text-gray-500">Pago mensual:</span>
+                          <span className="font-medium">${selectedOffer.monthly_payment?.toLocaleString()}</span>
+                        </div>
+                        {selectedOffer.comision !== undefined && (
+                          <div className="flex justify-between">
+                            <span className="text-gray-500">Comisión:</span>
+                            <span className="font-medium">${selectedOffer.comision?.toLocaleString()}</span>
+                          </div>
+                        )}
+                        {selectedOffer.medical_balance !== undefined && (
+                          <div className="flex justify-between">
+                            <span className="text-gray-500">Saldo médico:</span>
+                            <span className="font-medium">${selectedOffer.medical_balance?.toLocaleString()}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {selectedOffer.amortization && Array.isArray(selectedOffer.amortization) && selectedOffer.amortization.length > 0 && (
+                    <div>
+                      <h4 className="font-medium text-gray-900 mb-4">Tabla de Amortización</h4>
+                      <div className="max-h-64 overflow-y-auto">
+                        <table className="min-w-full divide-y divide-gray-200">
+                          <thead className="bg-gray-50">
+                            <tr>
+                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Mes</th>
+                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Pago</th>
+                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Capital</th>
+                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Interés</th>
+                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Saldo</th>
+                            </tr>
+                          </thead>
+                          <tbody className="bg-white divide-y divide-gray-200">
+                            {selectedOffer.amortization.map((row, index) => (
+                              <tr key={index}>
+                                <td className="px-4 py-2 text-sm text-gray-900">{index + 1}</td>
+                                <td className="px-4 py-2 text-sm text-gray-900">${row.payment?.toLocaleString() ?? 0}</td>
+                                <td className="px-4 py-2 text-sm text-gray-900">${row.principal?.toLocaleString() ?? 0}</td>
+                                <td className="px-4 py-2 text-sm text-gray-900">${row.interest?.toLocaleString() ?? 0}</td>
+                                <td className="px-4 py-2 text-sm text-gray-900">${row.balance?.toLocaleString() ?? 0}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </ModalBody>
+            </>
+          ) : (
+            <>
+              <ModalHeader className="border-b">Ofertas Disponibles</ModalHeader>
+              <ModalBody>
+                {offer_data && offer_data.length > 0 ? (
+                  <ul className="divide-y divide-gray-200">
+                    {offer_data.map((offer, idx) => (
+                      <li 
+                        key={idx} 
+                        className="py-4 cursor-pointer hover:bg-gray-50 transition-colors"
+                        onClick={() => setSelectedOffer(offer)}
+                      >
+                        <div className="flex justify-between items-start mb-2">
+                          <h4 className="font-medium text-gray-900">{offer.lender_name}</h4>
+                          <span className="text-green-600 font-semibold">
+                            ${offer.amount?.toLocaleString()}
+                          </span>
+                        </div>
+                        <div className="space-y-1 text-sm">
+                          <div className="flex justify-between">
+                            <span className="text-gray-500">Tasa de interés:</span>
+                            <span className="text-gray-900">{offer.interest_rate}%</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-500">Plazo:</span>
+                            <span className="text-gray-900">{offer.term}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-500">Pago mensual:</span>
+                            <span className="text-gray-900">${offer.monthly_payment?.toLocaleString()}</span>
+                          </div>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <div className="text-center py-6">
+                    <p className="text-gray-500">
+                      No hay ofertas disponibles en este momento.
+                    </p>
+                  </div>
+                )}
+              </ModalBody>
+            </>
+          )}
           <ModalFooter className="border-t">
-            <Button color="primary" onPress={() => setShowBanksModal(false)}>
+            <Button color="primary" onPress={() => {
+              setShowBanksModal(false);
+              setSelectedOffer(null);
+            }}>
               Cerrar
             </Button>
           </ModalFooter>
@@ -575,7 +782,7 @@ export default function DashboardPage() {
           <ModalFooter className="border-t">
             <Button
               color="danger"
-              onPress={() => deleteSolicitud(selectedSolicitud.id)}
+              onPress={() => selectedSolicitud && deleteSolicitud(selectedSolicitud.id)}
             >
               Eliminar
             </Button>

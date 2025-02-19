@@ -93,3 +93,42 @@ export async function delete_subaccount_doc(userId: string) {
   }
 }
 
+export const getLoanOffers = async (loanId: string) => {
+  const Firestore = getFirestore();
+  const propuestasRef = Firestore.collection("propuestas");
+  
+  try {
+    const snapshot = await propuestasRef
+      .where("loanId", "==", loanId)
+      .get();
+    
+    const offers = snapshot.docs.map(doc => {
+      const data = doc.data();
+      return {
+        lender_name: data.company,
+        amount: data.amount,
+        interest_rate: data.interest_rate,
+        term: data.deadline,
+        monthly_payment: calculateMonthlyPayment(data.amount, data.interest_rate, data.deadline),
+        amortization: data.amortization,
+        medical_balance: data.medical_balance,
+        comision: data.comision
+      };
+    });
+
+    return { status: 200, data: offers };
+  } catch (error) {
+    console.error("Error getting offers: ", error);
+    return { error: error.message, status: 500 };
+  }
+};
+
+// Helper function to calculate monthly payment
+function calculateMonthlyPayment(amount: number, interestRate: number, term: number): number {
+  const monthlyRate = (interestRate / 100) / 12;
+  const payments = term * (12/52); // Convert weeks to months
+  const payment = (amount * monthlyRate * Math.pow(1 + monthlyRate, payments)) / 
+                 (Math.pow(1 + monthlyRate, payments) - 1);
+  return Math.round(payment * 100) / 100;
+}
+
