@@ -40,17 +40,67 @@ import {
   getDoc,
 } from "firebase/firestore";
 
+interface Address {
+  street: string;
+  number: string;
+  colony: string;
+  city: string;
+  state: string;
+  country: string;
+  zipCode: string;
+}
+
+interface UserData {
+  name: string;
+  last_name: string;
+  second_last_name: string;
+  email: string;
+  rfc: string;
+  birthday: any; // You might want to make this more specific
+  phone: string;
+  address: Address;
+}
+
+interface Solicitud {
+  id: string;
+  purpose: string;
+  type: string;
+  amount: number;
+  term: string;
+  payment: string;
+  income: number;
+  accepted?: string[];
+  userId: string;
+}
+
+interface Offer {
+  lender_name: string;
+  amount: number;
+  interest_rate: number;
+  term: string;
+  monthly_payment: number;
+  amortization?: {
+    payment: number;
+    principal: number;
+    interest: number;
+    balance: number;
+  }[];
+  medical_balance?: number;
+  comision?: number;
+}
+
 export default function DashboardPage() {
   const [user, setUser] = useState("");
   const [activeTab, setActiveTab] = useState("loans");
   const [showBanksModal, setShowBanksModal] = useState(false);
+  const [selectedSolicitudId, setSelectedSolicitudId] = useState<string | null>(null);
   const [banksData, setBanksData] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
-  const [solicitudes, setSolicitudes] = useState([]);
-  const [selectedSolicitud, setSelectedSolicitud] = useState(null);
-  const [offer_data, set_offer_Data ] = useState([]);
-  const [userData, setUserData] = useState({
+  const [solicitudes, setSolicitudes] = useState<Solicitud[]>([]);
+  const [selectedSolicitud, setSelectedSolicitud] = useState<Solicitud | null>(null);
+  const [offer_data, set_offer_Data] = useState<Offer[]>([]);
+  const [userData, setUserData] = useState<UserData>({
     name: "",
     last_name: "",
     second_last_name: "",
@@ -68,6 +118,7 @@ export default function DashboardPage() {
       zipCode: "",
     },
   });
+  const [offerCounts, setOfferCounts] = useState<{ [key: string]: number }>({});
   const router = useRouter();
 
   useEffect(() => {
@@ -91,7 +142,7 @@ export default function DashboardPage() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: loanId,
+        body: JSON.stringify({ loanId }),
       });
 
       if (response.ok) {
@@ -103,36 +154,61 @@ export default function DashboardPage() {
     }
   };
 
-  const fetchUserData = async (userId) => {
+  const fetchUserData = async (userId: string) => {
     const db = getFirestore();
     const userDoc = await getDoc(doc(db, "cuentas", userId));
     if (userDoc.exists()) {
-      setUserData(userDoc.data());
+      setUserData(userDoc.data() as UserData);
     }
   };
 
-  const fetchSolicitudes = async (userId) => {
+  const fetchOfferCount = async (loanId: string) => {
+    try {
+      const response = await fetch("/api/fetch_loan_offer", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ loanId }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const offers = data.data ? JSON.parse(data.data) : [];
+        setOfferCounts(prev => ({ ...prev, [loanId]: offers.length }));
+      }
+    } catch (error) {
+      console.error("Error getting offer count:", error);
+    }
+  };
+
+  const fetchSolicitudes = async (userId: string) => {
     const db = getFirestore();
     const solicitudesRef = collection(db, "solicitudes");
     const q = query(solicitudesRef, where("userId", "==", userId));
     const querySnapshot = await getDocs(q);
 
-    const fetchedSolicitudes = [];
+    const fetchedSolicitudes: Solicitud[] = [];
     querySnapshot.forEach((doc) => {
-      fetchedSolicitudes.push({ id: doc.id, ...doc.data() });
+      fetchedSolicitudes.push({ id: doc.id, ...doc.data() } as Solicitud);
     });
 
     setSolicitudes(fetchedSolicitudes);
+    
+    // Fetch offer counts for each solicitud
+    fetchedSolicitudes.forEach(solicitud => {
+      fetchOfferCount(solicitud.id);
+    });
   };
 
-  const deleteSolicitud = async (solicitudId) => {
+  const deleteSolicitud = async (solicitudId: string) => {
     const db = getFirestore();
     await deleteDoc(doc(db, "solicitudes", solicitudId));
     fetchSolicitudes(user);
     setShowDeleteConfirmation(false);
   };
 
-  const addSolicitud = async (solicitud) => {
+  const addSolicitud = async (solicitud: Omit<Solicitud, 'id'>) => {
     const db = getFirestore();
     await addDoc(collection(db, "solicitudes"), {
       ...solicitud,
@@ -142,9 +218,13 @@ export default function DashboardPage() {
     setShowForm(false);
   };
 
-  const openBanksModal = (banks) => {
-    setBanksData(banks || []);
-    setShowBanksModal(true);
+  const openBanksModal = async (solicitudId: string) => {
+    try {
+      await fetch_offer_data(solicitudId);
+      setSelectedSolicitudId(solicitudId);
+    } catch (error) {
+      console.error("Error fetching offers:", error);
+    }
   };
 
   const handleSignOut = () => {
@@ -271,87 +351,184 @@ export default function DashboardPage() {
                   </CardBody>
                 </Card>
               ) : (
-                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                  {solicitudes.map((solicitud) => (
-                    <Card key={solicitud.id} className="bg-white">
-                      <CardBody className="p-6">
-                        <div className="space-y-4">
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <h3 className="text-lg font-semibold text-gray-900">
-                                {solicitud.purpose}
-                              </h3>
-                              <p className="text-sm text-gray-500">
-                                {solicitud.type}
-                              </p>
-                            </div>
-                            <span className="text-lg font-semibold text-green-600">
-                              ${solicitud.amount.toLocaleString()}
-                            </span>
-                          </div>
-                          <div className="space-y-2">
-                            <div className="flex justify-between text-sm">
-                              <span className="text-gray-500">Plazo</span>
-                              <span className="text-gray-900">
-                                {solicitud.term}
-                              </span>
-                            </div>
-                            <div className="flex justify-between text-sm">
-                              <span className="text-gray-500">
-                                Forma de Pago
-                              </span>
-                              <span className="text-gray-900">
-                                {solicitud.payment}
-                              </span>
-                            </div>
-                            <div className="flex justify-between text-sm">
-                              <span className="text-gray-500">Ingresos</span>
-                              <span className="text-gray-900">
-                                ${solicitud.income.toLocaleString()}
-                              </span>
-                            </div>
-                          </div>
-                          <div className="pt-4">
-                            <div className="flex justify-between items-center mb-2">
-                              <span className="text-sm font-medium text-gray-700">
-                                Progreso de ofertas
-                              </span>
-                              <span className="text-sm text-gray-500">
-                                {solicitud.accepted?.length || 0} ofertas
-                              </span>
-                            </div>
-                            <Progress
-                              value={(solicitud.accepted?.length || 0) * 20}
-                              className="h-2"
-                              color="success"
-                            />
-                          </div>
-                        </div>
-                      </CardBody>
-                      <CardFooter className="px-6 py-4 bg-gray-50 border-t border-gray-100">
-                        <div className="flex justify-between w-full">
-                          <Button
-                            color="danger"
-                            variant="light"
-                            onPress={() => {
-                              setSelectedSolicitud(solicitud);
-                              setShowDeleteConfirmation(true);
-                            }}
+                <div className="space-y-8">
+                  {selectedSolicitudId && offer_data && offer_data.length > 0 ? (
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-center">
+                        <h2 className="text-xl font-semibold text-gray-900">Ofertas Disponibles</h2>
+                        <Button
+                          variant="light"
+                          onPress={() => setSelectedSolicitudId(null)}
+                          size="sm"
+                          endContent={<ChevronRight className="w-4 h-4 rotate-180" />}
+                        >
+                          Volver a Préstamos
+                        </Button>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {offer_data.map((offer, idx) => (
+                          <Card 
+                            key={idx}
+                            className="w-full"
                           >
-                            Eliminar
-                          </Button>
-                          <Button
-                            color="primary"
-                            variant="flat"
-                            endContent={<ChevronRight className="w-4 h-4" />}
-                            onPress={() => openBanksModal(solicitud.accepted)}
-                          >
-                            Ver Ofertas
-                          </Button>
-                        </div>
-                      </CardFooter>
-                    </Card>
-                  ))}
+                            <CardBody className="p-6">
+                              <div className="space-y-6">
+                                {/* Header Section */}
+                                <div className="flex justify-between items-start">
+                                  <div>
+                                    <h4 className="text-xl font-semibold text-gray-900">{offer.lender_name}</h4>
+                                    <p className="text-sm text-gray-500">{offer.term}</p>
+                                  </div>
+                                  <div className="text-right">
+                                    <p className="text-2xl font-bold text-green-600">${offer.amount?.toLocaleString()}</p>
+                                    <p className="text-sm text-gray-500">{offer.interest_rate}% interés</p>
+                                  </div>
+                                </div>
+
+                                {/* Main Info Grid */}
+                                <div className="grid grid-cols-1 gap-6 pt-4 border-t">
+                                  <div className="space-y-4">
+                                    <h5 className="font-medium text-gray-900">Información del Préstamo</h5>
+                                    <div className="space-y-3">
+                                      <div className="flex justify-between text-sm">
+                                        <span className="text-gray-500">Pago mensual:</span>
+                                        <span className="font-medium">${offer.monthly_payment?.toLocaleString()}</span>
+                                      </div>
+                                      {offer.comision !== undefined && (
+                                        <div className="flex justify-between text-sm">
+                                          <span className="text-gray-500">Comisión:</span>
+                                          <span className="font-medium">${offer.comision?.toLocaleString()}</span>
+                                        </div>
+                                      )}
+                                      {offer.medical_balance !== undefined && (
+                                        <div className="flex justify-between text-sm">
+                                          <span className="text-gray-500">Saldo médico:</span>
+                                          <span className="font-medium">${offer.medical_balance?.toLocaleString()}</span>
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+
+                                  {offer.amortization && Array.isArray(offer.amortization) && offer.amortization.length > 0 && (
+                                    <div className="space-y-4">
+                                      <h5 className="font-medium text-gray-900">Tabla de Amortización</h5>
+                                      <div className="max-h-48 overflow-y-auto">
+                                        <table className="min-w-full divide-y divide-gray-200">
+                                          <thead className="bg-gray-50">
+                                            <tr>
+                                              <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">Mes</th>
+                                              <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">Pago</th>
+                                              <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">Capital</th>
+                                              <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">Interés</th>
+                                              <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">Saldo</th>
+                                            </tr>
+                                          </thead>
+                                          <tbody className="bg-white divide-y divide-gray-200">
+                                            {offer.amortization.map((row, index) => (
+                                              <tr key={index}>
+                                                <td className="px-3 py-2 text-xs text-gray-900">{index + 1}</td>
+                                                <td className="px-3 py-2 text-xs text-gray-900">${row.payment?.toLocaleString() ?? 0}</td>
+                                                <td className="px-3 py-2 text-xs text-gray-900">${row.principal?.toLocaleString() ?? 0}</td>
+                                                <td className="px-3 py-2 text-xs text-gray-900">${row.interest?.toLocaleString() ?? 0}</td>
+                                                <td className="px-3 py-2 text-xs text-gray-900">${row.balance?.toLocaleString() ?? 0}</td>
+                                              </tr>
+                                            ))}
+                                          </tbody>
+                                        </table>
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </CardBody>
+                          </Card>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                      {solicitudes.map((solicitud) => (
+                        <Card key={solicitud.id} className="bg-white">
+                          <CardBody className="p-6">
+                            <div className="space-y-4">
+                              <div className="flex justify-between items-start">
+                                <div>
+                                  <h3 className="text-lg font-semibold text-gray-900">
+                                    {solicitud.purpose}
+                                  </h3>
+                                  <p className="text-sm text-gray-500">
+                                    {solicitud.type}
+                                  </p>
+                                </div>
+                                <span className="text-lg font-semibold text-green-600">
+                                  ${solicitud.amount.toLocaleString()}
+                                </span>
+                              </div>
+                              <div className="space-y-2">
+                                <div className="flex justify-between text-sm">
+                                  <span className="text-gray-500">Plazo</span>
+                                  <span className="text-gray-900">
+                                    {solicitud.term}
+                                  </span>
+                                </div>
+                                <div className="flex justify-between text-sm">
+                                  <span className="text-gray-500">
+                                    Forma de Pago
+                                  </span>
+                                  <span className="text-gray-900">
+                                    {solicitud.payment}
+                                  </span>
+                                </div>
+                                <div className="flex justify-between text-sm">
+                                  <span className="text-gray-500">Ingresos</span>
+                                  <span className="text-gray-900">
+                                    ${solicitud.income.toLocaleString()}
+                                  </span>
+                                </div>
+                              </div>
+                              <div className="pt-4">
+                                <div className="flex justify-between items-center mb-2">
+                                  <span className="text-sm font-medium text-gray-700">
+                                    Ofertas disponibles
+                                  </span>
+                                  <span className="text-sm text-gray-500">
+                                    {offerCounts[solicitud.id] || 0} ofertas
+                                  </span>
+                                </div>
+                                <Progress
+                                  value={offerCounts[solicitud.id] ? (offerCounts[solicitud.id] * 20) : 0}
+                                  className="h-2"
+                                  color="success"
+                                />
+                              </div>
+                            </div>
+                          </CardBody>
+                          <CardFooter className="px-6 py-4 bg-gray-50 border-t border-gray-100">
+                            <div className="flex justify-between w-full">
+                              <Button
+                                color="danger"
+                                variant="light"
+                                onPress={() => {
+                                  setSelectedSolicitud(solicitud);
+                                  setShowDeleteConfirmation(true);
+                                }}
+                              >
+                                Eliminar
+                              </Button>
+                              <Button
+                                color="primary"
+                                variant="flat"
+                                endContent={<ChevronRight className="w-4 h-4" />}
+                                onPress={() => openBanksModal(solicitud.id)}
+                              >
+                                Ver Ofertas
+                              </Button>
+                            </div>
+                          </CardFooter>
+                        </Card>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -526,39 +703,6 @@ export default function DashboardPage() {
       </AnimatePresence>
 
       <Modal
-        isOpen={showBanksModal}
-        onClose={() => setShowBanksModal(false)}
-        className="bg-white"
-      >
-        <ModalContent>
-          <ModalHeader className="border-b">Ofertas Disponibles</ModalHeader>
-          <ModalBody>
-            {banksData.length > 0 ? (
-              <ul className="divide-y divide-gray-200">
-                {banksData.map((bank, idx) => (
-                  <li key={idx} className="py-3 flex items-center gap-3">
-                    <div className="h-2 w-2 rounded-full bg-green-500"></div>
-                    <span className="text-gray-900">{bank}</span>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <div className="text-center py-6">
-                <p className="text-gray-500">
-                  No hay ofertas disponibles en este momento.
-                </p>
-              </div>
-            )}
-          </ModalBody>
-          <ModalFooter className="border-t">
-            <Button color="primary" onPress={() => setShowBanksModal(false)}>
-              Cerrar
-            </Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
-
-      <Modal
         isOpen={showDeleteConfirmation}
         onClose={() => setShowDeleteConfirmation(false)}
       >
@@ -575,7 +719,7 @@ export default function DashboardPage() {
           <ModalFooter className="border-t">
             <Button
               color="danger"
-              onPress={() => deleteSolicitud(selectedSolicitud.id)}
+              onPress={() => selectedSolicitud && deleteSolicitud(selectedSolicitud.id)}
             >
               Eliminar
             </Button>

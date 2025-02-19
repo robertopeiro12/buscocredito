@@ -1,22 +1,25 @@
 import "server-only";
 import { NextRequest, NextResponse } from 'next/server';
-import { initAdmin } from '@/db/FirebaseAdmin'; // Adjust the import path as necessary
-import { getUserOfferData } from '@/db/FirestoreFunc'; // Adjust the import path as necessary
+import { initAdmin } from '@/db/FirebaseAdmin';
+import { getLoanOffers } from '@/db/FirestoreFunc';
 
 export async function POST(req: NextRequest) {
-  const {loanId} = await req.json();
-  if(!loanId){
-    return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+  const { loanId } = await req.json();
+  console.log(loanId); 
+  if (!loanId) {
+    return NextResponse.json({ error: "Missing loan ID" }, { status: 400 });
   }
-  try{
+
+  try {
     await initAdmin();
-    const user_data = await getUserOfferData(loanId);
-    if(user_data.status !== 200){
-      return NextResponse.json({ error: user_data.error }, { status: 500 });
+    const offers = await getLoanOffers(loanId);
+    
+    if (offers.status !== 200) {
+      return NextResponse.json({ error: offers.error }, { status: 500 });
     }
 
-    return NextResponse.json({ data: user_data.data }, { status: 200 });
-  }catch(e){
+    return NextResponse.json({ data: JSON.stringify(offers.data) }, { status: 200 });
+  } catch (e) {
     return NextResponse.json({ error: e }, { status: 500 });
   }
 }
