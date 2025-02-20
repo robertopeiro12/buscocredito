@@ -5,6 +5,7 @@ import { fontSans } from "@/config/fonts";
 import { Providers } from "./providers";
 import clsx from "clsx";
 import NavBar from "@/components/navbar";
+import { NotificationProvider } from "@/components/NotificationProvider";
 
 export const metadata: Metadata = {
   title: {
@@ -24,7 +25,6 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "es_ES",
-    url: siteConfig.url,
     title: siteConfig.name,
     description: siteConfig.description,
     siteName: siteConfig.name,
@@ -48,26 +48,28 @@ export default function RootLayout({
           fontSans.variable
         )}
       >
-        <Providers themeProps={{ attribute: "class", defaultTheme: "white" }}>
-          {/* Skip to main content - Accesibilidad */}
-          <a
-            href="#main-content"
-            className="sr-only focus:not-sr-only focus:absolute focus:z-[100] focus:top-4 focus:left-4 focus:p-4 focus:bg-white focus:text-green-600"
-          >
-            Saltar al contenido principal
-          </a>
+        <NotificationProvider>
+          <Providers themeProps={{ attribute: "class", defaultTheme: "white" }}>
+            {/* Skip to main content - Accesibilidad */}
+            <a
+              href="#main-content"
+              className="sr-only focus:not-sr-only focus:absolute focus:z-[100] focus:top-4 focus:left-4 focus:p-4 focus:bg-white focus:text-green-600"
+            >
+              Saltar al contenido principal
+            </a>
 
-          {/* Navigation */}
-          <NavBar />
+            {/* Navigation */}
+            <NavBar />
 
-          {/* Main content */}
-          <main id="main-content" className="flex-grow pt-16 relative z-0">
-            {children}
-          </main>
+            {/* Main content */}
+            <main id="main-content" className="flex-grow pt-16 relative z-0">
+              {children}
+            </main>
 
-          {/* Overlay para efectos de loading o modales si los necesitas */}
-          <div id="overlay-root" />
-        </Providers>
+            {/* Overlay para efectos de loading o modales si los necesitas */}
+            <div id="overlay-root" />
+          </Providers>
+        </NotificationProvider>
 
         {/* Scripts adicionales si los necesitas */}
         <div id="scripts-root" />
