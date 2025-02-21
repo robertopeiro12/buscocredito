@@ -18,7 +18,7 @@ const Introduction = () => {
 
       <div className="max-w-[800px] mx-auto w-full flex flex-col items-center px-4 pt-12 relative z-10">
         {/* Logo con Loader */}
-        <div className="relative w-[260px] h-[260px] sm:w-[300px] sm:h-[300px] md:w-[400px] md:h-[400px] mb-4 md:mb-6 transition-transform duration-300 hover:scale-105">
+        <div className="relative w-[260px] h-[260px] sm:w-[300px] sm:h-[300px] md:w-[400px] md:h-[400px] mb-2 md:mb-3 transition-transform duration-300 hover:scale-105">
           {!imageLoaded && (
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="w-12 h-12 border-4 border-[#2EA043] border-t-transparent rounded-full animate-spin" />
@@ -40,15 +40,15 @@ const Introduction = () => {
         {/* Contenido Principal */}
         <div className="text-center">
           <h1 className="animate__animated animate__fadeIn animate__delay-1s">
-            <span className="block text-[32px] sm:text-[38px] md:text-[42px] font-bold text-[#212529] mb-1">
+            <span className="block text-[32px] sm:text-[38px] md:text-[42px] font-bold text-[#212529] leading-tight">
               El marketplace
             </span>
-            <span className="block text-[32px] sm:text-[38px] md:text-[42px] font-bold text-[#2EA043]">
+            <span className="block text-[32px] sm:text-[38px] md:text-[42px] font-bold text-[#2EA043] leading-tight">
               de préstamos
             </span>
           </h1>
 
-          <p className="mt-3 md:mt-4 text-[16px] md:text-[18px] text-[#6C757D] leading-relaxed max-w-[90%] mx-auto animate__animated animate__fadeIn animate__delay-1s">
+          <p className="mt-2 md:mt-3 text-[16px] md:text-[18px] text-[#6C757D] leading-relaxed max-w-[90%] mx-auto animate__animated animate__fadeIn animate__delay-1s">
             Conectamos prestamistas y prestatarios en una plataforma
             <br className="hidden sm:block" />
             moderna y segura.
