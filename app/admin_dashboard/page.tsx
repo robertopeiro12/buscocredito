@@ -63,7 +63,7 @@ export default function AdminDashboard() {
     email: "",
     password: "",
     userId: "",
-    Empresa: ""
+    Empresa: "",
   });
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("subaccounts");
@@ -97,7 +97,7 @@ export default function AdminDashboard() {
           Empresa: data.Empresa || "",
           email: data.email || "",
         });
-        console.log("empresa get ",data.Empresa);
+        console.log("empresa get ", data.Empresa);
       }
     } catch (error) {
       console.error("Error al obtener datos del administrador:", error);
@@ -159,6 +159,7 @@ export default function AdminDashboard() {
           email: data["email"],
           password: "",
           userId: doc.id,
+          Empresa: data["Empresa"] || "",
         };
 
         newSubaccounts.push({
@@ -201,7 +202,7 @@ export default function AdminDashboard() {
         const data = await response.json();
         setSubaccounts([
           ...subaccounts,
-          { ...newSubaccount, id: subaccounts.length + 1, userId: data.userId , },
+          { ...newSubaccount, id: subaccounts.length + 1, userId: data.userId },
         ]);
         setIsModalOpen(false);
       } else {
@@ -223,9 +224,19 @@ export default function AdminDashboard() {
 
     setIsCreating(true);
     try {
-      console.log("empresa name ", adminData.Empresa)
-      await createSubaccount({ ...newSubaccount, userId: user, Empresa: adminData.Empresa });
-      setNewSubaccount({ name: "", email: "", password: "", userId: "" , Empresa: "" });
+      console.log("empresa name ", adminData.Empresa);
+      await createSubaccount({
+        ...newSubaccount,
+        userId: user,
+        Empresa: adminData.Empresa,
+      });
+      setNewSubaccount({
+        name: "",
+        email: "",
+        password: "",
+        userId: "",
+        Empresa: "",
+      });
       setFormErrors({ name: "", email: "", password: "" });
       toast.success("¡Subcuenta creada exitosamente!", {
         icon: "✅",
@@ -294,60 +305,54 @@ export default function AdminDashboard() {
               {activeTab === "settings" && "Configuración de Administrador"}
               {activeTab === "help" && "Centro de Ayuda"}
             </h1>
-            <div className="flex items-center space-x-4">
-              {activeTab === "subaccounts" && (
-                <Button
-                  color="success"
-                  endContent={<PlusCircle className="w-4 h-4" />}
-                  onPress={() => setIsModalOpen(true)}
-                >
-                  Crear Subcuenta
-                </Button>
-              )}
-              <Button
-                isIconOnly
-                color="default"
-                variant="light"
-                aria-label="User profile"
-              >
-                <User className="w-5 h-5" />
-              </Button>
-            </div>
           </div>
         </header>
 
-        <main className="flex-1 p-8 overflow-auto">
+        <main className="flex-1 p-8 overflow-auto relative">
           {activeTab === "subaccounts" && (
-            <div className="space-y-6">
-              <Card className="bg-white shadow-sm">
-                <CardBody className="p-4">
-                  <Input
-                    type="text"
-                    placeholder="Buscar subcuentas..."
-                    startContent={<Search className="text-gray-400" />}
-                    className="w-full max-w-md"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                  />
-                </CardBody>
-              </Card>
-
-              {isLoading ? (
-                <div className="flex justify-center items-center h-64">
-                  <Spinner color="success" size="lg" />
-                </div>
-              ) : (
-                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                  {filteredSubaccounts.map((subaccount) => (
-                    <SubaccountCard
-                      key={subaccount.id}
-                      subaccount={subaccount}
-                      onDelete={handleDeleteSubaccount}
+            <>
+              <div className="space-y-6">
+                <Card className="bg-white shadow-sm">
+                  <CardBody className="p-4">
+                    <Input
+                      type="text"
+                      placeholder="Buscar subcuentas..."
+                      startContent={<Search className="text-gray-400" />}
+                      className="w-full max-w-md"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
                     />
-                  ))}
-                </div>
-              )}
-            </div>
+                  </CardBody>
+                </Card>
+
+                {isLoading ? (
+                  <div className="flex justify-center items-center h-64">
+                    <Spinner color="success" size="lg" />
+                  </div>
+                ) : (
+                  <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                    {filteredSubaccounts.map((subaccount) => (
+                      <SubaccountCard
+                        key={subaccount.id}
+                        subaccount={subaccount}
+                        onDelete={handleDeleteSubaccount}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Botón flotante para crear subcuenta */}
+              <Button
+                className="fixed bottom-8 right-8 shadow-lg hover:shadow-xl transition-shadow duration-200 px-6"
+                color="success"
+                onPress={() => setIsModalOpen(true)}
+                startContent={<PlusCircle className="w-5 h-5" />}
+                size="lg"
+              >
+                Crear Subcuenta
+              </Button>
+            </>
           )}
 
           {activeTab === "settings" && (
@@ -378,9 +383,7 @@ export default function AdminDashboard() {
                         <p className="text-sm text-gray-500">
                           Nombre de la Empresa
                         </p>
-                        <p className="text-gray-900">
-                          {adminData.Empresa}
-                        </p>
+                        <p className="text-gray-900">{adminData.Empresa}</p>
                       </div>
                       <div>
                         <p className="text-sm text-gray-500">
