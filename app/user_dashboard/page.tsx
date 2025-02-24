@@ -529,7 +529,7 @@ export default function DashboardPage() {
               <div className="flex flex-col h-full">
                 <div className="p-6">
                   <h1 className="text-xl font-semibold text-gray-900">
-                    BuscoCredito
+                    Panel de Usuario
                   </h1>
                 </div>
                 <nav className="flex-1 px-3 space-y-1">
@@ -543,7 +543,7 @@ export default function DashboardPage() {
                     variant="light"
                     onPress={() => setActiveTab("loans")}
                   >
-                    Préstamos
+                    <span className="font-medium">Préstamos</span>
                   </Button>
                   <Button
                     startContent={<Settings className="w-4 h-4" />}
@@ -555,7 +555,7 @@ export default function DashboardPage() {
                     variant="light"
                     onPress={() => setActiveTab("settings")}
                   >
-                    Configuración
+                    <span className="font-medium">Configuración</span>
                   </Button>
                   <Button
                     startContent={<HelpCircle className="w-4 h-4" />}
@@ -567,34 +567,29 @@ export default function DashboardPage() {
                     variant="light"
                     onPress={() => setActiveTab("help")}
                   >
-                    Ayuda
+                    <span className="font-medium">Ayuda</span>
                   </Button>
-                </nav>
-                <div className="p-4 border-t border-gray-200">
                   <Button
                     startContent={<LogOut className="w-4 h-4" />}
-                    className="w-full justify-start text-gray-600 hover:text-red-600 hover:bg-red-50"
+                    className="w-full justify-start h-11 px-4 text-gray-600 hover:text-red-600 hover:bg-red-50"
                     variant="light"
                     onPress={handleSignOut}
                   >
-                    Cerrar sesión
+                    <span className="font-medium">Cerrar sesión</span>
                   </Button>
-                </div>
+                </nav>
+                <div className="flex-grow"></div>
               </div>
             </div>
 
             {/* Main Content */}
             <div className="flex-1">
-              <header className="bg-white border-b border-gray-200">
-                <div className="px-8 py-6">
-                  <div className="flex justify-between items-center">
-                    <h1 className="text-2xl font-semibold text-gray-900">
-                      {activeTab === "loans" && "Préstamos"}
-                      {activeTab === "settings" && "Configuración"}
-                      {activeTab === "help" && "Centro de Ayuda"}
-                    </h1>
-                  </div>
-                </div>
+              <header className="py-6 mb-2">
+                <h1 className="text-2xl font-bold text-center bg-clip-text text-transparent bg-gradient-to-r from-green-600 to-green-800">
+                  {activeTab === "loans" && "Préstamos"}
+                  {activeTab === "settings" && "Configuración"}
+                  {activeTab === "help" && "Centro de Ayuda"}
+                </h1>
               </header>
 
               <main className="p-8 relative">
