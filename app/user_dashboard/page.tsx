@@ -40,6 +40,7 @@ import {
   addDoc,
   getDoc,
   Timestamp,
+  updateDoc,
 } from "firebase/firestore";
 import { useRetry } from "@/hooks/useRetry";
 import ErrorNotification from "@/components/ErrorNotification";
@@ -80,6 +81,7 @@ interface SolicitudData {
   createdAt: string;
   updatedAt?: string;
   comision?: number;
+  acceptedOfferId?: string;
 }
 
 type NewSolicitudData = Omit<SolicitudData, "id">;
@@ -340,6 +342,7 @@ export default function DashboardPage() {
         createdAt: data.createdAt,
         updatedAt: data.updatedAt,
         comision: data.comision,
+        acceptedOfferId: data.acceptedOfferId,
       });
     });
 
@@ -373,7 +376,56 @@ export default function DashboardPage() {
     setShowForm(false);
   };
 
+  const acceptOffer = async (solicitudId: string, offerId: string) => {
+    try {
+      setIsLoading((prev) => ({ ...prev, offers: true }));
+      const db = getFirestore();
+      
+      await updateDoc(doc(db, "solicitudes", solicitudId), {
+        status: "approved",
+        acceptedOfferId: offerId,
+        updatedAt: new Date().toISOString(),
+      });
+      
+      await fetchSolicitudes(user?.uid || "");
+      
+      const updatedSolicitud = solicitudes.find(s => s.id === solicitudId);
+      if (updatedSolicitud) {
+        setSelectedSolicitud(updatedSolicitud);
+      }
+      
+      showNotification({
+        type: "success",
+        message: "Oferta aceptada",
+        description: "Has aceptado la oferta correctamente.",
+      });
+      
+      // Redirect to the list of loans and clear the selected solicitud
+      setSelectedSolicitudId(null);
+      setSelectedSolicitud(null);
+      
+    } catch (error) {
+      setErrors((prev) => ({
+        ...prev,
+        offers: "Error al aceptar la oferta. Por favor, intenta de nuevo.",
+      }));
+      
+      showNotification({
+        type: "error",
+        message: "Error al aceptar la oferta",
+        description: "Por favor, intenta nuevamente más tarde.",
+      });
+    } finally {
+      setIsLoading((prev) => ({ ...prev, offers: false }));
+    }
+  };
+
   const openBanksModal = async (solicitudId: string) => {
+    const solicitud = solicitudes.find(s => s.id === solicitudId);
+    if (solicitud) {
+      setSelectedSolicitud(solicitud);
+    }
+    
     setSelectedSolicitudId(solicitudId);
     try {
       await executeFetchOfferData();
@@ -638,173 +690,270 @@ export default function DashboardPage() {
                       </div>
                     ) : (
                       <div className="space-y-8">
-                        {selectedSolicitudId &&
-                        offer_data &&
-                        offer_data.length > 0 ? (
+                        {selectedSolicitudId && offer_data && offer_data.length > 0 ? (
                           <div className="space-y-4">
                             <div className="flex justify-between items-center">
                               <h2 className="text-xl font-semibold text-gray-900">
-                                Ofertas Disponibles
+                                {selectedSolicitud?.acceptedOfferId
+                                  ? "Oferta Aceptada"
+                                  : "Ofertas Disponibles"}
                               </h2>
                               <Button
                                 variant="light"
-                                onPress={() => setSelectedSolicitudId(null)}
+                                onPress={() => {
+                                  setSelectedSolicitudId(null);
+                                  setSelectedSolicitud(null);
+                                }}
                                 size="sm"
-                                endContent={
-                                  <ChevronRight className="w-4 h-4 rotate-180" />
-                                }
+                                endContent={<ChevronRight className="w-4 h-4 rotate-180" />}
                               >
                                 Volver a Préstamos
                               </Button>
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                              {offer_data.map((offer, idx) => (
-                                <Card key={idx} className="w-full">
-                                  <CardBody className="p-6">
-                                    <div className="space-y-6">
-                                      {/* Header Section */}
-                                      <div className="flex justify-between items-start">
-                                        <div>
-                                          <h4 className="text-xl font-semibold text-gray-900">
-                                            {offer.lender_name}
-                                          </h4>
-                                          <p className="text-sm text-gray-500">
-                                            {offer.term}
-                                          </p>
-                                        </div>
-                                        <div className="text-right">
-                                          <p className="text-2xl font-bold text-green-600">
-                                            ${offer.amount?.toLocaleString()}
-                                          </p>
-                                          <p className="text-sm text-gray-500">
-                                            {offer.interest_rate}% interés
-                                          </p>
-                                        </div>
-                                      </div>
-
-                                      {/* Main Info Grid */}
-                                      <div className="grid grid-cols-1 gap-6 pt-4 border-t">
-                                        <div className="space-y-4">
-                                          <h5 className="font-medium text-gray-900">
-                                            Información del Préstamo
-                                          </h5>
-                                          <div className="space-y-3">
-                                            <div className="flex justify-between text-sm">
-                                              <span className="text-gray-500">
-                                                Pago mensual:
-                                              </span>
-                                              <span className="font-medium">
-                                                $
-                                                {offer.monthly_payment?.toLocaleString()}
-                                              </span>
+                              {selectedSolicitud?.acceptedOfferId
+                                ? offer_data
+                                    .filter((offer) => offer.id === selectedSolicitud.acceptedOfferId)
+                                    .map((offer, idx) => (
+                                      <Card key={idx} className="w-full border-2 border-green-500">
+                                        <CardBody className="p-6">
+                                          <div className="space-y-6">
+                                            {/* Header Section with Accepted Badge */}
+                                            <div className="flex justify-between items-start">
+                                              <div>
+                                                <div className="flex items-center gap-2 mb-1">
+                                                  <h4 className="text-xl font-semibold text-gray-900">
+                                                    {offer.lender_name}
+                                                  </h4>
+                                                  <span className="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">
+                                                    Aceptada
+                                                  </span>
+                                                </div>
+                                                <p className="text-sm text-gray-500">
+                                                  {offer.term}
+                                                </p>
+                                              </div>
+                                              <div className="text-right">
+                                                <p className="text-2xl font-bold text-green-600">
+                                                  ${offer.amount?.toLocaleString()}
+                                                </p>
+                                                <p className="text-sm text-gray-500">
+                                                  {offer.interest_rate}% interés
+                                                </p>
+                                              </div>
                                             </div>
-                                            {offer.comision !== undefined && (
-                                              <div className="flex justify-between text-sm">
-                                                <span className="text-gray-500">
-                                                  Comisión:
-                                                </span>
-                                                <span className="font-medium">
-                                                  $
-                                                  {offer.comision?.toLocaleString()}
-                                                </span>
+
+                                            {/* Rest of the offer details - same as before */}
+                                            <div className="grid grid-cols-1 gap-6 pt-4 border-t">
+                                              <div className="space-y-4">
+                                                <h5 className="font-medium text-gray-900">
+                                                  Información del Préstamo
+                                                </h5>
+                                                <div className="space-y-3">
+                                                  <div className="flex justify-between text-sm">
+                                                    <span className="text-gray-500">
+                                                      Pago mensual:
+                                                    </span>
+                                                    <span className="font-medium">
+                                                      $
+                                                      {offer.monthly_payment?.toLocaleString()}
+                                                    </span>
+                                                  </div>
+                                                  {offer.comision !== undefined && (
+                                                    <div className="flex justify-between text-sm">
+                                                      <span className="text-gray-500">
+                                                        Comisión:
+                                                      </span>
+                                                      <span className="font-medium">
+                                                        $
+                                                        {offer.comision?.toLocaleString()}
+                                                      </span>
+                                                    </div>
+                                                  )}
+                                                  {offer.medical_balance !==
+                                                    undefined && (
+                                                    <div className="flex justify-between text-sm">
+                                                      <span className="text-gray-500">
+                                                        Saldo médico:
+                                                      </span>
+                                                      <span className="font-medium">
+                                                        $
+                                                        {offer.medical_balance?.toLocaleString()}
+                                                      </span>
+                                                    </div>
+                                                  )}
+                                                </div>
                                               </div>
-                                            )}
-                                            {offer.medical_balance !==
-                                              undefined && (
-                                              <div className="flex justify-between text-sm">
-                                                <span className="text-gray-500">
-                                                  Saldo médico:
-                                                </span>
-                                                <span className="font-medium">
-                                                  $
-                                                  {offer.medical_balance?.toLocaleString()}
-                                                </span>
-                                              </div>
-                                            )}
+
+                                              {/* Amortization table - same as before */}
+                                              {offer.amortization &&
+                                                Array.isArray(offer.amortization) &&
+                                                offer.amortization.length > 0 && (
+                                                  <div className="space-y-4">
+                                                    <h5 className="font-medium text-gray-900">
+                                                      Tabla de Amortización
+                                                    </h5>
+                                                    <div className="max-h-48 overflow-y-auto">
+                                                      <table className="min-w-full divide-y divide-gray-200">
+                                                        <thead className="bg-gray-50">
+                                                          <tr>
+                                                            <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">
+                                                              Mes
+                                                            </th>
+                                                            <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">
+                                                              Pago
+                                                            </th>
+                                                            <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">
+                                                              Capital
+                                                            </th>
+                                                            <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">
+                                                              Interés
+                                                            </th>
+                                                            <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">
+                                                              Saldo
+                                                            </th>
+                                                          </tr>
+                                                        </thead>
+                                                        <tbody className="bg-white divide-y divide-gray-200">
+                                                          {offer.amortization.map(
+                                                            (row, index) => (
+                                                              <tr key={index}>
+                                                                <td className="px-3 py-2 text-xs text-gray-900">
+                                                                  {index + 1}
+                                                                </td>
+                                                                <td className="px-3 py-2 text-xs text-gray-900">
+                                                                  $
+                                                                  {row.payment?.toLocaleString() ??
+                                                                    0}
+                                                                </td>
+                                                                <td className="px-3 py-2 text-xs text-gray-900">
+                                                                  $
+                                                                  {row.principal?.toLocaleString() ??
+                                                                    0}
+                                                                </td>
+                                                                <td className="px-3 py-2 text-xs text-gray-900">
+                                                                  $
+                                                                  {row.interest?.toLocaleString() ??
+                                                                    0}
+                                                                </td>
+                                                                <td className="px-3 py-2 text-xs text-gray-900">
+                                                                  $
+                                                                  {row.balance?.toLocaleString() ??
+                                                                    0}
+                                                                </td>
+                                                              </tr>
+                                                            )
+                                                          )}
+                                                        </tbody>
+                                                      </table>
+                                                    </div>
+                                                  </div>
+                                                )}
+                                            </div>
+                                          </div>
+                                        </CardBody>
+                                      </Card>
+                                    ))
+                                : offer_data.map((offer, idx) => (
+                                  <Card key={idx} className="w-full">
+                                    <CardBody className="p-6">
+                                      <div className="space-y-6">
+                                        {/* Header Section */}
+                                        <div className="flex justify-between items-start">
+                                          <div>
+                                            <h4 className="text-xl font-semibold text-gray-900">
+                                              {offer.lender_name}
+                                            </h4>
+                                            <p className="text-sm text-gray-500">
+                                              {offer.term}
+                                            </p>
+                                          </div>
+                                          <div className="text-right">
+                                            <p className="text-2xl font-bold text-green-600">
+                                              ${offer.amount?.toLocaleString()}
+                                            </p>
+                                            <p className="text-sm text-gray-500">
+                                              {offer.interest_rate}% interés
+                                            </p>
                                           </div>
                                         </div>
 
-                                        {offer.amortization &&
-                                          Array.isArray(offer.amortization) &&
-                                          offer.amortization.length > 0 && (
-                                            <div className="space-y-4">
-                                              <h5 className="font-medium text-gray-900">
-                                                Tabla de Amortización
-                                              </h5>
-                                              <div className="max-h-48 overflow-y-auto">
-                                                <table className="min-w-full divide-y divide-gray-200">
-                                                  <thead className="bg-gray-50">
-                                                    <tr>
-                                                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">
-                                                        Mes
-                                                      </th>
-                                                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">
-                                                        Pago
-                                                      </th>
-                                                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">
-                                                        Capital
-                                                      </th>
-                                                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">
-                                                        Interés
-                                                      </th>
-                                                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">
-                                                        Saldo
-                                                      </th>
-                                                    </tr>
-                                                  </thead>
-                                                  <tbody className="bg-white divide-y divide-gray-200">
-                                                    {offer.amortization.map(
-                                                      (row, index) => (
-                                                        <tr key={index}>
-                                                          <td className="px-3 py-2 text-xs text-gray-900">
-                                                            {index + 1}
-                                                          </td>
-                                                          <td className="px-3 py-2 text-xs text-gray-900">
-                                                            $
-                                                            {row.payment?.toLocaleString() ??
-                                                              0}
-                                                          </td>
-                                                          <td className="px-3 py-2 text-xs text-gray-900">
-                                                            $
-                                                            {row.principal?.toLocaleString() ??
-                                                              0}
-                                                          </td>
-                                                          <td className="px-3 py-2 text-xs text-gray-900">
-                                                            $
-                                                            {row.interest?.toLocaleString() ??
-                                                              0}
-                                                          </td>
-                                                          <td className="px-3 py-2 text-xs text-gray-900">
-                                                            $
-                                                            {row.balance?.toLocaleString() ??
-                                                              0}
-                                                          </td>
-                                                        </tr>
-                                                      )
-                                                    )}
-                                                  </tbody>
-                                                </table>
+                                        {/* Main Info Grid */}
+                                        <div className="grid grid-cols-1 gap-6 pt-4 border-t">
+                                          <div className="space-y-4">
+                                            <h5 className="font-medium text-gray-900">
+                                              Información del Préstamo
+                                            </h5>
+                                            <div className="space-y-3">
+                                              <div className="flex justify-between text-sm">
+                                                <span className="text-gray-500">
+                                                  Pago mensual:
+                                                </span>
+                                                <span className="font-medium">
+                                                  $
+                                                  {offer.monthly_payment?.toLocaleString()}
+                                                </span>
                                               </div>
+                                              {offer.comision !== undefined && (
+                                                <div className="flex justify-between text-sm">
+                                                  <span className="text-gray-500">
+                                                    Comisión:
+                                                  </span>
+                                                  <span className="font-medium">
+                                                    $
+                                                    {offer.comision?.toLocaleString()}
+                                                  </span>
+                                                </div>
+                                              )}
+                                              {offer.medical_balance !==
+                                                undefined && (
+                                                <div className="flex justify-between text-sm">
+                                                  <span className="text-gray-500">
+                                                    Saldo médico:
+                                                  </span>
+                                                  <span className="font-medium">
+                                                    $
+                                                    {offer.medical_balance?.toLocaleString()}
+                                                  </span>
+                                                </div>
+                                              )}
                                             </div>
-                                          )}
+                                          </div>
+
+                                          {/* Accept Offer Button */}
+                                          <Button
+                                            color="success"
+                                            className="w-full mt-4"
+                                            onPress={() => acceptOffer(selectedSolicitudId!, offer.id)}
+                                            isLoading={isLoading.offers}
+                                          >
+                                            Aceptar Oferta
+                                          </Button>
+                                        </div>
                                       </div>
-                                    </div>
-                                  </CardBody>
-                                </Card>
-                              ))}
+                                    </CardBody>
+                                  </Card>
+                                ))}
                             </div>
                           </div>
                         ) : (
                           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                             {solicitudes.map((solicitud) => (
-                              <Card key={solicitud.id} className="bg-white">
+                              <Card key={solicitud.id} className={`bg-white ${solicitud.acceptedOfferId ? 'border-2 border-green-500' : ''}`}>
                                 <CardBody className="p-6">
                                   <div className="space-y-4">
                                     <div className="flex justify-between items-start">
                                       <div>
-                                        <h3 className="text-lg font-semibold text-gray-900">
-                                          {solicitud.purpose}
-                                        </h3>
+                                        <div className="flex items-center gap-2">
+                                          <h3 className="text-lg font-semibold text-gray-900">
+                                            {solicitud.purpose}
+                                          </h3>
+                                          {solicitud.acceptedOfferId && (
+                                            <span className="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">
+                                              Aceptada
+                                            </span>
+                                          )}
+                                        </div>
                                         <p className="text-sm text-gray-500">
                                           {solicitud.type}
                                         </p>
@@ -842,22 +991,25 @@ export default function DashboardPage() {
                                     <div className="pt-4">
                                       <div className="flex justify-between items-center mb-2">
                                         <span className="text-sm font-medium text-gray-700">
-                                          Ofertas disponibles
+                                          {solicitud.acceptedOfferId ? 'Oferta aceptada' : 'Ofertas disponibles'}
                                         </span>
                                         <span className="text-sm text-gray-500">
-                                          {offerCounts[solicitud.id] || 0}{" "}
-                                          ofertas
+                                          {solicitud.acceptedOfferId 
+                                            ? '1 oferta' 
+                                            : `${offerCounts[solicitud.id] || 0} ofertas`}
                                         </span>
                                       </div>
-                                      <Progress
-                                        value={
-                                          offerCounts[solicitud.id]
-                                            ? offerCounts[solicitud.id] * 20
-                                            : 0
-                                        }
-                                        className="h-2"
-                                        color="success"
-                                      />
+                                      {!solicitud.acceptedOfferId && (
+                                        <Progress
+                                          value={
+                                            offerCounts[solicitud.id]
+                                              ? offerCounts[solicitud.id] * 20
+                                              : 0
+                                          }
+                                          className="h-2"
+                                          color="success"
+                                        />
+                                      )}
                                     </div>
                                   </div>
                                 </CardBody>
@@ -870,6 +1022,7 @@ export default function DashboardPage() {
                                         setSelectedSolicitud(solicitud);
                                         setShowDeleteConfirmation(true);
                                       }}
+                                      isDisabled={!!solicitud.acceptedOfferId}
                                     >
                                       Eliminar
                                     </Button>
@@ -883,7 +1036,7 @@ export default function DashboardPage() {
                                         openBanksModal(solicitud.id)
                                       }
                                     >
-                                      Ver Ofertas
+                                      {solicitud.acceptedOfferId ? 'Ver Oferta' : 'Ver Ofertas'}
                                     </Button>
                                   </div>
                                 </CardFooter>

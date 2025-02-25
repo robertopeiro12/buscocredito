@@ -1,20 +1,56 @@
 // components/LenderSidebar.tsx
 import { Button } from "@nextui-org/react";
-import { Store, FileText, Settings, HelpCircle, LogOut } from "lucide-react";
+import { Store, FileText, Settings, HelpCircle, LogOut, CheckCircle } from "lucide-react";
+
+type Tab = {
+  id: string;
+  label: string;
+  icon: string;
+}
 
 type LenderSidebarProps = {
   activeTab: string;
-  setActiveTab: (tab: string) => void;
-  handleSignOut: () => void;
-  companyName: string;
+  onChangeTab: (tab: string) => void;
+  onSignOut: () => void;
+  tabs?: Tab[];
+  companyName?: string;
 };
 
 export function LenderSidebar({
   activeTab,
-  setActiveTab,
-  handleSignOut,
-  companyName,
+  onChangeTab,
+  onSignOut,
+  tabs,
+  companyName = "BuscoCredito"
 }: LenderSidebarProps) {
+  // Map icons to their components
+  const getIcon = (iconName: string) => {
+    switch (iconName) {
+      case 'market':
+        return <Store className="w-5 h-5" />;
+      case 'offers':
+        return <FileText className="w-5 h-5" />;
+      case 'approved':
+        return <CheckCircle className="w-5 h-5" />;
+      case 'settings':
+        return <Settings className="w-5 h-5" />;
+      case 'help':
+        return <HelpCircle className="w-5 h-5" />;
+      default:
+        return <Store className="w-5 h-5" />;
+    }
+  };
+
+  // Default tabs if none provided
+  const defaultTabs = [
+    { id: "marketplace", label: "Mercado", icon: "market" },
+    { id: "myoffers", label: "Mis Ofertas", icon: "offers" },
+    { id: "settings", label: "Configuración", icon: "settings" },
+    { id: "help", label: "Ayuda", icon: "help" }
+  ];
+
+  const navTabs = tabs || defaultTabs;
+
   return (
     <div className="w-64 bg-white border-r border-gray-200 shadow-sm">
       <div className="flex flex-col h-full">
@@ -22,56 +58,26 @@ export function LenderSidebar({
           <h1 className="text-xl font-semibold text-gray-900">{companyName}</h1>
         </div>
         <nav className="flex-1 px-3 py-4 space-y-1">
-          <Button
-            startContent={<Store className="w-5 h-5" />}
-            className={`w-full justify-start h-12 px-4 mb-2 transition-all duration-200 ease-in-out ${
-              activeTab === "marketplace"
-                ? "bg-green-50 text-green-700 hover:bg-green-100"
-                : "bg-transparent text-gray-600 hover:bg-gray-50"
-            }`}
-            onPress={() => setActiveTab("marketplace")}
-          >
-            Mercado
-          </Button>
-          <Button
-            startContent={<FileText className="w-5 h-5" />}
-            className={`w-full justify-start h-12 px-4 mb-2 transition-all duration-200 ease-in-out ${
-              activeTab === "myoffers"
-                ? "bg-green-50 text-green-700 hover:bg-green-100"
-                : "bg-transparent text-gray-600 hover:bg-gray-50"
-            }`}
-            onPress={() => setActiveTab("myoffers")}
-          >
-            Mis Ofertas
-          </Button>
-          <Button
-            startContent={<Settings className="w-5 h-5" />}
-            className={`w-full justify-start h-12 px-4 mb-2 transition-all duration-200 ease-in-out ${
-              activeTab === "settings"
-                ? "bg-green-50 text-green-700 hover:bg-green-100"
-                : "bg-transparent text-gray-600 hover:bg-gray-50"
-            }`}
-            onPress={() => setActiveTab("settings")}
-          >
-            Configuración
-          </Button>
-          <Button
-            startContent={<HelpCircle className="w-5 h-5" />}
-            className={`w-full justify-start h-12 px-4 mb-2 transition-all duration-200 ease-in-out ${
-              activeTab === "help"
-                ? "bg-green-50 text-green-700 hover:bg-green-100"
-                : "bg-transparent text-gray-600 hover:bg-gray-50"
-            }`}
-            onPress={() => setActiveTab("help")}
-          >
-            Ayuda
-          </Button>
+          {navTabs.map((tab) => (
+            <Button
+              key={tab.id}
+              startContent={getIcon(tab.icon)}
+              className={`w-full justify-start h-12 px-4 mb-2 transition-all duration-200 ease-in-out ${
+                activeTab === tab.id
+                  ? "bg-green-50 text-green-700 hover:bg-green-100"
+                  : "bg-transparent text-gray-600 hover:bg-gray-50"
+              }`}
+              onPress={() => onChangeTab(tab.id)}
+            >
+              {tab.label}
+            </Button>
+          ))}
         </nav>
         <div className="p-4 border-t border-gray-200">
           <Button
             startContent={<LogOut className="w-5 h-5" />}
             className="w-full justify-start h-12 text-gray-600 hover:text-red-600 hover:bg-red-50 transition-all duration-200 ease-in-out"
-            onPress={handleSignOut}
+            onPress={onSignOut}
           >
             Cerrar Sesión
           </Button>
