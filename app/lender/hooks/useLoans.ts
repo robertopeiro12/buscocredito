@@ -1,6 +1,6 @@
 // hooks/useLoans.ts
 import { useState, useEffect } from 'react';
-import { getFirestore, collection, onSnapshot } from 'firebase/firestore';
+import { getFirestore, collection, onSnapshot, Timestamp } from 'firebase/firestore';
 
 // Asegúrate que la interfaz coincida con tus datos
 interface LoanRequest {
@@ -35,7 +35,7 @@ export function useLoans() {
             term: data.term,
             payment: data.payment,
             status: data.status,
-            createdAt: data.createdAt?.toDate() || new Date()
+            createdAt: data.createdAt instanceof Timestamp ? data.createdAt.toDate() : new Date()
           } as LoanRequest;
         });
         
