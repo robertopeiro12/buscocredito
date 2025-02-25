@@ -584,12 +584,16 @@ export default function DashboardPage() {
 
             {/* Main Content */}
             <div className="flex-1">
-              <header className="py-6 mb-2">
-                <h1 className="text-2xl font-bold text-center bg-clip-text text-transparent bg-gradient-to-r from-green-600 to-green-800">
-                  {activeTab === "loans" && "Préstamos"}
-                  {activeTab === "settings" && "Configuración"}
-                  {activeTab === "help" && "Centro de Ayuda"}
-                </h1>
+              <header className="py-8 mb-4 flex justify-center">
+                <div className="relative inline-block">
+                  <div className="absolute inset-0 bg-gradient-to-r from-green-100 to-green-50 rounded-lg shadow-md transform rotate-1"></div>
+                  <div className="absolute inset-0 bg-white rounded-lg shadow-sm"></div>
+                  <h1 className="relative px-8 py-3 text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-green-600 to-green-800">
+                    {activeTab === "loans" && "Préstamos"}
+                    {activeTab === "settings" && "Configuración"}
+                    {activeTab === "help" && "Centro de Ayuda"}
+                  </h1>
+                </div>
               </header>
 
               <main className="p-8 relative">
