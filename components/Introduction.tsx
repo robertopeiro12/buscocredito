@@ -41,17 +41,18 @@ const Introduction = () => {
         <div className="text-center">
           <h1 className="animate__animated animate__fadeIn animate__delay-1s">
             <span className="block text-[32px] sm:text-[38px] md:text-[42px] font-bold text-[#212529] leading-tight">
-              Obtén el préstamo que
+              Encuentra el préstamo
             </span>
             <span className="block text-[32px] sm:text-[38px] md:text-[42px] font-bold text-[#2EA043] leading-tight">
-              necesitas hoy mismo
+              perfecto para ti
             </span>
           </h1>
 
           <p className="mt-4 md:mt-5 text-[16px] md:text-[18px] text-[#6C757D] leading-relaxed max-w-[90%] mx-auto animate__animated animate__fadeIn animate__delay-1s">
-            Encuentra las mejores ofertas de préstamos personalizadas para ti.
+            Recibe múltiples ofertas de préstamos personalizadas y elige la que
+            mejor se adapte a tus necesidades.
             <br className="hidden sm:block" />
-            Simple, seguro y 100% en línea.
+            Compara tasas, plazos y condiciones sin compromiso.
           </p>
 
           <div className="mt-6 flex flex-col sm:flex-row justify-center gap-3 md:gap-4 animate__animated animate__fadeIn animate__delay-1s">
