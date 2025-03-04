@@ -7,6 +7,9 @@ export interface LoanRequest {
   term: string;
   payment: 'mensual' | 'quincenal' | 'semanal';
   createdAt: Date | string;
+  purpose: string;
+  type: string;
+  status?: 'pending' | 'approved' | 'rejected';
 }
 
 export interface PublicUserData {
@@ -14,6 +17,7 @@ export interface PublicUserData {
   state: string;
   city: string;
   purpose: string;
+  // Podemos agregar más campos si son necesarios
 }
 
 export interface ProposalData {
