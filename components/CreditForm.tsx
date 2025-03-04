@@ -771,7 +771,7 @@ const Section6 = ({
               focus:outline-none focus:ring-2 
               ${error ? "focus:ring-red-200" : "focus:ring-blue-200"}
             `}
-            placeholder="Ingrese sus ingresos mensuales"
+            placeholder="Ingrese sus ingresos anuales"
           />
         </div>
 
@@ -867,7 +867,7 @@ const FinalSection = ({
       icon: Calendar,
     },
     {
-      label: "Ingresos Mensuales",
+      label: "Ingresos Anuales Comprobables",
       value: formatCurrency(formData.income),
       icon: Wallet,
     },
