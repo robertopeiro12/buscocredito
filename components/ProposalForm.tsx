@@ -60,6 +60,8 @@ export function ProposalForm({
     useState<string>("");
   const [formattedMedicalBalance, setFormattedMedicalBalance] =
     useState<string>("");
+  const [formattedAmortization, setFormattedAmortization] =
+    useState<string>("");
 
   // Función para formatear valores monetarios
   const formatCurrency = (value: number): string => {
@@ -97,6 +99,9 @@ export function ProposalForm({
         ? Math.round(proposal.medical_balance)
         : -1;
 
+    // Para amortización, no formateamos el valor para preservar los decimales exactos
+    const amortizationValue = proposal.amortization;
+
     setFormattedAmount(roundedAmount ? formatCurrency(roundedAmount) : "");
     setFormattedComision(
       roundedComision ? formatCurrency(roundedComision) : ""
@@ -105,15 +110,19 @@ export function ProposalForm({
       roundedInterestRate !== -1 ? formatPercentage(roundedInterestRate) : ""
     );
     setFormattedMedicalBalance(
-      roundedMedicalBalance !== -1
-        ? formatPercentage(roundedMedicalBalance)
-        : ""
+      roundedMedicalBalance !== -1 ? formatCurrency(roundedMedicalBalance) : ""
+    );
+
+    // Convertir a string pero preservar el formato exacto (con decimales si existen)
+    setFormattedAmortization(
+      amortizationValue ? amortizationValue.toString() : ""
     );
   }, [
     proposal.amount,
     proposal.comision,
     proposal.interest_rate,
     proposal.medical_balance,
+    proposal.amortization,
   ]);
 
   // Actualizar el valor seleccionado cuando cambia la unidad de tiempo
@@ -180,6 +189,24 @@ export function ProposalForm({
     const cleanValue = value.replace(/[^\d,]/g, "");
     setFormattedMedicalBalance(cleanValue);
     onUpdate({ medical_balance: parseFormattedValue(cleanValue) });
+  };
+
+  // Manejador para el campo de amortización
+  const handleAmortizationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+
+    // Permitir números, punto decimal y decimales en progreso
+    // Esta expresión permite valores como "10.", "10.2" y "10.22"
+    const regex = /^[0-9]+\.?[0-9]{0,2}$|^[0-9]+$/;
+
+    if (value === "" || regex.test(value)) {
+      setFormattedAmortization(value);
+      // Solo convertir a número si no termina con punto decimal
+      const numericValue = value.endsWith(".")
+        ? parseFloat(value + "0")
+        : parseFloat(value) || 0;
+      onUpdate({ amortization: numericValue });
+    }
   };
 
   return (
@@ -258,7 +285,7 @@ export function ProposalForm({
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-              Amortización
+              Frecuencia de Pago
               <Tooltip content="Frecuencia con la que se realizarán los pagos">
                 <Info className="w-4 h-4 ml-1 text-gray-400" />
               </Tooltip>
@@ -266,9 +293,9 @@ export function ProposalForm({
             <Select
               size="lg"
               placeholder="Seleccione frecuencia de pago"
-              selectedKeys={[proposal.amortization]}
+              selectedKeys={[proposal.amortization_frequency]}
               onChange={(e) =>
-                onUpdate({ amortization: e.target.value as any })
+                onUpdate({ amortization_frequency: e.target.value as any })
               }
               classNames={{
                 trigger: "border-gray-200 data-[hover=true]:border-green-500",
@@ -279,6 +306,33 @@ export function ProposalForm({
               <SelectItem key="quincenal">Quincenal</SelectItem>
               <SelectItem key="semanal">Semanal</SelectItem>
             </Select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
+              Monto de Amortización (MXN)
+              <Tooltip content="Monto en pesos que se pagará en cada periodo según la frecuencia seleccionada">
+                <Info className="w-4 h-4 ml-1 text-gray-400" />
+              </Tooltip>
+            </label>
+            <Input
+              type="text"
+              startContent={<DollarSign className="w-4 h-4 text-gray-400" />}
+              value={formattedAmortization}
+              onChange={handleAmortizationChange}
+              placeholder="Ingrese el monto de pago"
+              className="w-full"
+              size="lg"
+              classNames={{
+                inputWrapper:
+                  "border-gray-200 focus-within:border-green-500 focus-within:ring-green-200",
+              }}
+            />
+            {formattedAmortization && (
+              <p className="text-xs text-gray-500 mt-1">
+                ${formattedAmortization} MXN
+              </p>
+            )}
           </div>
         </div>
 
@@ -402,19 +456,17 @@ export function ProposalForm({
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-              Seguro de Vida Saldo Deudor (%)
-              <Tooltip content="Porcentaje que se aplicará como seguro de vida sobre el saldo deudor">
+              Seguro de Vida Saldo Deudor (MXN)
+              <Tooltip content="Monto en pesos que se aplicará como seguro de vida sobre el saldo deudor">
                 <Info className="w-4 h-4 ml-1 text-gray-400" />
               </Tooltip>
             </label>
             <Input
               type="text"
-              startContent={
-                <ClipboardCheck className="w-4 h-4 text-gray-400" />
-              }
+              startContent={<DollarSign className="w-4 h-4 text-gray-400" />}
               value={formattedMedicalBalance}
               onChange={handleMedicalBalanceChange}
-              placeholder="Ingrese el porcentaje"
+              placeholder="Ingrese el monto en pesos"
               className="w-full"
               size="lg"
               classNames={{
@@ -424,8 +476,8 @@ export function ProposalForm({
             />
             {formattedMedicalBalance && (
               <p className="text-xs text-gray-500 mt-1">
-                {formatPercentage(parseFormattedValue(formattedMedicalBalance))}
-                % del saldo
+                ${formatCurrency(parseFormattedValue(formattedMedicalBalance))}{" "}
+                MXN
               </p>
             )}
           </div>

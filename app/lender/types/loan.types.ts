@@ -25,9 +25,10 @@ export interface ProposalData {
   company: string;
   amount: number;
   comision: number; // Ahora en pesos (MXN), no en porcentaje
-  amortization: '' | 'mensual' | 'quincenal' | 'semanal';
+  amortization_frequency: '' | 'mensual' | 'quincenal' | 'semanal'; // Frecuencia de pago
+  amortization: number; // Monto de amortización en pesos (MXN), puede incluir hasta 2 decimales
   partner: string;
   deadline: number; // En meses
   interest_rate: number; // En porcentaje
-  medical_balance: number; // En porcentaje
+  medical_balance: number; // En pesos (MXN), no en porcentaje
 }

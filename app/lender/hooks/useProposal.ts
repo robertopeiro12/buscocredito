@@ -10,7 +10,8 @@ export function useProposal(loan: LoanRequest | null) {
     company: '',
     amount: loan?.amount || 0,
     comision: 0, // Comisión en pesos (MXN)
-    amortization: loan?.payment || 'mensual',
+    amortization_frequency: loan?.payment || 'mensual',
+    amortization: 0, // Monto de amortización en pesos (MXN)
     partner: '',
     deadline: parseTermToMonths(loan?.term || ''),
     interest_rate: -1,
@@ -44,7 +45,7 @@ export function useProposal(loan: LoanRequest | null) {
       setProposalData(prev => ({
         ...prev,
         amount: loan.amount,
-        amortization: loan.payment,
+        amortization_frequency: loan.payment,
         deadline: parseTermToMonths(loan.term)
       }));
     }
@@ -59,9 +60,10 @@ export function useProposal(loan: LoanRequest | null) {
     if (proposalData.amount <= 0) errors.push('El monto debe ser mayor a 0');
     if (proposalData.interest_rate < 0) errors.push('La tasa de interés es requerida');
     if (proposalData.deadline <= 0) errors.push('El plazo debe ser mayor a 0');
-    if (!proposalData.amortization) errors.push('La forma de pago es requerida');
+    if (!proposalData.amortization_frequency) errors.push('La frecuencia de pago es requerida');
+    if (proposalData.amortization <= 0) errors.push('El monto de amortización es requerido');
     if (proposalData.comision < 0) errors.push('La comisión no puede ser negativa');
-    if (proposalData.medical_balance < 0) errors.push('El seguro de vida es requerido');
+    if (proposalData.medical_balance < 0) errors.push('El seguro de vida en pesos es requerido');
     return errors;
   };
 
@@ -114,7 +116,8 @@ export function useProposal(loan: LoanRequest | null) {
       company: '',
       amount: loan?.amount || 0,
       comision: 0, // Comisión en pesos (MXN)
-      amortization: loan?.payment || 'mensual',
+      amortization_frequency: loan?.payment || 'mensual',
+      amortization: 0, // Monto de amortización en pesos (MXN)
       partner: '',
       deadline: parseTermToMonths(loan?.term || ''),
       interest_rate: -1,

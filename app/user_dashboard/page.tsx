@@ -703,7 +703,7 @@ export default function DashboardPage() {
                                                 undefined && (
                                                 <div className="flex justify-between text-sm">
                                                   <span className="text-gray-500">
-                                                    Saldo médico:
+                                                    Seguro de Vida:
                                                   </span>
                                                   <span className="font-medium">
                                                     $

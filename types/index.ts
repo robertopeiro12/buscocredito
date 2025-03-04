@@ -7,12 +7,13 @@ export type IconSvgProps = SVGProps<SVGSVGElement> & {
 export interface ProposalData {
   company: string;
   amount: number;
-  comision: number;
-  amortization: ''|'mensual'|'quincenal'|'semanal';
+  comision: number; // En pesos (MXN)
+  amortization_frequency: ''|'mensual'|'quincenal'|'semanal'; // Frecuencia de pago
+  amortization: number; // Monto de amortización en pesos (MXN), puede incluir hasta 2 decimales
   partner: string;
-  deadline: number;
-  interest_rate: number;
-  medical_balance: number;
+  deadline: number; // En meses
+  interest_rate: number; // En porcentaje
+  medical_balance: number; // En pesos (MXN)
 }
 
 export interface PartnerData{
