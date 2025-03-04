@@ -528,6 +528,7 @@ export default function LenderPage() {
                     onSubmit={handleSubmitOffer}
                     onCancel={() => {
                       setIsCreatingOffer(false);
+                      setSelectedRequestId(null);
                       resetProposal();
                     }}
                   />
