@@ -17,10 +17,11 @@ const AvisoLegal = () => {
               1. Información General
             </h2>
             <p className="text-gray-600">
-              BuscoCredito es un marketplace financiero operado por [Nombre
-              Legal de la Empresa], con domicilio en [Dirección Legal]. La
-              plataforma actúa exclusivamente como intermediario entre
-              prestamistas y prestatarios.
+              BuscoCredito es un marketplace financiero operado por BuscoCredito
+              S.A. de C.V., con domicilio fiscal en [Dirección Legal], inscrita
+              en el Registro Público de Comercio bajo el folio mercantil número
+              [Número], y con RFC [RFC]. La plataforma actúa exclusivamente como
+              intermediario entre prestamistas y prestatarios.
             </p>
           </section>
 
@@ -84,10 +85,72 @@ const AvisoLegal = () => {
             </p>
           </section>
 
+          {/* Propiedad Intelectual */}
+          <section>
+            <h2 className="text-xl font-semibold text-gray-800 mb-4">
+              5. Propiedad Intelectual y Uso del Sitio
+            </h2>
+            <p className="text-gray-600 mb-4">
+              Todo el contenido de este sitio web (incluyendo, pero no limitado
+              a, texto, logotipos, contenido multimedia, diseños, software) está
+              protegido por derechos de autor y es propiedad exclusiva de
+              BuscoCredito S.A. de C.V. o de terceros que han autorizado su uso.
+            </p>
+            <p className="text-gray-600">
+              Queda estrictamente prohibida cualquier reproducción,
+              distribución, transmisión, almacenamiento, o uso total o parcial
+              del contenido de este sitio sin la autorización previa y por
+              escrito de BuscoCredito.
+            </p>
+          </section>
+
+          {/* Uso del Sitio */}
+          <section>
+            <h2 className="text-xl font-semibold text-gray-800 mb-4">
+              6. Condiciones de Uso del Sitio
+            </h2>
+            <p className="text-gray-600 mb-4">
+              El usuario se compromete a utilizar el sitio web y sus servicios
+              de conformidad con la ley, este Aviso Legal, y demás avisos e
+              instrucciones puestos en su conocimiento.
+            </p>
+            <p className="text-gray-600">
+              BuscoCredito se reserva el derecho de denegar o retirar el acceso
+              al sitio y/o servicios en cualquier momento y sin necesidad de
+              preaviso a aquellos usuarios que incumplan estas condiciones.
+            </p>
+          </section>
+
+          {/* Enlaces a Terceros */}
+          <section>
+            <h2 className="text-xl font-semibold text-gray-800 mb-4">
+              7. Enlaces a Sitios de Terceros
+            </h2>
+            <p className="text-gray-600">
+              Este sitio puede contener enlaces a sitios web de terceros.
+              BuscoCredito no asume ninguna responsabilidad por el contenido,
+              información o servicios que pudieran aparecer o ofrecerse en
+              dichos sitios, que tendrán carácter meramente informativo.
+            </p>
+          </section>
+
+          {/* Cookies y Privacidad */}
+          <section>
+            <h2 className="text-xl font-semibold text-gray-800 mb-4">
+              8. Cookies y Tecnologías de Seguimiento
+            </h2>
+            <p className="text-gray-600">
+              Este sitio utiliza cookies y otras tecnologías de seguimiento para
+              mejorar la experiencia del usuario y analizar el tráfico. Al
+              utilizar nuestro sitio, el usuario acepta el uso de estas
+              tecnologías según se detalla en nuestra Política de Cookies.
+            </p>
+          </section>
+
           {/* Seguridad */}
           <section>
             <h2 className="text-xl font-semibold text-gray-800 mb-4">
-              5. Seguridad
+              9. Seguridad
             </h2>
             <p className="text-gray-600">
               Utilizamos cifrado AES-256 y seguimos las mejores prácticas de
@@ -98,27 +161,68 @@ const AvisoLegal = () => {
             </p>
           </section>
 
-          {/* Modificaciones */}
+          {/* Jurisdicción */}
           <section>
             <h2 className="text-xl font-semibold text-gray-800 mb-4">
-              6. Modificaciones
+              10. Ley Aplicable y Jurisdicción
             </h2>
             <p className="text-gray-600">
-              BuscoCredito se reserva el derecho de modificar este Aviso Legal
-              en cualquier momento. Los cambios entrarán en vigor desde su
-              publicación en la plataforma.
+              Este Aviso Legal se rige por la legislación mexicana. Para la
+              resolución de cualquier controversia que pudiera surgir de la
+              interpretación o cumplimiento del presente Aviso Legal, las partes
+              se someten expresamente a la jurisdicción de los tribunales
+              competentes de la Ciudad de México, renunciando expresamente a
+              cualquier otro fuero que pudiera corresponderles por razón de sus
+              domicilios presentes o futuros.
             </p>
+          </section>
+
+          {/* Limitación de Responsabilidad */}
+          <section>
+            <h2 className="text-xl font-semibold text-gray-800 mb-4">
+              11. Limitación de Responsabilidad
+            </h2>
+            <p className="text-gray-600 mb-4">
+              BuscoCredito no será responsable de:
+            </p>
+            <ul className="list-disc list-inside text-gray-600 space-y-2 ml-4">
+              <li>
+                Decisiones tomadas por los usuarios basadas en la información
+                proporcionada
+              </li>
+              <li>
+                Interrupciones temporales del servicio por mantenimiento o
+                causas técnicas
+              </li>
+              <li>
+                Daños causados por virus, programas maliciosos o lesivos en los
+                contenidos
+              </li>
+              <li>
+                La veracidad, integridad o actualización de la información
+                proporcionada por terceros
+              </li>
+              <li>
+                El incumplimiento por parte de los prestamistas de sus
+                obligaciones legales o contractuales
+              </li>
+              <li>
+                Pérdidas económicas directas o indirectas derivadas del uso de
+                la plataforma
+              </li>
+            </ul>
           </section>
 
           {/* Contacto */}
           <section>
             <h2 className="text-xl font-semibold text-gray-800 mb-4">
-              7. Contacto
+              12. Contacto
             </h2>
             <p className="text-gray-600">
               Para cualquier duda o aclaración sobre este Aviso Legal, puede
-              contactarnos a través de [correo electrónico de contacto] o
-              [teléfono de contacto].
+              contactarnos a través de legal@buscocredito.com o al teléfono
+              [Número de Contacto]. Nuestro horario de atención es de lunes a
+              viernes de 9:00 a 18:00 horas (hora del Centro de México).
             </p>
           </section>
 
