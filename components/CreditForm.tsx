@@ -305,12 +305,46 @@ const Section3 = ({
   next: () => void;
   prev: () => void;
 }) => {
+  // Estado para controlar si se está usando entrada manual
+  const [isManualInput, setIsManualInput] = useState(false);
+  // Estado para el valor de entrada manual
+  const [manualInputValue, setManualInputValue] = useState("");
+
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("es-MX", {
       style: "currency",
       currency: "MXN",
       maximumFractionDigits: 0,
     }).format(value);
+  };
+
+  const handleSliderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setAmount(Number(e.target.value));
+    setIsManualInput(false);
+  };
+
+  const handleManualInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Eliminar cualquier carácter que no sea número
+    const rawValue = e.target.value.replace(/[^\d]/g, "");
+    setManualInputValue(rawValue);
+
+    if (rawValue === "") {
+      return;
+    }
+
+    const numericValue = parseInt(rawValue);
+
+    if (!isNaN(numericValue)) {
+      setAmount(numericValue);
+      setIsManualInput(true);
+    }
+  };
+
+  const toggleInputMode = () => {
+    setIsManualInput(!isManualInput);
+    if (!isManualInput) {
+      setManualInputValue(amount.toString());
+    }
   };
 
   return (
@@ -335,35 +369,68 @@ const Section3 = ({
         </span>
       </div>
 
-      {/* Amount Slider Container */}
-      <div className="max-w-md mx-auto space-y-6">
-        <input
-          type="range"
-          min="10000"
-          max="5000000"
-          step="10000"
-          value={amount}
-          onChange={(e) => setAmount(Number(e.target.value))}
-          className="w-full h-2 bg-blue-100 rounded-lg appearance-none cursor-pointer"
-          style={{
-            background: `linear-gradient(to right, #3B82F6 0%, #3B82F6 ${
-              ((amount - 10000) / (5000000 - 10000)) * 100
-            }%, #E5E7EB ${
-              ((amount - 10000) / (5000000 - 10000)) * 100
-            }%, #E5E7EB 100%)`,
-          }}
-        />
+      {/* Slider or Manual Input Toggle */}
+      <div className="max-w-md mx-auto">
+        <button
+          onClick={toggleInputMode}
+          className="mb-4 text-blue-500 hover:text-blue-700 text-sm font-medium flex items-center mx-auto"
+        >
+          {isManualInput
+            ? "Usar slider para seleccionar monto"
+            : "O escribe tu monto personalizado"}
+        </button>
 
-        {/* Range Labels */}
-        <div className="flex justify-between text-sm text-gray-600">
-          <span>{formatCurrency(10000)}</span>
-          <span>{formatCurrency(5000000)}</span>
-        </div>
+        {!isManualInput ? (
+          // Slider Input
+          <div className="space-y-6">
+            <input
+              type="range"
+              min="10000"
+              max="5000000"
+              step="10000"
+              value={amount <= 5000000 ? amount : 5000000}
+              onChange={handleSliderChange}
+              className="w-full h-2 bg-blue-100 rounded-lg appearance-none cursor-pointer"
+              style={{
+                background: `linear-gradient(to right, #3B82F6 0%, #3B82F6 ${
+                  ((Math.min(amount, 5000000) - 10000) / (5000000 - 10000)) *
+                  100
+                }%, #E5E7EB ${
+                  ((Math.min(amount, 5000000) - 10000) / (5000000 - 10000)) *
+                  100
+                }%, #E5E7EB 100%)`,
+              }}
+            />
 
-        {/* Helper Text */}
-        <p className="text-sm text-gray-500 text-center">
-          Deslice para ajustar el monto del crédito
-        </p>
+            {/* Range Labels */}
+            <div className="flex justify-between text-sm text-gray-600">
+              <span>{formatCurrency(10000)}</span>
+              <span>{formatCurrency(5000000)}</span>
+            </div>
+
+            {/* Helper Text */}
+            <p className="text-sm text-gray-500 text-center">
+              Deslice para ajustar el monto del crédito
+            </p>
+          </div>
+        ) : (
+          // Manual Input
+          <div className="space-y-4">
+            <div className="relative">
+              <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 w-5 h-5" />
+              <input
+                type="text"
+                value={manualInputValue}
+                onChange={handleManualInputChange}
+                className="w-full pl-10 pr-4 py-3 text-lg rounded-lg border-2 border-gray-200 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                placeholder="Ingrese cualquier monto"
+              />
+            </div>
+            <p className="text-sm text-gray-500 text-center">
+              Ingrese el monto exacto que necesita para su crédito
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Navigation Buttons */}
