@@ -395,21 +395,21 @@ const Section4 = ({
   setError: (error: boolean) => void;
 }) => {
   const terms = [
-    { months: 3, label: "3 meses" },
-    { months: 6, label: "6 meses" },
-    { months: 8, label: "8 meses" },
-    { months: 12, label: "12 meses" },
-    { months: 18, label: "18 meses" },
-    { months: 24, label: "24 meses" },
-    { months: 36, label: "36 meses" },
-    { months: 48, label: "48 meses" },
-    { months: 60, label: "60 meses" },
-    { months: 72, label: "72 meses" },
+    { months: 3, label: "3 meses", unit: "meses" },
+    { months: 6, label: "6 meses", unit: "meses" },
+    { months: 9, label: "9 meses", unit: "meses" },
+    { months: 12, label: "12 meses", unit: "meses" },
+    { months: 18, label: "18 meses", unit: "meses" },
+    { months: 24, label: "2 años", unit: "años" },
+    { months: 36, label: "3 años", unit: "años" },
+    { months: 48, label: "4 años", unit: "años" },
+    { months: 60, label: "5 años", unit: "años" },
+    { months: -1, label: "5+ años", unit: "años" },
   ];
 
   const termGroups = [
     terms.slice(0, 5), // Short terms (3-18 months)
-    terms.slice(5), // Long terms (24-72 months)
+    terms.slice(5), // Long terms (2-5+ years)
   ];
 
   return (
@@ -434,7 +434,7 @@ const Section4 = ({
             key={groupIndex}
             className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3"
           >
-            {group.map(({ months, label }) => (
+            {group.map(({ months, label, unit }) => (
               <button
                 key={months}
                 onClick={() => {
@@ -447,8 +447,16 @@ const Section4 = ({
                     : "border-gray-200 hover:border-blue-200 text-gray-600"
                 }`}
               >
-                <span className="block text-lg font-semibold">{months}</span>
-                <span className="block text-sm">meses</span>
+                <span className="block text-lg font-semibold">
+                  {months === -1
+                    ? "5+"
+                    : months === 18
+                    ? 18
+                    : months > 12
+                    ? months / 12
+                    : months}
+                </span>
+                <span className="block text-sm">{unit}</span>
               </button>
             ))}
           </div>
