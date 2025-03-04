@@ -63,6 +63,7 @@ interface UserData {
   second_last_name: string;
   email: string;
   rfc: string;
+  rfc_type?: string;
   birthday: any; // You might want to make this more specific
   phone: string;
   address: Address;
@@ -105,6 +106,7 @@ interface Offer {
 interface CreditFormProps {
   addSolicitud: (data: CreditFormData) => void;
   resetForm: () => void;
+  rfc_type?: string;
 }
 
 interface CreditFormData {
@@ -187,6 +189,7 @@ export default function DashboardPage() {
     second_last_name: "",
     email: "",
     rfc: "",
+    rfc_type: "",
     birthday: null,
     phone: "",
     address: {
@@ -1266,6 +1269,7 @@ export default function DashboardPage() {
             <CreditForm
               addSolicitud={handleSolicitudSubmit}
               resetForm={() => setShowForm(false)}
+              rfc_type={userData.rfc_type || "Fisica"}
             />
           )}
         </AnimatePresence>

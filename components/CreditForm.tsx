@@ -88,12 +88,14 @@ const Section1 = ({
   purpose,
   error,
   setError,
+  rfc_type = "Fisica",
 }: {
   next: () => void;
   setPurpose: (purpose: string) => void;
   purpose: string;
   error: boolean;
   setError: (error: boolean) => void;
+  rfc_type?: string;
 }) => (
   <motion.div
     initial={{ opacity: 0, x: -100 }}
@@ -112,32 +114,34 @@ const Section1 = ({
     </div>
 
     {/* Purpose Selection Cards */}
-    <div className="grid grid-cols-2 gap-4 max-w-md mx-auto">
-      {/* Personal Credit Card */}
-      <button
-        onClick={() => {
-          setPurpose("Personal");
-          setError(false);
-        }}
-        className={`p-6 rounded-xl border-2 transition-all duration-200 ${
-          purpose === "Personal"
-            ? "border-blue-500 bg-blue-50"
-            : "border-gray-200 hover:border-blue-200"
-        }`}
-      >
-        <User
-          className={`w-8 h-8 mb-2 mx-auto ${
-            purpose === "Personal" ? "text-blue-500" : "text-gray-400"
-          }`}
-        />
-        <span
-          className={`block font-medium ${
-            purpose === "Personal" ? "text-blue-500" : "text-gray-600"
+    <div className="flex gap-4 max-w-md mx-auto justify-center items-center">
+      {/* Personal Credit Card - Only show if rfc_type is not "Moral" */}
+      {rfc_type !== "Moral" && (
+        <button
+          onClick={() => {
+            setPurpose("Personal");
+            setError(false);
+          }}
+          className={`p-6 rounded-xl border-2 transition-all duration-200 ${
+            purpose === "Personal"
+              ? "border-blue-500 bg-blue-50"
+              : "border-gray-200 hover:border-blue-200"
           }`}
         >
-          Personal
-        </span>
-      </button>
+          <User
+            className={`w-8 h-8 mb-2 mx-auto ${
+              purpose === "Personal" ? "text-blue-500" : "text-gray-400"
+            }`}
+          />
+          <span
+            className={`block font-medium ${
+              purpose === "Personal" ? "text-blue-500" : "text-gray-600"
+            }`}
+          >
+            Personal
+          </span>
+        </button>
+      )}
 
       {/* Business Credit Card */}
       <button
@@ -874,6 +878,7 @@ const FinalSection = ({
 const CreditForm = ({
   addSolicitud,
   resetForm,
+  rfc_type = "Fisica",
 }: {
   addSolicitud: (data: {
     purpose: string;
@@ -884,6 +889,7 @@ const CreditForm = ({
     income: string;
   }) => void;
   resetForm: () => void;
+  rfc_type?: string;
 }) => {
   const [formData, setFormData] = useState({
     purpose: "",
@@ -956,6 +962,7 @@ const CreditForm = ({
             next={nextStep}
             error={error}
             setError={setError}
+            rfc_type={rfc_type}
           />
         )}
         {step === 2 && (
