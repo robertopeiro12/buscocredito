@@ -41,28 +41,28 @@ const Introduction = () => {
         <div className="text-center">
           <h1 className="animate__animated animate__fadeIn animate__delay-1s">
             <span className="block text-[32px] sm:text-[38px] md:text-[42px] font-bold text-[#212529] leading-tight">
-              El marketplace
+              Obtén el préstamo que
             </span>
             <span className="block text-[32px] sm:text-[38px] md:text-[42px] font-bold text-[#2EA043] leading-tight">
-              de préstamos
+              necesitas hoy mismo
             </span>
           </h1>
 
-          <p className="mt-2 md:mt-3 text-[16px] md:text-[18px] text-[#6C757D] leading-relaxed max-w-[90%] mx-auto animate__animated animate__fadeIn animate__delay-1s">
-            Conectamos prestamistas y prestatarios en una plataforma
+          <p className="mt-4 md:mt-5 text-[16px] md:text-[18px] text-[#6C757D] leading-relaxed max-w-[90%] mx-auto animate__animated animate__fadeIn animate__delay-1s">
+            Encuentra las mejores ofertas de préstamos personalizadas para ti.
             <br className="hidden sm:block" />
-            moderna y segura.
+            Simple, seguro y 100% en línea.
           </p>
 
-          <div className="mt-6 md:mt-8 flex flex-col sm:flex-row justify-center gap-3 md:gap-4 animate__animated animate__fadeIn animate__delay-1s">
+          <div className="mt-6 flex flex-col sm:flex-row justify-center gap-3 md:gap-4 animate__animated animate__fadeIn animate__delay-1s">
             <Link
               href="/prestamos"
               className="px-6 py-3 bg-[#2EA043] text-white text-[15px] md:text-[16px] font-medium rounded-lg
                 hover:bg-green-600 transition-all duration-300 hover:shadow-lg transform hover:-translate-y-0.5
                 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50"
-              aria-label="Comenzar proceso de préstamo"
+              aria-label="Solicitar préstamo ahora"
             >
-              Comenzar →
+              Solicitar préstamo →
             </Link>
             <Link
               href="/como-funciona"
@@ -71,7 +71,7 @@ const Introduction = () => {
                 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50"
               aria-label="Ver cómo funciona la plataforma"
             >
-              Cómo funciona
+              Ver cómo funciona
             </Link>
           </div>
         </div>
