@@ -1,7 +1,28 @@
 // components/ProposalForm.tsx
 import { motion } from "framer-motion";
-import { DollarSign, Percent, Calendar, ClipboardCheck } from "lucide-react";
-import { Button, Input, Select, SelectItem, Card } from "@nextui-org/react";
+import {
+  DollarSign,
+  Percent,
+  Calendar,
+  ClipboardCheck,
+  Info,
+  Clock,
+} from "lucide-react";
+import {
+  Button,
+  Input,
+  Select,
+  SelectItem,
+  Card,
+  RadioGroup,
+  Radio,
+  Tooltip,
+  Switch,
+  Chip,
+  Tabs,
+  Tab,
+} from "@nextui-org/react";
+import { useState, useEffect } from "react";
 import type { ProposalData } from "@/app/lender/types/loan.types";
 
 interface ProposalFormProps {
@@ -21,6 +42,146 @@ export function ProposalForm({
   onSubmit,
   onCancel,
 }: ProposalFormProps) {
+  // Determinar la unidad de tiempo inicial basada en el valor actual de deadline
+  const initialTimeUnit = proposal.deadline >= 24 ? "years" : "months";
+  const [timeUnit, setTimeUnit] = useState<"months" | "years">(initialTimeUnit);
+
+  // Opciones de plazo según la unidad de tiempo seleccionada
+  const timeOptions =
+    timeUnit === "months" ? [3, 6, 9, 12, 18] : [2, 3, 4, 5, 6, 7, 8, 9, 10];
+
+  // Valor inicial para mostrar en el select de plazo
+  const [selectedTimeValue, setSelectedTimeValue] = useState<string>("");
+
+  // Estados para los valores formateados
+  const [formattedAmount, setFormattedAmount] = useState<string>("");
+  const [formattedComision, setFormattedComision] = useState<string>("");
+  const [formattedInterestRate, setFormattedInterestRate] =
+    useState<string>("");
+  const [formattedMedicalBalance, setFormattedMedicalBalance] =
+    useState<string>("");
+
+  // Función para formatear valores monetarios
+  const formatCurrency = (value: number): string => {
+    return value.toLocaleString("es-MX", {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    });
+  };
+
+  // Función para formatear porcentajes
+  const formatPercentage = (value: number): string => {
+    return value.toLocaleString("es-MX", {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    });
+  };
+
+  // Función para parsear valores formateados a números
+  const parseFormattedValue = (formattedValue: string): number => {
+    // Eliminar todos los caracteres no numéricos excepto el punto decimal
+    const numericValue = formattedValue.replace(/[^\d.]/g, "");
+    // Redondear al entero más cercano
+    return Math.round(parseFloat(numericValue) || 0);
+  };
+
+  // Actualizar los valores formateados cuando cambian los valores de la propuesta
+  useEffect(() => {
+    // Redondear los valores a enteros
+    const roundedAmount = Math.round(proposal.amount || 0);
+    const roundedComision = Math.round(proposal.comision || 0);
+    const roundedInterestRate =
+      proposal.interest_rate !== -1 ? Math.round(proposal.interest_rate) : -1;
+    const roundedMedicalBalance =
+      proposal.medical_balance !== -1
+        ? Math.round(proposal.medical_balance)
+        : -1;
+
+    setFormattedAmount(roundedAmount ? formatCurrency(roundedAmount) : "");
+    setFormattedComision(
+      roundedComision ? formatCurrency(roundedComision) : ""
+    );
+    setFormattedInterestRate(
+      roundedInterestRate !== -1 ? formatPercentage(roundedInterestRate) : ""
+    );
+    setFormattedMedicalBalance(
+      roundedMedicalBalance !== -1
+        ? formatPercentage(roundedMedicalBalance)
+        : ""
+    );
+  }, [
+    proposal.amount,
+    proposal.comision,
+    proposal.interest_rate,
+    proposal.medical_balance,
+  ]);
+
+  // Actualizar el valor seleccionado cuando cambia la unidad de tiempo
+  useEffect(() => {
+    if (proposal.deadline > 0) {
+      if (timeUnit === "years") {
+        const years = Math.floor(proposal.deadline / 12);
+        // Encontrar el valor más cercano en las opciones disponibles
+        const closestYear = timeOptions.reduce((prev, curr) =>
+          Math.abs(curr - years) < Math.abs(prev - years) ? curr : prev
+        );
+        setSelectedTimeValue(closestYear.toString());
+      } else {
+        // Para meses, encontrar el valor más cercano en las opciones disponibles
+        const closestMonth = timeOptions.reduce((prev, curr) =>
+          Math.abs(curr - proposal.deadline) <
+          Math.abs(prev - proposal.deadline)
+            ? curr
+            : prev
+        );
+        setSelectedTimeValue(closestMonth.toString());
+      }
+    }
+  }, [timeUnit, proposal.deadline]);
+
+  // Convertir el plazo seleccionado a meses para almacenar en la base de datos
+  const handleTimeChange = (value: string) => {
+    const numValue = Number(value);
+    const deadlineInMonths = timeUnit === "years" ? numValue * 12 : numValue;
+    onUpdate({ deadline: deadlineInMonths });
+    setSelectedTimeValue(value);
+  };
+
+  // Manejadores para los campos con formato
+  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    // Permitir solo números y separadores
+    const cleanValue = value.replace(/[^\d,]/g, "");
+    setFormattedAmount(cleanValue);
+    onUpdate({ amount: parseFormattedValue(cleanValue) });
+  };
+
+  const handleComisionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    // Permitir solo números y separadores
+    const cleanValue = value.replace(/[^\d,]/g, "");
+    setFormattedComision(cleanValue);
+    onUpdate({ comision: parseFormattedValue(cleanValue) });
+  };
+
+  const handleInterestRateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    // Permitir solo números y separadores
+    const cleanValue = value.replace(/[^\d,]/g, "");
+    setFormattedInterestRate(cleanValue);
+    onUpdate({ interest_rate: parseFormattedValue(cleanValue) });
+  };
+
+  const handleMedicalBalanceChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const value = e.target.value;
+    // Permitir solo números y separadores
+    const cleanValue = value.replace(/[^\d,]/g, "");
+    setFormattedMedicalBalance(cleanValue);
+    onUpdate({ medical_balance: parseFormattedValue(cleanValue) });
+  };
+
   return (
     <Card className="p-6">
       {/* Encabezado del Formulario */}
@@ -42,38 +203,65 @@ export function ProposalForm({
         {/* Columna 1 */}
         <div className="space-y-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
               Monto de la Oferta
+              <Tooltip content="Monto total que se ofrecerá al solicitante">
+                <Info className="w-4 h-4 ml-1 text-gray-400" />
+              </Tooltip>
             </label>
             <Input
-              type="number"
+              type="text"
               startContent={<DollarSign className="w-4 h-4 text-gray-400" />}
-              value={proposal.amount.toString()}
-              onChange={(e) => onUpdate({ amount: Number(e.target.value) })}
+              value={formattedAmount}
+              onChange={handleAmountChange}
               placeholder="Ingrese el monto"
               className="w-full"
               size="lg"
+              classNames={{
+                inputWrapper:
+                  "border-gray-200 focus-within:border-green-500 focus-within:ring-green-200",
+              }}
             />
+            {formattedAmount && (
+              <p className="text-xs text-gray-500 mt-1">
+                ${formatCurrency(parseFormattedValue(formattedAmount))} MXN
+              </p>
+            )}
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Comisión por Apertura (%)
+            <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
+              Comisión por Apertura (MXN)
+              <Tooltip content="Monto en pesos que se cobrará como comisión por apertura">
+                <Info className="w-4 h-4 ml-1 text-gray-400" />
+              </Tooltip>
             </label>
             <Input
-              type="number"
-              startContent={<Percent className="w-4 h-4 text-gray-400" />}
-              value={proposal.comision.toString()}
-              onChange={(e) => onUpdate({ comision: Number(e.target.value) })}
-              placeholder="Ingrese la comisión"
+              type="text"
+              startContent={<DollarSign className="w-4 h-4 text-gray-400" />}
+              value={formattedComision}
+              onChange={handleComisionChange}
+              placeholder="Ingrese la comisión en pesos"
               className="w-full"
               size="lg"
+              classNames={{
+                inputWrapper:
+                  "border-gray-200 focus-within:border-green-500 focus-within:ring-green-200",
+              }}
             />
+            {formattedComision && (
+              <p className="text-xs text-gray-500 mt-1">
+                ${formatCurrency(parseFormattedValue(formattedComision))} MXN
+              </p>
+            )}
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
               Amortización
+              <Tooltip content="Frecuencia con la que se realizarán los pagos">
+                <Info className="w-4 h-4 ml-1 text-gray-400" />
+              </Tooltip>
             </label>
             <Select
               size="lg"
@@ -82,6 +270,10 @@ export function ProposalForm({
               onChange={(e) =>
                 onUpdate({ amortization: e.target.value as any })
               }
+              classNames={{
+                trigger: "border-gray-200 data-[hover=true]:border-green-500",
+                listbox: "border-gray-200",
+              }}
             >
               <SelectItem key="mensual">Mensual</SelectItem>
               <SelectItem key="quincenal">Quincenal</SelectItem>
@@ -93,62 +285,149 @@ export function ProposalForm({
         {/* Columna 2 */}
         <div className="space-y-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Plazo (semanas)
+            <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
+              Plazo
+              <Tooltip content="Duración total del préstamo">
+                <Info className="w-4 h-4 ml-1 text-gray-400" />
+              </Tooltip>
             </label>
-            <Input
-              type="number"
-              startContent={<Calendar className="w-4 h-4 text-gray-400" />}
-              value={proposal.deadline.toString()}
-              onChange={(e) => onUpdate({ deadline: Number(e.target.value) })}
-              placeholder="Ingrese el plazo"
-              className="w-full"
-              size="lg"
-            />
+
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 bg-gray-50 p-2 rounded-lg">
+                <div className="flex-1 flex justify-center">
+                  <Button
+                    variant={timeUnit === "months" ? "solid" : "light"}
+                    color={timeUnit === "months" ? "success" : "default"}
+                    className="w-full"
+                    startContent={<Clock className="w-4 h-4" />}
+                    onClick={() => setTimeUnit("months")}
+                  >
+                    Meses
+                  </Button>
+                </div>
+                <div className="flex-1 flex justify-center">
+                  <Button
+                    variant={timeUnit === "years" ? "solid" : "light"}
+                    color={timeUnit === "years" ? "success" : "default"}
+                    className="w-full"
+                    startContent={<Calendar className="w-4 h-4" />}
+                    onClick={() => setTimeUnit("years")}
+                  >
+                    Años
+                  </Button>
+                </div>
+              </div>
+
+              <div className="bg-white border border-gray-200 rounded-lg p-3">
+                <div className="grid grid-cols-5 gap-2">
+                  {timeOptions.map((option) => (
+                    <Button
+                      key={option}
+                      size="sm"
+                      variant={
+                        selectedTimeValue === option.toString()
+                          ? "solid"
+                          : "bordered"
+                      }
+                      color={
+                        selectedTimeValue === option.toString()
+                          ? "success"
+                          : "default"
+                      }
+                      className={`w-full ${
+                        selectedTimeValue === option.toString()
+                          ? "font-semibold"
+                          : ""
+                      }`}
+                      onClick={() => handleTimeChange(option.toString())}
+                    >
+                      {option}
+                      {timeUnit === "years" && option === 10 ? "+" : ""}
+                    </Button>
+                  ))}
+                </div>
+
+                {selectedTimeValue && (
+                  <div className="mt-3 pt-2 border-t border-gray-100">
+                    <p className="text-xs text-gray-600">
+                      <span className="font-medium text-success-600">
+                        {selectedTimeValue}{" "}
+                        {timeUnit === "months" ? "meses" : "años"}
+                        {timeUnit === "years" && selectedTimeValue === "10"
+                          ? "+"
+                          : ""}
+                      </span>
+                      <span className="text-gray-400 mx-1">•</span>
+                      <span className="text-gray-500">
+                        {timeUnit === "years"
+                          ? `Equivale a ${Number(selectedTimeValue) * 12} meses`
+                          : `Equivale a ${(
+                              Number(selectedTimeValue) / 12
+                            ).toFixed(1)} años`}
+                      </span>
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
               Tasa de Interés (%)
+              <Tooltip content="Tasa de interés anual que se aplicará al préstamo">
+                <Info className="w-4 h-4 ml-1 text-gray-400" />
+              </Tooltip>
             </label>
             <Input
-              type="number"
+              type="text"
               startContent={<Percent className="w-4 h-4 text-gray-400" />}
-              value={
-                proposal.interest_rate === -1
-                  ? ""
-                  : proposal.interest_rate.toString()
-              }
-              onChange={(e) =>
-                onUpdate({ interest_rate: Number(e.target.value) })
-              }
+              value={formattedInterestRate}
+              onChange={handleInterestRateChange}
               placeholder="Ingrese la tasa"
               className="w-full"
               size="lg"
+              classNames={{
+                inputWrapper:
+                  "border-gray-200 focus-within:border-green-500 focus-within:ring-green-200",
+              }}
             />
+            {formattedInterestRate && (
+              <p className="text-xs text-gray-500 mt-1">
+                {formatPercentage(parseFormattedValue(formattedInterestRate))}%
+                anual
+              </p>
+            )}
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
               Seguro de Vida Saldo Deudor (%)
+              <Tooltip content="Porcentaje que se aplicará como seguro de vida sobre el saldo deudor">
+                <Info className="w-4 h-4 ml-1 text-gray-400" />
+              </Tooltip>
             </label>
             <Input
-              type="number"
+              type="text"
               startContent={
                 <ClipboardCheck className="w-4 h-4 text-gray-400" />
               }
-              value={
-                proposal.medical_balance === -1
-                  ? ""
-                  : proposal.medical_balance.toString()
-              }
-              onChange={(e) =>
-                onUpdate({ medical_balance: Number(e.target.value) })
-              }
+              value={formattedMedicalBalance}
+              onChange={handleMedicalBalanceChange}
               placeholder="Ingrese el porcentaje"
               className="w-full"
               size="lg"
+              classNames={{
+                inputWrapper:
+                  "border-gray-200 focus-within:border-green-500 focus-within:ring-green-200",
+              }}
             />
+            {formattedMedicalBalance && (
+              <p className="text-xs text-gray-500 mt-1">
+                {formatPercentage(parseFormattedValue(formattedMedicalBalance))}
+                % del saldo
+              </p>
+            )}
           </div>
         </div>
       </div>

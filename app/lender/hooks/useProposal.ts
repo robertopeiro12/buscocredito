@@ -1,5 +1,5 @@
 // hooks/useProposal.ts
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { getFirestore, addDoc, collection } from 'firebase/firestore';
 import type { ProposalData, LoanRequest } from '../types/loan.types';
 
@@ -9,13 +9,46 @@ export function useProposal(loan: LoanRequest | null) {
   const [proposalData, setProposalData] = useState<ProposalData>({
     company: '',
     amount: loan?.amount || 0,
-    comision: 0,
-    amortization: 'mensual',
+    comision: 0, // Comisión en pesos (MXN)
+    amortization: loan?.payment || 'mensual',
     partner: '',
-    deadline: 0,
+    deadline: parseTermToMonths(loan?.term || ''),
     interest_rate: -1,
     medical_balance: -1
   });
+
+  // Función para convertir el término de la solicitud a meses
+  function parseTermToMonths(term: string): number {
+    // Si el término está en formato "X meses" o "X años"
+    const monthsMatch = term.match(/(\d+)\s*meses?/i);
+    const yearsMatch = term.match(/(\d+)\s*años?/i);
+    
+    if (monthsMatch) {
+      return parseInt(monthsMatch[1], 10);
+    } else if (yearsMatch) {
+      return parseInt(yearsMatch[1], 10) * 12;
+    } else {
+      // Si solo es un número, asumimos que son meses
+      const numericMatch = term.match(/(\d+)/);
+      if (numericMatch) {
+        return parseInt(numericMatch[1], 10);
+      }
+    }
+    
+    return 0;
+  }
+
+  // Actualizar los datos de la propuesta cuando cambia la solicitud seleccionada
+  useEffect(() => {
+    if (loan) {
+      setProposalData(prev => ({
+        ...prev,
+        amount: loan.amount,
+        amortization: loan.payment,
+        deadline: parseTermToMonths(loan.term)
+      }));
+    }
+  }, [loan]);
 
   const updateProposal = (fields: Partial<ProposalData>) => {
     setProposalData(prev => ({ ...prev, ...fields }));
@@ -55,7 +88,15 @@ export function useProposal(loan: LoanRequest | null) {
         loanId: loan.id,
         userId: loan.userId,
         status: 'pending',
-        createdAt: new Date()
+        createdAt: new Date(),
+        // Incluir información adicional de la solicitud para referencia
+        requestInfo: {
+          originalAmount: loan.amount,
+          originalTerm: loan.term,
+          originalPayment: loan.payment,
+          purpose: loan.purpose,
+          type: loan.type
+        }
       });
 
       return true;
@@ -72,10 +113,10 @@ export function useProposal(loan: LoanRequest | null) {
     setProposalData({
       company: '',
       amount: loan?.amount || 0,
-      comision: 0,
-      amortization: 'mensual',
+      comision: 0, // Comisión en pesos (MXN)
+      amortization: loan?.payment || 'mensual',
       partner: '',
-      deadline: 0,
+      deadline: parseTermToMonths(loan?.term || ''),
       interest_rate: -1,
       medical_balance: -1
     });

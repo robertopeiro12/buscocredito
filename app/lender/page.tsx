@@ -552,6 +552,8 @@ export default function LenderPage() {
                         updateProposal({
                           company: partnerData.company,
                           partner: user,
+                          amount: selectedRequest?.amount || 0,
+                          amortization: selectedRequest?.payment || "mensual",
                         });
                         setIsCreatingOffer(true);
                       }}
