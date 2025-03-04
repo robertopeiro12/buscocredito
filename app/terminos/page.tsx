@@ -101,12 +101,19 @@ const Terminos = () => {
                 <ul className="list-disc list-inside text-gray-600 ml-4 space-y-1">
                   <li>
                     Para acceder a la plataforma, los prestatarios deben
-                    proporcionar información personal, incluyendo nombre, RFC,
-                    domicilio y demás datos necesarios.
+                    proporcionar información personal, incluyendo nombre
+                    completo, RFC, domicilio y demás datos necesarios.
                   </li>
                   <li>
                     Los prestamistas deben registrarse a través de un
-                    Administrador de su institución financiera.
+                    Administrador de su institución financiera, quien recibirá
+                    un token especial de acceso tras la verificación de su
+                    institución.
+                  </li>
+                  <li>
+                    El token de registro empresarial es intransferible y su uso
+                    indebido resultará en la cancelación inmediata de la cuenta
+                    y posibles acciones legales.
                   </li>
                 </ul>
               </div>
@@ -127,6 +134,11 @@ const Terminos = () => {
                   <li>
                     Los prestatarios pueden seleccionar la oferta que mejor les
                     convenga.
+                  </li>
+                  <li>
+                    Los ingresos declarados deberán ser comprobables mediante
+                    documentación oficial cuando la institución financiera lo
+                    requiera.
                   </li>
                 </ul>
               </div>
@@ -370,12 +382,116 @@ const Terminos = () => {
             </p>
           </section>
 
-          {/* Fecha */}
-          <section className="pt-4 border-t border-gray-200">
+          {/* Responsabilidades del Administrador */}
+          <section>
+            <h2 className="text-xl font-semibold text-gray-800 mb-4">
+              17. Responsabilidades del Administrador
+            </h2>
+            <div className="space-y-4">
+              <p className="text-gray-600">
+                Los Administradores de instituciones financieras tienen las
+                siguientes responsabilidades y limitaciones:
+              </p>
+              <ul className="list-disc list-inside text-gray-600 ml-4">
+                <li>
+                  Gestionar y supervisar las cuentas de los trabajadores de su
+                  institución.
+                </li>
+                <li>
+                  Garantizar el uso apropiado del token de registro y la
+                  plataforma.
+                </li>
+                <li>
+                  Mantener actualizada la información de la institución
+                  financiera.
+                </li>
+                <li>
+                  Asegurar el cumplimiento de las políticas de seguridad y
+                  privacidad.
+                </li>
+                <li>
+                  Reportar cualquier actividad sospechosa o uso indebido de la
+                  plataforma.
+                </li>
+              </ul>
+            </div>
+          </section>
+
+          {/* Cumplimiento Regulatorio */}
+          <section>
+            <h2 className="text-xl font-semibold text-gray-800 mb-4">
+              18. Cumplimiento Regulatorio
+            </h2>
+            <div className="space-y-4">
+              <p className="text-gray-600">
+                BuscoCredito opera en cumplimiento con:
+              </p>
+              <ul className="list-disc list-inside text-gray-600 ml-4">
+                <li>
+                  Ley para Regular las Instituciones de Tecnología Financiera
+                  (Ley Fintech)
+                </li>
+                <li>
+                  Ley Federal de Protección de Datos Personales en Posesión de
+                  los Particulares
+                </li>
+                <li>
+                  Disposiciones de la Comisión Nacional para la Protección y
+                  Defensa de los Usuarios de Servicios Financieros (CONDUSEF)
+                </li>
+                <li>
+                  Ley Federal para la Prevención e Identificación de Operaciones
+                  con Recursos de Procedencia Ilícita
+                </li>
+              </ul>
+              <p className="text-gray-600 mt-4">
+                Para la resolución de disputas, los usuarios pueden acudir a la
+                CONDUSEF o a los tribunales competentes de la Ciudad de México,
+                según corresponda la naturaleza de la reclamación.
+              </p>
+            </div>
+          </section>
+
+          {/* Retención y Eliminación de Datos */}
+          <section>
+            <h2 className="text-xl font-semibold text-gray-800 mb-4">
+              19. Retención y Eliminación de Datos
+            </h2>
+            <div className="space-y-4">
+              <p className="text-gray-600">
+                BuscoCredito mantiene los datos personales y financieros durante
+                el tiempo necesario para cumplir con:
+              </p>
+              <ul className="list-disc list-inside text-gray-600 ml-4">
+                <li>Las finalidades descritas en la Política de Privacidad</li>
+                <li>Obligaciones legales y regulatorias aplicables</li>
+                <li>Requerimientos de las autoridades competentes</li>
+              </ul>
+              <p className="text-gray-600 mt-4">
+                Tras la cancelación de una cuenta, los datos serán:
+              </p>
+              <ul className="list-disc list-inside text-gray-600 ml-4">
+                <li>
+                  Eliminados en un plazo máximo de 60 días naturales, excepto
+                  aquellos que por ley deban conservarse por un período mayor
+                </li>
+                <li>
+                  Conservados de forma anonimizada para fines estadísticos
+                </li>
+                <li>
+                  Protegidos bajo las mismas medidas de seguridad hasta su
+                  eliminación definitiva
+                </li>
+              </ul>
+            </div>
+          </section>
+
+          {/* Fecha de última actualización */}
+          <div className="mt-8 pt-6 border-t border-gray-200">
             <p className="text-sm text-gray-500 text-center">
               Última actualización: {new Date().toLocaleDateString()}
             </p>
-          </section>
+          </div>
         </div>
       </div>
     </div>

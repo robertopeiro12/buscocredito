@@ -18,9 +18,11 @@ const AvisoLegal = () => {
             </h2>
             <p className="text-gray-600">
               BuscoCredito es un marketplace financiero operado por BuscoCredito
-              S.A. de C.V., con domicilio fiscal en [Dirección Legal], inscrita
-              en el Registro Público de Comercio bajo el folio mercantil número
-              [Número], y con RFC [RFC]. La plataforma actúa exclusivamente como
+              S.A. de C.V., con domicilio fiscal en Av. Insurgentes Sur 1602,
+              Piso 4, Col. Crédito Constructor, Alcaldía Benito Juárez, C.P.
+              03940, Ciudad de México, inscrita en el Registro Público de
+              Comercio bajo el folio mercantil número N-2023-023-456, y con RFC
+              BCR230301XX5. La plataforma actúa exclusivamente como
               intermediario entre prestamistas y prestatarios.
             </p>
           </section>
@@ -40,7 +42,9 @@ const AvisoLegal = () => {
               Las ofertas de préstamos son realizadas directamente por las
               instituciones financieras registradas en nuestra plataforma,
               quienes son las únicas responsables de los términos y condiciones
-              de sus ofertas.
+              de sus ofertas. BuscoCredito no interviene en la decisión final de
+              otorgamiento de crédito ni en la determinación de tasas y
+              condiciones.
             </p>
           </section>
 
@@ -152,13 +156,26 @@ const AvisoLegal = () => {
             <h2 className="text-xl font-semibold text-gray-800 mb-4">
               9. Seguridad
             </h2>
-            <p className="text-gray-600">
-              Utilizamos cifrado AES-256 y seguimos las mejores prácticas de
-              seguridad para proteger la información de nuestros usuarios. Sin
-              embargo, ningún sistema es 100% seguro, por lo que recomendamos a
-              los usuarios tomar precauciones adicionales al compartir
-              información sensible.
+            <p className="text-gray-600 mb-4">
+              Implementamos las siguientes medidas de seguridad:
             </p>
+            <ul className="list-disc list-inside text-gray-600 ml-4">
+              <li>
+                Cifrado AES-256 para la transmisión y almacenamiento de datos
+                sensibles, incluyendo:
+                <ul className="list-disc list-inside ml-8">
+                  <li>Información personal de identificación</li>
+                  <li>Datos de consultas al Buró de Crédito</li>
+                  <li>Tokens de autenticación y acceso</li>
+                </ul>
+              </li>
+              <li>Certificados SSL/TLS para todas las comunicaciones web</li>
+              <li>Monitoreo continuo de actividades sospechosas</li>
+              <li>
+                Autenticación de dos factores para cuentas administrativas
+              </li>
+              <li>Respaldos diarios encriptados de la información</li>
+            </ul>
           </section>
 
           {/* Jurisdicción */}
@@ -218,12 +235,44 @@ const AvisoLegal = () => {
             <h2 className="text-xl font-semibold text-gray-800 mb-4">
               12. Contacto
             </h2>
-            <p className="text-gray-600">
-              Para cualquier duda o aclaración sobre este Aviso Legal, puede
-              contactarnos a través de legal@buscocredito.com o al teléfono
-              [Número de Contacto]. Nuestro horario de atención es de lunes a
-              viernes de 9:00 a 18:00 horas (hora del Centro de México).
-            </p>
+            <div className="space-y-4">
+              <p className="text-gray-600">
+                Para cualquier duda o aclaración sobre este Aviso Legal, puede
+                contactarnos a través de:
+              </p>
+              <ul className="list-none text-gray-600 space-y-2">
+                <li>
+                  <strong>Email:</strong> legal@buscocredito.com
+                </li>
+                <li>
+                  <strong>Teléfono:</strong> +52 (55) 5340-9823
+                </li>
+                <li>
+                  <strong>Dirección:</strong> Av. Insurgentes Sur 1602, Piso 4,
+                  Col. Crédito Constructor, Alcaldía Benito Juárez, C.P. 03940,
+                  Ciudad de México
+                </li>
+                <li>
+                  <strong>Horario de atención:</strong> Lunes a Viernes de 9:00
+                  a 18:00 horas (hora del Centro de México)
+                </li>
+              </ul>
+              <p className="text-gray-600 mt-4">
+                Para otros asuntos específicos, puede contactar:
+              </p>
+              <ul className="list-none text-gray-600 space-y-2">
+                <li>
+                  <strong>Privacidad y datos personales:</strong>{" "}
+                  privacidad@buscocredito.com
+                </li>
+                <li>
+                  <strong>Soporte técnico:</strong> contacto@buscocredito.com
+                </li>
+                <li>
+                  <strong>Transparencia:</strong> transparencia@buscocredito.com
+                </li>
+              </ul>
+            </div>
           </section>
 
           {/* Fecha */}

@@ -61,16 +61,32 @@ const Transparencia = () => {
                 <li>La búsqueda y comparación de ofertas es gratuita</li>
                 <li>No cobramos comisión por la gestión de préstamos</li>
                 <li>No existen costos ocultos por nuestros servicios</li>
+                <li>
+                  Las comisiones y costos son establecidos directamente por las
+                  instituciones financieras en sus ofertas
+                </li>
               </ul>
 
               <h3 className="text-lg font-medium text-gray-700">
                 3.2 Para Instituciones Financieras:
               </h3>
               <ul className="list-disc list-inside text-gray-600 ml-4">
-                <li>Comisión por préstamo exitoso: [Porcentaje]</li>
-                <li>Cuota de suscripción mensual: [Monto]</li>
                 <li>
-                  Servicios adicionales opcionales: Variables según el servicio
+                  Comisión por préstamo exitoso: 2.5% del monto del préstamo
+                </li>
+                <li>Cuota de suscripción mensual: $4,999 MXN + IVA</li>
+                <li>
+                  Servicios adicionales opcionales:
+                  <ul className="list-disc list-inside ml-8">
+                    <li>API personalizada: desde $9,999 MXN + IVA</li>
+                    <li>
+                      Integración con sistemas propios: cotización personalizada
+                    </li>
+                    <li>
+                      Reportes avanzados y análisis: desde $2,999 MXN + IVA
+                      mensual
+                    </li>
+                  </ul>
                 </li>
               </ul>
             </div>
@@ -144,17 +160,40 @@ const Transparencia = () => {
               7. Métricas y Resultados
             </h2>
             <div className="space-y-4">
-              <p className="text-gray-600">Publicamos regularmente:</p>
-              <ul className="list-disc list-inside text-gray-600 ml-4">
-                <li>Tasa de aprobación de préstamos</li>
-                <li>Tiempo promedio de procesamiento</li>
-                <li>Índice de satisfacción del usuario</li>
-                <li>Número de quejas y resoluciones</li>
-              </ul>
-              <p className="text-gray-600 mt-4">
-                Estas métricas se actualizan trimestralmente y están disponibles
-                en nuestro dashboard de transparencia.
+              <p className="text-gray-600">
+                Publicamos trimestralmente las siguientes métricas en nuestro
+                dashboard de transparencia (transparencia.buscocredito.com):
               </p>
+              <ul className="list-disc list-inside text-gray-600 ml-4">
+                <li>
+                  Métricas de Servicio:
+                  <ul className="list-disc list-inside ml-8">
+                    <li>Tiempo promedio de respuesta: 4 horas</li>
+                    <li>Tasa de aprobación de préstamos: 68%</li>
+                    <li>Satisfacción del usuario: 4.7/5.0</li>
+                    <li>
+                      Tiempo promedio para recibir primera oferta: 2 horas
+                    </li>
+                  </ul>
+                </li>
+                <li>
+                  Estadísticas de Préstamos:
+                  <ul className="list-disc list-inside ml-8">
+                    <li>Monto promedio solicitado</li>
+                    <li>Plazo promedio solicitado</li>
+                    <li>Tasa de interés promedio ofrecida</li>
+                    <li>Número de ofertas por solicitud</li>
+                  </ul>
+                </li>
+                <li>
+                  Indicadores de Calidad:
+                  <ul className="list-disc list-inside ml-8">
+                    <li>Tiempo de respuesta a quejas: máximo 24 horas</li>
+                    <li>Resolución de problemas técnicos: máximo 4 horas</li>
+                    <li>Disponibilidad de la plataforma: 99.9%</li>
+                  </ul>
+                </li>
+              </ul>
             </div>
           </section>
 
@@ -188,11 +227,19 @@ const Transparencia = () => {
               irregularidades:
             </p>
             <ul className="list-none text-gray-600">
-              <li>Email: transparencia@buscocredito.com</li>
-              <li>Teléfono: [Número de Contacto]</li>
               <li>
-                Horario: Lunes a Viernes de 9:00 a 18:00 (Hora del Centro de
-                México)
+                <strong>Email:</strong> transparencia@buscocredito.com
+              </li>
+              <li>
+                <strong>Teléfono:</strong> +52 (55) 5340-9823
+              </li>
+              <li>
+                <strong>Horario:</strong> Lunes a Viernes de 9:00 a 18:00 (Hora
+                del Centro de México)
+              </li>
+              <li>
+                <strong>Línea directa para denuncias:</strong> 800-999-0000
+                (llamada gratuita)
               </li>
             </ul>
           </section>

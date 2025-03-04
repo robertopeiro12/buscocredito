@@ -39,9 +39,15 @@ const PoliticaPrivacidad = () => {
                 2.1 Datos de Identificación:
               </h3>
               <ul className="list-disc list-inside text-gray-600 ml-4">
-                <li>Nombre completo</li>
+                <li>
+                  Nombre completo (apellido paterno, apellido materno, primer
+                  nombre y segundo nombre)
+                </li>
                 <li>Fecha de nacimiento</li>
-                <li>Domicilio</li>
+                <li>
+                  Domicilio completo (calle, número exterior, número interior,
+                  colonia, ciudad, municipio, estado, código postal)
+                </li>
                 <li>Correo electrónico</li>
                 <li>Número telefónico</li>
                 <li>CURP</li>
@@ -52,10 +58,17 @@ const PoliticaPrivacidad = () => {
                 2.2 Datos Financieros:
               </h3>
               <ul className="list-disc list-inside text-gray-600 ml-4">
-                <li>Historial crediticio (con autorización expresa)</li>
-                <li>Ingresos mensuales declarados</li>
+                <li>
+                  Historial crediticio (mediante consulta autorizada al Buró de
+                  Crédito)
+                </li>
+                <li>
+                  Ingresos mensuales declarados (sujetos a comprobación por
+                  parte de las instituciones financieras)
+                </li>
                 <li>Información laboral básica</li>
                 <li>Capacidad de pago estimada</li>
+                <li>Propósito del crédito solicitado</li>
               </ul>
 
               <h3 className="text-lg font-medium text-gray-700">
@@ -66,6 +79,7 @@ const PoliticaPrivacidad = () => {
                 <li>Tipo de navegador</li>
                 <li>Sistema operativo</li>
                 <li>Comportamiento de navegación</li>
+                <li>Tokens de autenticación y sesión</li>
               </ul>
             </div>
           </section>
@@ -215,36 +229,72 @@ const PoliticaPrivacidad = () => {
             </p>
           </section>
 
-          {/* Contacto */}
+          {/* Proceso del Buró de Crédito */}
           <section>
             <h2 className="text-xl font-semibold text-gray-800 mb-4">
-              9. Contacto
+              10. Proceso de Consulta al Buró de Crédito
             </h2>
-            <p className="text-gray-600">
-              Para cualquier duda sobre esta Política de Privacidad, puede
-              contactar a nuestro Departamento de Protección de Datos en:
-            </p>
-            <ul className="list-none text-gray-600 mt-2">
-              <li>Email: privacidad@buscocredito.com</li>
-              <li>Teléfono: [Número de Contacto]</li>
-              <li>Dirección: [Dirección Legal]</li>
-              <li>
-                Horario: Lunes a Viernes de 9:00 a 18:00 (Hora del Centro de
-                México)
-              </li>
-            </ul>
+            <div className="space-y-4">
+              <p className="text-gray-600">
+                BuscoCredito utiliza una API segura para la consulta del Buró de
+                Crédito, que funciona de la siguiente manera:
+              </p>
+              <ul className="list-disc list-inside text-gray-600 ml-4">
+                <li>
+                  La consulta se realiza en tiempo real mediante una conexión
+                  cifrada AES-256
+                </li>
+                <li>
+                  Se obtiene un archivo XML con la información crediticia del
+                  solicitante
+                </li>
+                <li>
+                  La información se procesa y almacena de forma segura en
+                  nuestros servidores
+                </li>
+                <li>
+                  Solo se comparte con las instituciones financieras la
+                  información necesaria para la evaluación inicial
+                </li>
+              </ul>
+              <p className="text-gray-600 mt-4">
+                <strong>Importante:</strong> La consulta al Buró de Crédito solo
+                se realiza con su autorización expresa y se registra como una
+                consulta de tipo "suave" que no afecta su historial crediticio.
+              </p>
+            </div>
           </section>
 
-          {/* Consentimiento */}
+          {/* Correos de Contacto */}
           <section>
             <h2 className="text-xl font-semibold text-gray-800 mb-4">
-              10. Consentimiento
+              11. Canales de Comunicación
             </h2>
-            <p className="text-gray-600">
-              Al utilizar nuestros servicios, usted acepta los términos de esta
-              Política de Privacidad. Si no está de acuerdo con estos términos,
-              por favor absténgase de usar nuestros servicios.
-            </p>
+            <div className="space-y-4">
+              <p className="text-gray-600">
+                Para garantizar una atención especializada, contamos con
+                diferentes canales de contacto:
+              </p>
+              <ul className="list-disc list-inside text-gray-600 ml-4">
+                <li>
+                  <strong>privacidad@buscocredito.com:</strong> Para ejercer sus
+                  derechos ARCO y temas relacionados con datos personales
+                </li>
+                <li>
+                  <strong>legal@buscocredito.com:</strong> Para consultas sobre
+                  términos y condiciones o asuntos legales
+                </li>
+                <li>
+                  <strong>contacto@buscocredito.com:</strong> Para atención
+                  general y soporte técnico
+                </li>
+                <li>
+                  <strong>transparencia@buscocredito.com:</strong> Para
+                  consultas sobre nuestras prácticas y políticas de
+                  transparencia
+                </li>
+              </ul>
+            </div>
           </section>
 
           {/* Fecha */}

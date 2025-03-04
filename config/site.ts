@@ -1,69 +1,61 @@
 export type SiteConfig = typeof siteConfig;
 
 export const siteConfig = {
-	name: "BuscaCredito",
-	description: "Encuentra tu credito rapido y sencillo",
+	name: "BuscoCredito",
+	description: "Encuentra el préstamo perfecto para ti - Marketplace líder en soluciones financieras",
 	navItems: [
 		{
-			label: "Home",
+			label: "Inicio",
 			href: "/",
 		},
     {
-      label: "Docs",
-      href: "/docs",
+      label: "Préstamos",
+      href: "/prestamos",
     },
     {
-      label: "Pricing",
-      href: "/pricing",
+      label: "Cómo Funciona",
+      href: "/como-funciona",
     },
     {
-      label: "Blog",
-      href: "/blog",
+      label: "Acerca de",
+      href: "/acerca-de",
     },
     {
-      label: "About",
-      href: "/about",
+      label: "Transparencia",
+      href: "/transparencia",
     }
 	],
 	navMenuItems: [
 		{
-			label: "Profile",
-			href: "/profile",
+			label: "Mi Perfil",
+			href: "/perfil",
 		},
 		{
-			label: "Dashboard",
-			href: "/dashboard",
+			label: "Panel de Control",
+			href: "/panel",
 		},
 		{
-			label: "Projects",
-			href: "/projects",
+			label: "Mis Solicitudes",
+			href: "/solicitudes",
 		},
 		{
-			label: "Team",
-			href: "/team",
+			label: "Configuración",
+			href: "/configuracion",
 		},
 		{
-			label: "Calendar",
-			href: "/calendar",
+			label: "Ayuda",
+			href: "/ayuda",
 		},
 		{
-			label: "Settings",
-			href: "/settings",
-		},
-		{
-			label: "Help & Feedback",
-			href: "/help-feedback",
-		},
-		{
-			label: "Logout",
+			label: "Cerrar Sesión",
 			href: "/logout",
 		},
 	],
 	links: {
-		github: "https://github.com/nextui-org/nextui",
-		twitter: "https://twitter.com/getnextui",
-		docs: "https://nextui.org",
-		discord: "https://discord.gg/9b6yyZKmH4",
-    sponsor: "https://patreon.com/jrgarciadev"
+		github: "https://github.com/buscocredito",
+		twitter: "https://twitter.com/buscocredito",
+		facebook: "https://facebook.com/buscocredito",
+		linkedin: "https://linkedin.com/company/buscocredito",
+    website: "https://buscocredito.com"
 	},
 };
