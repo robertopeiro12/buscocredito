@@ -114,6 +114,7 @@ export const getLoanOffers = async (loanId: string) => {
     const offers = snapshot.docs.map(doc => {
       const data = doc.data();
       return {
+        id: doc.id,
         lender_name: data.company,
         amount: data.amount,
         interest_rate: data.interest_rate,

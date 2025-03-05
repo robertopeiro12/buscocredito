@@ -77,7 +77,7 @@ export default function LenderPage() {
   });
   const [userData, setUserData] = useState<PublicUserData | null>(null);
 
-  const { loans: requests, loading } = useLoans();
+  const { loans: requests, acceptedLoans, loading } = useLoans();
   const selectedRequest = selectedRequestId
     ? requests.find((r) => r.id === selectedRequestId) || null
     : null;
@@ -274,9 +274,14 @@ export default function LenderPage() {
     <div className="flex min-h-screen bg-gray-50">
       <LenderSidebar
         activeTab={activeTab}
-        setActiveTab={setActiveTab}
-        handleSignOut={handleSignOut}
-        companyName={partnerData.company}
+        onChangeTab={setActiveTab}
+        onSignOut={handleSignOut}
+        tabs={[
+          { id: "marketplace", label: "Mercado", icon: "market" },
+          { id: "myoffers", label: "Mis Ofertas", icon: "offers" },
+          { id: "acceptedloans", label: "Préstamos Aceptados", icon: "approved" },
+          { id: "settings", label: "Configuración", icon: "settings" },
+        ]}
       />
 
       <div className="flex-1">
@@ -584,7 +589,6 @@ export default function LenderPage() {
           </div>
         )}
 
-        {/* Resto de las pestañas se mantienen igual */}
         {activeTab === "myoffers" && (
           <div className="p-8">
             <h1 className="text-2xl font-bold text-gray-900">Mis Ofertas</h1>
@@ -600,6 +604,68 @@ export default function LenderPage() {
         {activeTab === "help" && (
           <div className="p-8">
             <h1 className="text-2xl font-bold text-gray-900">Ayuda</h1>
+          </div>
+        )}
+
+        {activeTab === "acceptedloans" && (
+          <div className="p-8 flex-1">
+            <div className="flex justify-between items-center mb-6">
+              <h1 className="text-2xl font-bold text-gray-900">Préstamos Aceptados</h1>
+            </div>
+            
+            {loading ? (
+              <div className="flex items-center justify-center p-12">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+              </div>
+            ) : acceptedLoans.length === 0 ? (
+              <Card className="p-6 text-center">
+                <p className="text-gray-600">
+                  No tienes préstamos aceptados en este momento.
+                </p>
+              </Card>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {acceptedLoans.map((loan) => (
+                  <Card key={loan.id} className="border-2 border-green-500">
+                    <div className="p-6">
+                      <div className="flex justify-between items-start mb-4">
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <h3 className="text-lg font-semibold">${loan.amount.toLocaleString()}</h3>
+                            <Chip color="success" size="sm">Aceptado</Chip>
+                          </div>
+                          <p className="text-sm text-gray-500">{loan.term}</p>
+                        </div>
+                        <div>
+                          <Button 
+                            size="sm" 
+                            variant="light"
+                            onClick={() => router.push(`/lender/offer/${loan.id}`)}
+                          >
+                            Ver detalles
+                          </Button>
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-500">Forma de pago:</span>
+                          <span>{loan.payment}</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-500">Ingresos:</span>
+                          <span>${loan.income.toLocaleString()}</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-500">Fecha de solicitud:</span>
+                          <span>{loan.createdAt.toLocaleDateString()}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>

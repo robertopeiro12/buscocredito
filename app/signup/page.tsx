@@ -48,6 +48,7 @@ export default function SignUpPage() {
     lastName: "",
     secondLastName: "",
     rfc: "",
+    rfcType: "",
     birthday: "",
     phone: "",
     address: {
@@ -112,6 +113,18 @@ export default function SignUpPage() {
     const rfcPersonaMoral = /^[A-ZÑ&]{3}[0-9]{6}[A-V1-9][A-Z1-9][0-9A-Z]$/;
 
     // Validar formato
+    if(rfcPersonaFisica.test(rfc)){
+      setFormData((prev) => ({
+        ...prev,
+        rfcType: "Fisica",
+      }));
+    }
+    else if(rfcPersonaMoral.test(rfc)){
+      setFormData((prev) => ({
+        ...prev,
+        rfcType: "Moral",
+      }));
+    }
     if (!rfcPersonaFisica.test(rfc) && !rfcPersonaMoral.test(rfc)) {
       return {
         isValid: false,
@@ -354,6 +367,7 @@ export default function SignUpPage() {
         last_name: formData.lastName,
         second_last_name: formData.secondLastName,
         rfc: formData.rfc,
+        rfc_type: formData.rfcType,
         birthday: Timestamp.fromDate(new Date(formData.birthday)),
         phone: formData.phone,
         address: formData.address,
