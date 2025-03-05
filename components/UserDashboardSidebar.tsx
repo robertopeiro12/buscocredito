@@ -57,21 +57,19 @@ export default function UserDashboardSidebar({
               </a>
             </li>
           ))}
+          <li>
+            <Button
+              color="danger"
+              variant="light"
+              startContent={<LogOut className="w-4 h-4" />}
+              className="w-full justify-start mt-2"
+              onPress={onSignOut}
+            >
+              Cerrar Sesión
+            </Button>
+          </li>
         </ul>
       </nav>
-
-      {/* Logout Button */}
-      <div className="p-4 border-t border-gray-200">
-        <Button
-          color="danger"
-          variant="light"
-          startContent={<LogOut className="w-4 h-4" />}
-          className="w-full justify-start"
-          onPress={onSignOut}
-        >
-          Cerrar Sesión
-        </Button>
-      </div>
     </aside>
   );
 }
