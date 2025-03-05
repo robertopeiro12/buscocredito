@@ -282,85 +282,103 @@ export default function LenderPage() {
       <div className="flex-1">
         {activeTab === "marketplace" && (
           <div className="p-8">
-            {/* Barra de Filtros */}
-            <Card className="mb-6 p-4 shadow-sm border border-gray-100">
-              <div className="flex flex-wrap gap-4">
-                <Input
-                  type="text"
-                  placeholder="Buscar por monto o plazo..."
-                  startContent={<Search className="w-4 h-4 text-gray-400" />}
-                  value={filters.search}
-                  onChange={(e) =>
-                    setFilters((prev) => ({ ...prev, search: e.target.value }))
-                  }
-                  className="w-full md:w-72"
-                  classNames={{
-                    inputWrapper: "bg-white border-gray-200",
-                  }}
-                />
-                <Select
-                  placeholder="Monto"
-                  size="sm"
-                  selectedKeys={[filters.amount]}
-                  onChange={(e) =>
-                    setFilters((prev) => ({ ...prev, amount: e.target.value }))
-                  }
-                  className="w-full md:w-48"
-                  classNames={{
-                    trigger: "bg-white border-gray-200",
-                  }}
-                >
-                  <SelectItem key="all">Todos los montos</SelectItem>
-                  <SelectItem key="0-50000">Hasta $50,000</SelectItem>
-                  <SelectItem key="50000-100000">$50,000 - $100,000</SelectItem>
-                  <SelectItem key="100000+">Más de $100,000</SelectItem>
-                </Select>
-                <Select
-                  placeholder="Plazo"
-                  size="sm"
-                  selectedKeys={[filters.term]}
-                  onChange={(e) =>
-                    setFilters((prev) => ({ ...prev, term: e.target.value }))
-                  }
-                  className="w-full md:w-48"
-                  classNames={{
-                    trigger: "bg-white border-gray-200",
-                  }}
-                >
-                  <SelectItem key="all">Todos los plazos</SelectItem>
-                  <SelectItem key="1-12">1-12 meses</SelectItem>
-                  <SelectItem key="13-24">13-24 meses</SelectItem>
-                  <SelectItem key="25+">Más de 24 meses</SelectItem>
-                </Select>
-                <Button
-                  variant="flat"
-                  startContent={<SlidersHorizontal className="w-4 h-4" />}
-                  onClick={() =>
-                    setFilters({
-                      search: "",
-                      amount: "all",
-                      term: "all",
-                    })
-                  }
-                  className="bg-white border border-gray-200 text-gray-700 hover:bg-gray-50"
-                >
-                  Limpiar filtros
-                </Button>
-              </div>
-            </Card>
+            {/* Barra de Filtros y Contador de solicitudes - Solo mostrar cuando no se está creando una oferta */}
+            {!isCreatingOffer && (
+              <>
+                {/* Barra de Filtros */}
+                <Card className="mb-6 p-4 shadow-sm border border-gray-100">
+                  <div className="flex flex-wrap gap-4">
+                    <Input
+                      type="text"
+                      placeholder="Buscar por monto o plazo..."
+                      startContent={
+                        <Search className="w-4 h-4 text-gray-400" />
+                      }
+                      value={filters.search}
+                      onChange={(e) =>
+                        setFilters((prev) => ({
+                          ...prev,
+                          search: e.target.value,
+                        }))
+                      }
+                      className="w-full md:w-72"
+                      classNames={{
+                        inputWrapper: "bg-white border-gray-200",
+                      }}
+                    />
+                    <Select
+                      placeholder="Monto"
+                      size="sm"
+                      selectedKeys={[filters.amount]}
+                      onChange={(e) =>
+                        setFilters((prev) => ({
+                          ...prev,
+                          amount: e.target.value,
+                        }))
+                      }
+                      className="w-full md:w-48"
+                      classNames={{
+                        trigger: "bg-white border-gray-200",
+                      }}
+                    >
+                      <SelectItem key="all">Todos los montos</SelectItem>
+                      <SelectItem key="0-50000">Hasta $50,000</SelectItem>
+                      <SelectItem key="50000-100000">
+                        $50,000 - $100,000
+                      </SelectItem>
+                      <SelectItem key="100000+">Más de $100,000</SelectItem>
+                    </Select>
+                    <Select
+                      placeholder="Plazo"
+                      size="sm"
+                      selectedKeys={[filters.term]}
+                      onChange={(e) =>
+                        setFilters((prev) => ({
+                          ...prev,
+                          term: e.target.value,
+                        }))
+                      }
+                      className="w-full md:w-48"
+                      classNames={{
+                        trigger: "bg-white border-gray-200",
+                      }}
+                    >
+                      <SelectItem key="all">Todos los plazos</SelectItem>
+                      <SelectItem key="1-12">1-12 meses</SelectItem>
+                      <SelectItem key="13-24">13-24 meses</SelectItem>
+                      <SelectItem key="25+">Más de 24 meses</SelectItem>
+                    </Select>
+                    <Button
+                      variant="flat"
+                      startContent={<SlidersHorizontal className="w-4 h-4" />}
+                      onClick={() =>
+                        setFilters({
+                          search: "",
+                          amount: "all",
+                          term: "all",
+                        })
+                      }
+                      className="bg-white border border-gray-200 text-gray-700 hover:bg-gray-50"
+                    >
+                      Limpiar filtros
+                    </Button>
+                  </div>
+                </Card>
 
-            {/* Contador de solicitudes */}
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-semibold text-gray-700 flex items-center">
-                <CreditCard className="w-5 h-5 mr-2 text-gray-500" />
-                Solicitudes de Préstamo
-              </h2>
-              <div className="flex items-center bg-gray-50 px-3 py-1.5 rounded-full border border-gray-100">
-                <span className="text-sm text-gray-600">
-                  {filteredRequests.length} de {requests.length} disponibles
-                </span>
-              </div>
-            </div>
+                {/* Contador de solicitudes */}
+                <div className="flex justify-between items-center mb-6">
+                  <h2 className="text-xl font-semibold text-gray-700 flex items-center">
+                    <CreditCard className="w-5 h-5 mr-2 text-gray-500" />
+                    Solicitudes de Préstamo
+                  </h2>
+                  <div className="flex items-center bg-gray-50 px-3 py-1.5 rounded-full border border-gray-100">
+                    <span className="text-sm text-gray-600">
+                      {filteredRequests.length} de {requests.length} disponibles
+                    </span>
+                  </div>
+                </div>
+              </>
+            )}
 
             {/* Contenido Principal */}
             {!selectedRequestId ? (
@@ -553,7 +571,8 @@ export default function LenderPage() {
                           company: partnerData.company,
                           partner: user,
                           amount: selectedRequest?.amount || 0,
-                          amortization: selectedRequest?.payment || "mensual",
+                          amortization_frequency:
+                            selectedRequest?.payment || "mensual",
                         });
                         setIsCreatingOffer(true);
                       }}
