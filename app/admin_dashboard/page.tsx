@@ -427,13 +427,16 @@ export default function AdminDashboard() {
                       </div>
                       <div className="p-4 bg-gray-50 rounded-lg">
                         <h4 className="font-medium text-gray-900 mb-2">
-                          ¿Cómo gestionar los permisos?
+                          ¿Cómo monitorear la actividad de las subcuentas?
                         </h4>
                         <p className="text-gray-600">
-                          Los trabajadores tendrán acceso al marketplace para
-                          ver y hacer ofertas a las solicitudes de préstamo.
-                          Como administrador, puedes crear y eliminar cuentas
-                          según sea necesario.
+                          Desde el panel de administrador puedes ver todas las
+                          subcuentas creadas y su información básica. Para un
+                          análisis más detallado de la actividad de cada
+                          trabajador, próximamente implementaremos un sistema de
+                          reportes que te permitirá visualizar métricas como
+                          número de ofertas realizadas, préstamos aprobados y
+                          tasas de conversión por cada subcuenta.
                         </p>
                       </div>
                     </div>

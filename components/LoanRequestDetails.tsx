@@ -2,7 +2,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { MapPin, DollarSign, Target, User, AlertCircle } from "lucide-react";
+import { MapPin, DollarSign, Target, User } from "lucide-react";
 import type {
   LoanRequest,
   PublicUserData,
@@ -34,9 +34,6 @@ export default function LoanRequestDetails({
     );
   }
 
-  // Check if the loan has already been accepted
-  const isAccepted = request.status === 'approved' || !!request.acceptedOfferId;
-
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -47,12 +44,6 @@ export default function LoanRequestDetails({
       {/* Encabezado */}
       <div className="border-b pb-4 mb-6">
         <h2 className="text-2xl font-semibold">Detalles de la Solicitud</h2>
-        {isAccepted && (
-          <div className="mt-2 bg-yellow-50 text-yellow-700 p-3 rounded-md flex items-center text-sm">
-            <AlertCircle className="h-4 w-4 mr-2" />
-            Esta solicitud ya ha sido aceptada por otro prestamista.
-          </div>
-        )}
       </div>
 
       {/* Información del Préstamo */}
@@ -82,16 +73,6 @@ export default function LoanRequestDetails({
             <p className="text-sm text-gray-500">Forma de Pago</p>
             <p className="font-medium capitalize">{request.payment}</p>
           </div>
-          <div>
-            <p className="text-sm text-gray-500">Estado</p>
-            <p className="font-medium capitalize">
-              {isAccepted ? (
-                <span className="text-green-600">Aceptada</span>
-              ) : (
-                <span>{request.status}</span>
-              )}
-            </p>
-          </div>
         </div>
       </div>
 
@@ -104,45 +85,37 @@ export default function LoanRequestDetails({
         <div className="grid grid-cols-2 gap-4 bg-gray-50 p-4 rounded-lg">
           <div>
             <p className="text-sm text-gray-500">País</p>
-            <p className="font-medium">{userData.country}</p>
+            <p className="font-medium">{userData.country || "No disponible"}</p>
           </div>
           <div>
             <p className="text-sm text-gray-500">Estado</p>
-            <p className="font-medium">{userData.state}</p>
+            <p className="font-medium">{userData.state || "No disponible"}</p>
           </div>
           <div>
             <p className="text-sm text-gray-500">Ciudad</p>
-            <p className="font-medium">{userData.city}</p>
+            <p className="font-medium">{userData.city || "No disponible"}</p>
           </div>
           <div>
             <p className="text-sm text-gray-500">Propósito</p>
-            <p className="font-medium">{userData.purpose}</p>
+            <p className="font-medium">
+              {userData.purpose || "No especificado"}
+            </p>
           </div>
         </div>
       </div>
 
       {/* Botón de Hacer Oferta */}
       <div>
-        {isAccepted ? (
-          <button 
-            disabled
-            className="w-full py-3 bg-gray-300 text-gray-600 rounded-lg cursor-not-allowed flex items-center justify-center font-medium"
-          >
-            <AlertCircle className="h-5 w-5 mr-2" />
-            Préstamo Ya Aceptado
-          </button>
-        ) : (
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            onClick={onMakeOffer}
-            className="w-full py-3 bg-[#2EA043] text-white rounded-lg hover:bg-[#2EA043]/90
-             transition-colors flex items-center justify-center font-medium"
-          >
-            <Target className="h-5 w-5 mr-2" />
-            Hacer Oferta
-          </motion.button>
-        )}
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          onClick={onMakeOffer}
+          className="w-full py-3 bg-[#2EA043] text-white rounded-lg hover:bg-[#2EA043]/90
+           transition-colors flex items-center justify-center font-medium"
+        >
+          <Target className="h-5 w-5 mr-2" />
+          Hacer Oferta
+        </motion.button>
       </div>
     </motion.div>
   );

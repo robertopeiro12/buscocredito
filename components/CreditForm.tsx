@@ -26,21 +26,21 @@ const ProgressBar = ({
     <div className="relative pt-1">
       {/* Progress text showing current step and percentage */}
       <div className="flex mb-2 items-center justify-between">
-        <div className="text-xs font-semibold text-blue-600">
+        <div className="text-xs font-semibold text-green-600">
           Paso {currentStep} de {totalSteps}
         </div>
         <div className="text-right">
-          <span className="text-xs font-semibold text-blue-600">
+          <span className="text-xs font-semibold text-green-600">
             {Math.round((currentStep / totalSteps) * 100)}%
           </span>
         </div>
       </div>
       {/* Progress bar visual element */}
-      <div className="overflow-hidden h-2 mb-4 text-xs flex rounded bg-blue-100">
+      <div className="overflow-hidden h-2 mb-4 text-xs flex rounded bg-green-100">
         <motion.div
           initial={{ width: `${((currentStep - 1) / totalSteps) * 100}%` }}
           animate={{ width: `${(currentStep / totalSteps) * 100}%` }}
-          className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-blue-500"
+          className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-[#2EA043]"
         />
       </div>
     </div>
@@ -88,14 +88,12 @@ const Section1 = ({
   purpose,
   error,
   setError,
-  rfc_type = "Fisica",
 }: {
   next: () => void;
   setPurpose: (purpose: string) => void;
   purpose: string;
   error: boolean;
   setError: (error: boolean) => void;
-  rfc_type?: string;
 }) => (
   <motion.div
     initial={{ opacity: 0, x: -100 }}
@@ -114,34 +112,32 @@ const Section1 = ({
     </div>
 
     {/* Purpose Selection Cards */}
-    <div className="flex gap-4 max-w-md mx-auto justify-center items-center">
-      {/* Personal Credit Card - Only show if rfc_type is not "Moral" */}
-      {rfc_type !== "Moral" && (
-        <button
-          onClick={() => {
-            setPurpose("Personal");
-            setError(false);
-          }}
-          className={`p-6 rounded-xl border-2 transition-all duration-200 ${
-            purpose === "Personal"
-              ? "border-blue-500 bg-blue-50"
-              : "border-gray-200 hover:border-blue-200"
+    <div className="grid grid-cols-2 gap-4 max-w-md mx-auto">
+      {/* Personal Credit Card */}
+      <button
+        onClick={() => {
+          setPurpose("Personal");
+          setError(false);
+        }}
+        className={`p-6 rounded-xl border-2 transition-all duration-200 ${
+          purpose === "Personal"
+            ? "border-blue-500 bg-blue-50"
+            : "border-gray-200 hover:border-blue-200"
+        }`}
+      >
+        <User
+          className={`w-8 h-8 mb-2 mx-auto ${
+            purpose === "Personal" ? "text-blue-500" : "text-gray-400"
+          }`}
+        />
+        <span
+          className={`block font-medium ${
+            purpose === "Personal" ? "text-blue-500" : "text-gray-600"
           }`}
         >
-          <User
-            className={`w-8 h-8 mb-2 mx-auto ${
-              purpose === "Personal" ? "text-blue-500" : "text-gray-400"
-            }`}
-          />
-          <span
-            className={`block font-medium ${
-              purpose === "Personal" ? "text-blue-500" : "text-gray-600"
-            }`}
-          >
-            Personal
-          </span>
-        </button>
-      )}
+          Personal
+        </span>
+      </button>
 
       {/* Business Credit Card */}
       <button
@@ -309,12 +305,46 @@ const Section3 = ({
   next: () => void;
   prev: () => void;
 }) => {
+  // Estado para controlar si se está usando entrada manual
+  const [isManualInput, setIsManualInput] = useState(false);
+  // Estado para el valor de entrada manual
+  const [manualInputValue, setManualInputValue] = useState("");
+
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("es-MX", {
       style: "currency",
       currency: "MXN",
       maximumFractionDigits: 0,
     }).format(value);
+  };
+
+  const handleSliderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setAmount(Number(e.target.value));
+    setIsManualInput(false);
+  };
+
+  const handleManualInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Eliminar cualquier carácter que no sea número
+    const rawValue = e.target.value.replace(/[^\d]/g, "");
+    setManualInputValue(rawValue);
+
+    if (rawValue === "") {
+      return;
+    }
+
+    const numericValue = parseInt(rawValue);
+
+    if (!isNaN(numericValue)) {
+      setAmount(numericValue);
+      setIsManualInput(true);
+    }
+  };
+
+  const toggleInputMode = () => {
+    setIsManualInput(!isManualInput);
+    if (!isManualInput) {
+      setManualInputValue(amount.toString());
+    }
   };
 
   return (
@@ -339,35 +369,68 @@ const Section3 = ({
         </span>
       </div>
 
-      {/* Amount Slider Container */}
-      <div className="max-w-md mx-auto space-y-6">
-        <input
-          type="range"
-          min="10000"
-          max="5000000"
-          step="10000"
-          value={amount}
-          onChange={(e) => setAmount(Number(e.target.value))}
-          className="w-full h-2 bg-blue-100 rounded-lg appearance-none cursor-pointer"
-          style={{
-            background: `linear-gradient(to right, #3B82F6 0%, #3B82F6 ${
-              ((amount - 10000) / (5000000 - 10000)) * 100
-            }%, #E5E7EB ${
-              ((amount - 10000) / (5000000 - 10000)) * 100
-            }%, #E5E7EB 100%)`,
-          }}
-        />
+      {/* Slider or Manual Input Toggle */}
+      <div className="max-w-md mx-auto">
+        <button
+          onClick={toggleInputMode}
+          className="mb-4 text-blue-500 hover:text-blue-700 text-sm font-medium flex items-center mx-auto"
+        >
+          {isManualInput
+            ? "Usar slider para seleccionar monto"
+            : "O escribe tu monto personalizado"}
+        </button>
 
-        {/* Range Labels */}
-        <div className="flex justify-between text-sm text-gray-600">
-          <span>{formatCurrency(10000)}</span>
-          <span>{formatCurrency(5000000)}</span>
-        </div>
+        {!isManualInput ? (
+          // Slider Input
+          <div className="space-y-6">
+            <input
+              type="range"
+              min="10000"
+              max="5000000"
+              step="10000"
+              value={amount <= 5000000 ? amount : 5000000}
+              onChange={handleSliderChange}
+              className="w-full h-2 bg-blue-100 rounded-lg appearance-none cursor-pointer"
+              style={{
+                background: `linear-gradient(to right, #3B82F6 0%, #3B82F6 ${
+                  ((Math.min(amount, 5000000) - 10000) / (5000000 - 10000)) *
+                  100
+                }%, #E5E7EB ${
+                  ((Math.min(amount, 5000000) - 10000) / (5000000 - 10000)) *
+                  100
+                }%, #E5E7EB 100%)`,
+              }}
+            />
 
-        {/* Helper Text */}
-        <p className="text-sm text-gray-500 text-center">
-          Deslice para ajustar el monto del crédito
-        </p>
+            {/* Range Labels */}
+            <div className="flex justify-between text-sm text-gray-600">
+              <span>{formatCurrency(10000)}</span>
+              <span>{formatCurrency(5000000)}</span>
+            </div>
+
+            {/* Helper Text */}
+            <p className="text-sm text-gray-500 text-center">
+              Deslice para ajustar el monto del crédito
+            </p>
+          </div>
+        ) : (
+          // Manual Input
+          <div className="space-y-4">
+            <div className="relative">
+              <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 w-5 h-5" />
+              <input
+                type="text"
+                value={manualInputValue}
+                onChange={handleManualInputChange}
+                className="w-full pl-10 pr-4 py-3 text-lg rounded-lg border-2 border-gray-200 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                placeholder="Ingrese cualquier monto"
+              />
+            </div>
+            <p className="text-sm text-gray-500 text-center">
+              Ingrese el monto exacto que necesita para su crédito
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Navigation Buttons */}
@@ -399,21 +462,21 @@ const Section4 = ({
   setError: (error: boolean) => void;
 }) => {
   const terms = [
-    { months: 3, label: "3 meses" },
-    { months: 6, label: "6 meses" },
-    { months: 8, label: "8 meses" },
-    { months: 12, label: "12 meses" },
-    { months: 18, label: "18 meses" },
-    { months: 24, label: "24 meses" },
-    { months: 36, label: "36 meses" },
-    { months: 48, label: "48 meses" },
-    { months: 60, label: "60 meses" },
-    { months: 72, label: "72 meses" },
+    { months: 3, label: "3 meses", unit: "meses" },
+    { months: 6, label: "6 meses", unit: "meses" },
+    { months: 9, label: "9 meses", unit: "meses" },
+    { months: 12, label: "12 meses", unit: "meses" },
+    { months: 18, label: "18 meses", unit: "meses" },
+    { months: 24, label: "2 años", unit: "años" },
+    { months: 36, label: "3 años", unit: "años" },
+    { months: 48, label: "4 años", unit: "años" },
+    { months: 60, label: "5 años", unit: "años" },
+    { months: -1, label: "6+ años", unit: "años" },
   ];
 
   const termGroups = [
     terms.slice(0, 5), // Short terms (3-18 months)
-    terms.slice(5), // Long terms (24-72 months)
+    terms.slice(5), // Long terms (2-5+ years)
   ];
 
   return (
@@ -438,7 +501,7 @@ const Section4 = ({
             key={groupIndex}
             className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3"
           >
-            {group.map(({ months, label }) => (
+            {group.map(({ months, label, unit }) => (
               <button
                 key={months}
                 onClick={() => {
@@ -451,8 +514,16 @@ const Section4 = ({
                     : "border-gray-200 hover:border-blue-200 text-gray-600"
                 }`}
               >
-                <span className="block text-lg font-semibold">{months}</span>
-                <span className="block text-sm">meses</span>
+                <span className="block text-lg font-semibold">
+                  {months === -1
+                    ? "6+"
+                    : months === 18
+                    ? 18
+                    : months > 12
+                    ? months / 12
+                    : months}
+                </span>
+                <span className="block text-sm">{unit}</span>
               </button>
             ))}
           </div>
@@ -503,23 +574,21 @@ const Section5 = ({
     {
       id: "semanal",
       label: "Semanal",
-      description: "Pagos cada 7 días",
       icon: Calendar,
-      frequency: "52 pagos al año",
+      description: "pagos cada 7 dias",
     },
     {
       id: "quincenal",
       label: "Quincenal",
-      description: "Pagos cada 15 días",
+      description: "pagos cada 15 dias",
       icon: Calendar,
-      frequency: "24 pagos al año",
+      frequency: "26 pagos al año",
     },
     {
       id: "mensual",
       label: "Mensual",
-      description: "Pagos cada mes",
       icon: Calendar,
-      frequency: "12 pagos al año",
+      description: "pagos cada mes",
     },
   ];
 
@@ -541,15 +610,14 @@ const Section5 = ({
 
       {/* Payment Options Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto px-4">
-        {paymentOptions.map(
-          ({ id, label, description, icon: Icon, frequency }) => (
-            <button
-              key={id}
-              onClick={() => {
-                setPayment(label);
-                setError(false);
-              }}
-              className={`
+        {paymentOptions.map(({ id, label, icon: Icon, description }) => (
+          <button
+            key={id}
+            onClick={() => {
+              setPayment(label);
+              setError(false);
+            }}
+            className={`
               relative p-6 rounded-xl border-2 transition-all duration-200
               ${
                 payment === label
@@ -557,41 +625,37 @@ const Section5 = ({
                   : "border-gray-200 hover:border-blue-200 hover:bg-gray-50"
               }
             `}
-            >
-              <div className="flex flex-col items-center text-center space-y-3">
-                <Icon
-                  className={`w-8 h-8 ${
-                    payment === label ? "text-blue-500" : "text-gray-400"
+          >
+            <div className="flex flex-col items-center text-center space-y-3">
+              <Icon
+                className={`w-8 h-8 ${
+                  payment === label ? "text-blue-500" : "text-gray-400"
+                }`}
+              />
+              <div className="space-y-1">
+                <span
+                  className={`block text-lg font-medium ${
+                    payment === label ? "text-blue-500" : "text-gray-700"
                   }`}
-                />
-                <div className="space-y-1">
-                  <span
-                    className={`block text-lg font-medium ${
-                      payment === label ? "text-blue-500" : "text-gray-700"
-                    }`}
-                  >
-                    {label}
-                  </span>
-                  <span className="block text-sm text-gray-500">
-                    {description}
-                  </span>
-                  <span className="block text-xs text-gray-400">
-                    {frequency}
-                  </span>
-                </div>
-              </div>
-              {payment === label && (
-                <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  className="absolute -top-2 -right-2 bg-blue-500 text-white rounded-full p-1"
                 >
-                  <Check className="w-4 h-4" />
-                </motion.div>
-              )}
-            </button>
-          )
-        )}
+                  {label}
+                </span>
+                <span className="block text-sm text-gray-500">
+                  {description}
+                </span>
+              </div>
+            </div>
+            {payment === label && (
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                className="absolute -top-2 -right-2 bg-blue-500 text-white rounded-full p-1"
+              >
+                <Check className="w-4 h-4" />
+              </motion.div>
+            )}
+          </button>
+        ))}
       </div>
 
       {/* Error Message */}
@@ -645,7 +709,9 @@ const Section6 = ({
       style: "currency",
       currency: "MXN",
       maximumFractionDigits: 0,
-    }).format(number || 0);
+    })
+      .format(number || 0)
+      .replace(/MX\$\s?|\$\s?/, "");
   };
 
   // Income validation and handling
@@ -676,10 +742,13 @@ const Section6 = ({
     >
       {/* Section Header */}
       <div className="text-center space-y-3">
-        <h2 className="text-2xl font-bold text-gray-800">Ingresos Mensuales</h2>
+        <h2 className="text-2xl font-bold text-gray-800">
+          Ingresos Anuales Comprobables
+        </h2>
         <p className="text-gray-600 max-w-md mx-auto">
-          Ingrese sus ingresos mensuales totales. Esta información nos ayuda a
-          determinar la capacidad de pago para su crédito.
+          Ingrese sus ingresos anuales totales que pueda comprobar. Esta
+          información nos ayuda a determinar la capacidad de pago para su
+          crédito.
         </p>
       </div>
 
@@ -702,14 +771,14 @@ const Section6 = ({
               focus:outline-none focus:ring-2 
               ${error ? "focus:ring-red-200" : "focus:ring-blue-200"}
             `}
-            placeholder="Ingrese sus ingresos mensuales"
+            placeholder="Ingrese sus ingresos anuales"
           />
         </div>
 
         {/* Helper Text */}
         <p className="text-sm text-gray-500 text-center">
           Posteriormente se le solicitará documentación que respalde estos
-          ingresos declarados
+          ingresos anuales declarados
         </p>
 
         {/* Error Message */}
@@ -719,7 +788,7 @@ const Section6 = ({
             animate={{ opacity: 1, y: 0 }}
             className="text-red-500 text-sm bg-red-50 p-2 rounded-lg text-center"
           >
-            Por favor ingrese un monto válido mayor a cero
+            Por favor ingrese un monto anual válido mayor a cero
           </motion.p>
         )}
       </div>
@@ -798,7 +867,7 @@ const FinalSection = ({
       icon: Calendar,
     },
     {
-      label: "Ingresos Mensuales",
+      label: "Ingresos Anuales Comprobables",
       value: formatCurrency(formData.income),
       icon: Wallet,
     },
@@ -878,7 +947,6 @@ const FinalSection = ({
 const CreditForm = ({
   addSolicitud,
   resetForm,
-  rfc_type = "Fisica",
 }: {
   addSolicitud: (data: {
     purpose: string;
@@ -889,7 +957,6 @@ const CreditForm = ({
     income: string;
   }) => void;
   resetForm: () => void;
-  rfc_type?: string;
 }) => {
   const [formData, setFormData] = useState({
     purpose: "",
@@ -962,7 +1029,6 @@ const CreditForm = ({
             next={nextStep}
             error={error}
             setError={setError}
-            rfc_type={rfc_type}
           />
         )}
         {step === 2 && (
