@@ -703,7 +703,7 @@ export default function DashboardPage() {
                                                 undefined && (
                                                 <div className="flex justify-between text-sm">
                                                   <span className="text-gray-500">
-                                                    Saldo médico:
+                                                    Seguro de Vida:
                                                   </span>
                                                   <span className="font-medium">
                                                     $
@@ -822,7 +822,7 @@ export default function DashboardPage() {
                                         </div>
                                         <div className="flex justify-between text-sm">
                                           <span className="text-gray-500">
-                                            Ingresos
+                                            Ingresos Anuales Comprobables
                                           </span>
                                           <span className="text-gray-900">
                                             ${solicitud.income.toLocaleString()}

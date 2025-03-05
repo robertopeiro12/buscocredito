@@ -12,6 +12,8 @@ interface LoanRequest {
   payment: 'mensual' | 'quincenal' | 'semanal';
   status: 'pending' | 'approved' | 'rejected';
   createdAt: Date;
+  purpose: string; // Propósito del préstamo
+  type: string;    // Tipo de préstamo
 }
 
 export function useLoans() {
@@ -35,7 +37,9 @@ export function useLoans() {
             term: data.term,
             payment: data.payment,
             status: data.status,
-            createdAt: data.createdAt instanceof Timestamp ? data.createdAt.toDate() : new Date()
+            createdAt: data.createdAt instanceof Timestamp ? data.createdAt.toDate() : new Date(),
+            purpose: data.purpose || 'No especificado',
+            type: data.type || 'No especificado'
           } as LoanRequest;
         });
         
