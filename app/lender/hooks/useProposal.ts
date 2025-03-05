@@ -23,7 +23,7 @@ export function useProposal(loan: LoanRequest | null) {
     // Si el término está en formato "X meses" o "X años"
     const monthsMatch = term.match(/(\d+)\s*meses?/i);
     const yearsMatch = term.match(/(\d+)\s*años?/i);
-    
+
     if (monthsMatch) {
       return parseInt(monthsMatch[1], 10);
     } else if (yearsMatch) {
@@ -35,7 +35,7 @@ export function useProposal(loan: LoanRequest | null) {
         return parseInt(numericMatch[1], 10);
       }
     }
-    
+
     return 0;
   }
 
@@ -69,7 +69,7 @@ export function useProposal(loan: LoanRequest | null) {
 
   const submitProposal = async () => {
     if (!loan) return;
-    
+
     const errors = validateProposal();
     if (errors.length > 0) {
       setError(errors.join(', '));

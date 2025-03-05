@@ -46,12 +46,9 @@ export function ProposalForm({
   const initialTimeUnit = proposal.deadline >= 24 ? "years" : "months";
   const [timeUnit, setTimeUnit] = useState<"months" | "years">(initialTimeUnit);
 
-  // Opciones de plazo según la unidad de tiempo seleccionada
-  const timeOptions =
-    timeUnit === "months" ? [3, 6, 9, 12, 18] : [2, 3, 4, 5, 6, 7, 8, 9, 10];
-
-  // Valor inicial para mostrar en el select de plazo
-  const [selectedTimeValue, setSelectedTimeValue] = useState<string>("");
+  // Estado para el valor manual del plazo
+  const [termValue, setTermValue] = useState<string>("");
+  const [termError, setTermError] = useState<string>("");
 
   // Estados para los valores formateados
   const [formattedAmount, setFormattedAmount] = useState<string>("");
@@ -125,35 +122,64 @@ export function ProposalForm({
     proposal.amortization,
   ]);
 
-  // Actualizar el valor seleccionado cuando cambia la unidad de tiempo
+  // Actualizar el valor del plazo cuando cambia el deadline
   useEffect(() => {
     if (proposal.deadline > 0) {
       if (timeUnit === "years") {
-        const years = Math.floor(proposal.deadline / 12);
-        // Encontrar el valor más cercano en las opciones disponibles
-        const closestYear = timeOptions.reduce((prev, curr) =>
-          Math.abs(curr - years) < Math.abs(prev - years) ? curr : prev
-        );
-        setSelectedTimeValue(closestYear.toString());
+        const years = (proposal.deadline / 12).toFixed(1);
+        // Si es un número entero, quitar los decimales
+        setTermValue(years.endsWith(".0") ? years.slice(0, -2) : years);
       } else {
-        // Para meses, encontrar el valor más cercano en las opciones disponibles
-        const closestMonth = timeOptions.reduce((prev, curr) =>
-          Math.abs(curr - proposal.deadline) <
-          Math.abs(prev - proposal.deadline)
-            ? curr
-            : prev
-        );
-        setSelectedTimeValue(closestMonth.toString());
+        setTermValue(proposal.deadline.toString());
       }
+    } else {
+      setTermValue("");
     }
   }, [timeUnit, proposal.deadline]);
 
-  // Convertir el plazo seleccionado a meses para almacenar en la base de datos
-  const handleTimeChange = (value: string) => {
-    const numValue = Number(value);
-    const deadlineInMonths = timeUnit === "years" ? numValue * 12 : numValue;
-    onUpdate({ deadline: deadlineInMonths });
-    setSelectedTimeValue(value);
+  // Manejar cambios en el valor del plazo
+  const handleTermChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+
+    // Permitir solo números y un punto decimal
+    if (/^[0-9]*\.?[0-9]*$/.test(value) || value === "") {
+      setTermValue(value);
+      setTermError("");
+
+      if (value) {
+        const numValue = parseFloat(value);
+
+        // Validar que el valor sea positivo
+        if (numValue <= 0) {
+          setTermError("El plazo debe ser mayor a 0");
+          return;
+        }
+
+        // Convertir a meses según la unidad seleccionada
+        const deadlineInMonths =
+          timeUnit === "years" ? numValue * 12 : numValue;
+        onUpdate({ deadline: Math.round(deadlineInMonths) });
+      }
+    }
+  };
+
+  // Cambiar la unidad de tiempo y recalcular el valor
+  const handleTimeUnitChange = (unit: "months" | "years") => {
+    if (termValue) {
+      const currentValue = parseFloat(termValue);
+      if (!isNaN(currentValue)) {
+        // Convertir el valor actual a la nueva unidad
+        if (unit === "years" && timeUnit === "months") {
+          // De meses a años
+          const years = (currentValue / 12).toFixed(1);
+          setTermValue(years.endsWith(".0") ? years.slice(0, -2) : years);
+        } else if (unit === "months" && timeUnit === "years") {
+          // De años a meses
+          setTermValue(Math.round(currentValue * 12).toString());
+        }
+      }
+    }
+    setTimeUnit(unit);
   };
 
   // Manejadores para los campos con formato
@@ -354,7 +380,7 @@ export function ProposalForm({
                     color={timeUnit === "months" ? "success" : "default"}
                     className="w-full"
                     startContent={<Clock className="w-4 h-4" />}
-                    onClick={() => setTimeUnit("months")}
+                    onClick={() => handleTimeUnitChange("months")}
                   >
                     Meses
                   </Button>
@@ -365,7 +391,7 @@ export function ProposalForm({
                     color={timeUnit === "years" ? "success" : "default"}
                     className="w-full"
                     startContent={<Calendar className="w-4 h-4" />}
-                    onClick={() => setTimeUnit("years")}
+                    onClick={() => handleTimeUnitChange("years")}
                   >
                     Años
                   </Button>
@@ -373,55 +399,50 @@ export function ProposalForm({
               </div>
 
               <div className="bg-white border border-gray-200 rounded-lg p-3">
-                <div className="grid grid-cols-5 gap-2">
-                  {timeOptions.map((option) => (
-                    <Button
-                      key={option}
-                      size="sm"
-                      variant={
-                        selectedTimeValue === option.toString()
-                          ? "solid"
-                          : "bordered"
-                      }
-                      color={
-                        selectedTimeValue === option.toString()
-                          ? "success"
-                          : "default"
-                      }
-                      className={`w-full ${
-                        selectedTimeValue === option.toString()
-                          ? "font-semibold"
-                          : ""
-                      }`}
-                      onClick={() => handleTimeChange(option.toString())}
-                    >
-                      {option}
-                      {timeUnit === "years" && option === 10 ? "+" : ""}
-                    </Button>
-                  ))}
-                </div>
+                <div className="flex flex-col space-y-2">
+                  <Input
+                    type="text"
+                    value={termValue}
+                    onChange={handleTermChange}
+                    placeholder={`Ingrese el plazo en ${
+                      timeUnit === "months" ? "meses" : "años"
+                    }`}
+                    size="lg"
+                    startContent={
+                      timeUnit === "months" ? (
+                        <Clock className="w-4 h-4 text-gray-400" />
+                      ) : (
+                        <Calendar className="w-4 h-4 text-gray-400" />
+                      )
+                    }
+                    classNames={{
+                      inputWrapper:
+                        "border-gray-200 focus-within:border-green-500 focus-within:ring-green-200",
+                    }}
+                    isInvalid={!!termError}
+                    errorMessage={termError}
+                  />
 
-                {selectedTimeValue && (
-                  <div className="mt-3 pt-2 border-t border-gray-100">
-                    <p className="text-xs text-gray-600">
-                      <span className="font-medium text-success-600">
-                        {selectedTimeValue}{" "}
-                        {timeUnit === "months" ? "meses" : "años"}
-                        {timeUnit === "years" && selectedTimeValue === "10"
-                          ? "+"
-                          : ""}
-                      </span>
-                      <span className="text-gray-400 mx-1">•</span>
-                      <span className="text-gray-500">
-                        {timeUnit === "years"
-                          ? `Equivale a ${Number(selectedTimeValue) * 12} meses`
-                          : `Equivale a ${(
-                              Number(selectedTimeValue) / 12
-                            ).toFixed(1)} años`}
-                      </span>
-                    </p>
-                  </div>
-                )}
+                  {termValue && !termError && (
+                    <div className="mt-2 pt-2 border-t border-gray-100">
+                      <p className="text-xs text-gray-600">
+                        <span className="font-medium text-success-600">
+                          {termValue} {timeUnit === "months" ? "meses" : "años"}
+                        </span>
+                        <span className="text-gray-400 mx-1">•</span>
+                        <span className="text-gray-500">
+                          {timeUnit === "years"
+                            ? `Equivale a ${Math.round(
+                                parseFloat(termValue) * 12
+                              )} meses`
+                            : `Equivale a ${(
+                                parseFloat(termValue) / 12
+                              ).toFixed(1)} años`}
+                        </span>
+                      </p>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </div>
