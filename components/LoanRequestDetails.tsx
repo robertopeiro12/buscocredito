@@ -104,21 +104,19 @@ export default function LoanRequestDetails({
         <div className="grid grid-cols-2 gap-4 bg-gray-50 p-4 rounded-lg">
           <div>
             <p className="text-sm text-gray-500">País</p>
-            <p className="font-medium">{userData.country || "No disponible"}</p>
+            <p className="font-medium">{userData.country}</p>
           </div>
           <div>
             <p className="text-sm text-gray-500">Estado</p>
-            <p className="font-medium">{userData.state || "No disponible"}</p>
+            <p className="font-medium">{userData.state}</p>
           </div>
           <div>
             <p className="text-sm text-gray-500">Ciudad</p>
-            <p className="font-medium">{userData.city || "No disponible"}</p>
+            <p className="font-medium">{userData.city}</p>
           </div>
           <div>
             <p className="text-sm text-gray-500">Propósito</p>
-            <p className="font-medium">
-              {userData.purpose || "No especificado"}
-            </p>
+            <p className="font-medium">{userData.purpose}</p>
           </div>
         </div>
       </div>

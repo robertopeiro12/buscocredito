@@ -20,7 +20,7 @@ export const create_subaccount_doc = async (
       type: "b_sale"
     });
     return { status: 200 };
-  } catch (error: any) {
+  } catch (error) {
     console.error("Error adding document: ", error);
     return { error: error.message, status: 500 };
   }
@@ -33,7 +33,7 @@ export const getUserOffers = async () => {
     const snapshot = await accountRef.get()
     const offers = snapshot.docs.map((doc) => doc.data())
     return { status: 200, offers: offers }
-  } catch (error: any) {
+  } catch (error) {
     console.error("Error getting offers: ", error)
     return { error: error.message, status: 500 }
   }
@@ -45,23 +45,14 @@ export const getUserOfferData = async (id: string) => {
   try {
     const snapshot = await accountRef.get()
     console.log("snapshot", snapshot.data())
-    const userData = snapshot.data();
-    
-    if (!userData) {
-      return { error: "User data not found", status: 404 };
-    }
-    
     const filteredData = {
-      birthday: userData.birthday || 'No disponible',
-      country: userData.address?.country || 'No disponible',
-      state: userData.address?.state || 'No disponible',
-      city: userData.address?.city || 'No disponible',
-      purpose: userData.purpose || 'No especificado'
+      birthday: snapshot.data().birthday,
+      country: snapshot.data().address.country,
     }
     const json_data = JSON.stringify(filteredData)
     console.log("json_data", json_data)
     return { status: 200, data: json_data }
-  } catch (error: any) {
+  } catch (error) {
     console.error("Error getting offer: ", error)
     return { error: error.message, status: 500 }
   }
@@ -82,7 +73,7 @@ export const add_propuesta = async (id: string, offer_data: any) => {
             accepted: FieldValue.arrayUnion(newDocId)
         });
         return { status: 200 };
-    } catch (error: any) {
+    } catch (error) {
         console.error("Error updating offer: ", error);
         return { error: error.message, status: 500 };
     }
@@ -127,7 +118,7 @@ export const getLoanOffers = async (loanId: string) => {
     });
 
     return { status: 200, data: offers };
-  } catch (error: any) {
+  } catch (error) {
     console.error("Error getting offers: ", error);
     return { error: error.message, status: 500 };
   }

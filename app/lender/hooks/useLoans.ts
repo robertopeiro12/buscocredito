@@ -3,7 +3,6 @@ import { useState, useEffect } from 'react';
 import { getFirestore, collection, onSnapshot, Timestamp, query, where, getDocs } from 'firebase/firestore';
 import { auth } from '../../firebase';
 
-
 // Asegúrate que la interfaz coincida con tus datos
 interface LoanRequest {
   id: string;
@@ -15,8 +14,6 @@ interface LoanRequest {
   status: 'pending' | 'approved' | 'rejected';
   createdAt: Date;
   acceptedOfferId?: string;
-  purpose: string; // Propósito del préstamo
-  type: string;    // Tipo de préstamo
 }
 
 export function useLoans() {
@@ -31,26 +28,6 @@ export function useLoans() {
         const db = getFirestore();
         const currentUser = auth.currentUser;
         const lenderId = currentUser?.uid;
-    const db = getFirestore();
-    const solicitudesRef = collection(db, "solicitudes");
-
-    const unsubscribe = onSnapshot(solicitudesRef, 
-      (snapshot) => {
-        const fetchedLoans = snapshot.docs.map(doc => {
-          const data = doc.data();
-          return {
-            id: doc.id,
-            userId: data.userId,
-            amount: data.amount,
-            income: data.income,
-            term: data.term,
-            payment: data.payment,
-            status: data.status,
-            createdAt: data.createdAt instanceof Timestamp ? data.createdAt.toDate() : new Date(),
-            purpose: data.purpose || 'No especificado',
-            type: data.type || 'No especificado'
-          } as LoanRequest;
-        });
         
         if (!lenderId) {
           console.error("No authenticated user found");

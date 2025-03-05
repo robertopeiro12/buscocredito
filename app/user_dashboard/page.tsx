@@ -584,7 +584,7 @@ export default function DashboardPage() {
               <div className="flex flex-col h-full">
                 <div className="p-6">
                   <h1 className="text-xl font-semibold text-gray-900">
-                    Panel de Usuario
+                    BuscoCredito
                   </h1>
                 </div>
                 <nav className="flex-1 px-3 space-y-1">
@@ -598,7 +598,7 @@ export default function DashboardPage() {
                     variant="light"
                     onPress={() => setActiveTab("loans")}
                   >
-                    <span className="font-medium">Préstamos</span>
+                    Préstamos
                   </Button>
                   <Button
                     startContent={<Settings className="w-4 h-4" />}
@@ -610,7 +610,7 @@ export default function DashboardPage() {
                     variant="light"
                     onPress={() => setActiveTab("settings")}
                   >
-                    <span className="font-medium">Configuración</span>
+                    Configuración
                   </Button>
                   <Button
                     startContent={<HelpCircle className="w-4 h-4" />}
@@ -622,85 +622,70 @@ export default function DashboardPage() {
                     variant="light"
                     onPress={() => setActiveTab("help")}
                   >
-                    <span className="font-medium">Ayuda</span>
+                    Ayuda
                   </Button>
+                </nav>
+                <div className="p-4 border-t border-gray-200">
                   <Button
                     startContent={<LogOut className="w-4 h-4" />}
-                    className="w-full justify-start h-11 px-4 text-gray-600 hover:text-red-600 hover:bg-red-50"
+                    className="w-full justify-start text-gray-600 hover:text-red-600 hover:bg-red-50"
                     variant="light"
                     onPress={handleSignOut}
                   >
-                    <span className="font-medium">Cerrar sesión</span>
+                    Cerrar sesión
                   </Button>
-                </nav>
-                <div className="flex-grow"></div>
+                </div>
               </div>
             </div>
 
             {/* Main Content */}
             <div className="flex-1">
-              <header className="py-8 mb-4 flex justify-center">
-                <div className="relative inline-block">
-                  <div className="absolute inset-0 bg-gradient-to-r from-green-100 to-green-50 rounded-lg shadow-md transform rotate-1"></div>
-                  <div className="absolute inset-0 bg-white rounded-lg shadow-sm"></div>
-                  <h1 className="relative px-8 py-3 text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-green-600 to-green-800">
-                    {activeTab === "loans" && "Préstamos"}
-                    {activeTab === "settings" && "Configuración"}
-                    {activeTab === "help" && "Centro de Ayuda"}
-                  </h1>
+              <header className="bg-white border-b border-gray-200">
+                <div className="px-8 py-6">
+                  <div className="flex justify-between items-center">
+                    <h1 className="text-2xl font-semibold text-gray-900">
+                      {activeTab === "loans" && "Préstamos"}
+                      {activeTab === "settings" && "Configuración"}
+                      {activeTab === "help" && "Centro de Ayuda"}
+                    </h1>
+                    {activeTab === "loans" && (
+                      <Button
+                        color="primary"
+                        endContent={<PlusCircle className="w-4 h-4" />}
+                        className="bg-green-600 hover:bg-green-700"
+                        onPress={() => setShowForm(true)}
+                      >
+                        Solicitar Préstamo
+                      </Button>
+                    )}
+                  </div>
                 </div>
               </header>
 
-              <main className="p-8 relative">
+              <main className="p-8">
                 {activeTab === "loans" && (
-                  <>
-                    <div className="space-y-6">
-                      {isLoading.loans ? (
-                        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                          {[1, 2, 3].map((i) => (
-                            <Card key={i} className="bg-white">
-                              <CardBody className="p-6">
-                                <div className="space-y-4 animate-pulse">
-                                  <div className="flex justify-between items-start">
-                                    <div className="space-y-2">
-                                      <div className="h-5 bg-gray-200 rounded w-32" />
-                                      <div className="h-4 bg-gray-200 rounded w-24" />
-                                    </div>
-                                    <div className="h-6 bg-gray-200 rounded w-20" />
+                  <div className="space-y-6">
+                    {isLoading.loans ? (
+                      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                        {[1, 2, 3].map((i) => (
+                          <Card key={i} className="bg-white">
+                            <CardBody className="p-6">
+                              <div className="space-y-4 animate-pulse">
+                                <div className="flex justify-between items-start">
+                                  <div className="space-y-2">
+                                    <div className="h-5 bg-gray-200 rounded w-32" />
+                                    <div className="h-4 bg-gray-200 rounded w-24" />
                                   </div>
-                                  <div className="space-y-3">
-                                    <div className="h-4 bg-gray-200 rounded w-full" />
-                                    <div className="h-4 bg-gray-200 rounded w-full" />
-                                    <div className="h-4 bg-gray-200 rounded w-full" />
-                                  </div>
-                                  <div className="pt-4">
-                                    <div className="h-2 bg-gray-200 rounded w-full" />
-                                  </div>
+                                  <div className="h-6 bg-gray-200 rounded w-20" />
                                 </div>
-                              </CardBody>
-                            </Card>
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="space-y-8">
-                          {selectedSolicitudId &&
-                          offer_data &&
-                          offer_data.length > 0 ? (
-                            <div className="space-y-4">
-                              <div className="flex justify-between items-center">
-                                <h2 className="text-xl font-semibold text-gray-900">
-                                  Ofertas Disponibles
-                                </h2>
-                                <Button
-                                  variant="light"
-                                  onPress={() => setSelectedSolicitudId(null)}
-                                  size="sm"
-                                  endContent={
-                                    <ChevronRight className="w-4 h-4 rotate-180" />
-                                  }
-                                >
-                                  Volver a Préstamos
-                                </Button>
+                                <div className="space-y-3">
+                                  <div className="h-4 bg-gray-200 rounded w-full" />
+                                  <div className="h-4 bg-gray-200 rounded w-full" />
+                                  <div className="h-4 bg-gray-200 rounded w-full" />
+                                </div>
+                                <div className="pt-4">
+                                  <div className="h-2 bg-gray-200 rounded w-full" />
+                                </div>
                               </div>
                             </CardBody>
                           </Card>
@@ -927,8 +912,7 @@ export default function DashboardPage() {
                                                 undefined && (
                                                 <div className="flex justify-between text-sm">
                                                   <span className="text-gray-500">
-
-                                                    Seguro de Vida:
+                                                    Saldo médico:
                                                   </span>
                                                   <span className="font-medium">
                                                     $
@@ -938,69 +922,16 @@ export default function DashboardPage() {
                                               )}
                                             </div>
                                           </div>
-                                          {offer.amortization &&
-                                            Array.isArray(offer.amortization) &&
-                                            offer.amortization.length > 0 && (
-                                              <div className="space-y-4">
-                                                <h5 className="font-medium text-gray-900">
-                                                  Tabla de Amortización
-                                                </h5>
-                                                <div className="max-h-48 overflow-y-auto">
-                                                  <table className="min-w-full divide-y divide-gray-200">
-                                                    <thead className="bg-gray-50">
-                                                      <tr>
-                                                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">
-                                                          Mes
-                                                        </th>
-                                                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">
-                                                          Pago
-                                                        </th>
-                                                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">
-                                                          Capital
-                                                        </th>
-                                                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">
-                                                          Interés
-                                                        </th>
-                                                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">
-                                                          Saldo
-                                                        </th>
-                                                      </tr>
-                                                    </thead>
-                                                    <tbody className="bg-white divide-y divide-gray-200">
-                                                      {offer.amortization.map(
-                                                        (row, index) => (
-                                                          <tr key={index}>
-                                                            <td className="px-3 py-2 text-xs text-gray-900">
-                                                              {index + 1}
-                                                            </td>
-                                                            <td className="px-3 py-2 text-xs text-gray-900">
-                                                              $
-                                                              {row.payment?.toLocaleString() ??
-                                                                0}
-                                                            </td>
-                                                            <td className="px-3 py-2 text-xs text-gray-900">
-                                                              $
-                                                              {row.principal?.toLocaleString() ??
-                                                                0}
-                                                            </td>
-                                                            <td className="px-3 py-2 text-xs text-gray-900">
-                                                              $
-                                                              {row.interest?.toLocaleString() ??
-                                                                0}
-                                                            </td>
-                                                            <td className="px-3 py-2 text-xs text-gray-900">
-                                                              $
-                                                              {row.balance?.toLocaleString() ??
-                                                                0}
-                                                            </td>
-                                                          </tr>
-                                                        )
-                                                      )}
-                                                    </tbody>
-                                                  </table>
-                                                </div>
-                                              </div>
-                                            )}
+
+                                          {/* Accept Offer Button */}
+                                          <Button
+                                            color="success"
+                                            className="w-full mt-4"
+                                            onPress={() => acceptOffer(selectedSolicitudId!, offer.id)}
+                                            isLoading={isLoading.offers}
+                                          >
+                                            Aceptar Oferta
+                                          </Button>
                                         </div>
                                       </div>
                                     </CardBody>
@@ -1041,72 +972,23 @@ export default function DashboardPage() {
                                         </span>
                                         <span className="text-gray-900">
                                           {solicitud.term}
-                              </div>
-                            </div>
-                          ) : (
-                            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                              {solicitudes.map((solicitud) => (
-                                <Card key={solicitud.id} className="bg-white">
-                                  <CardBody className="p-6">
-                                    <div className="space-y-4">
-                                      <div className="flex justify-between items-start">
-                                        <div>
-                                          <h3 className="text-lg font-semibold text-gray-900">
-                                            {solicitud.purpose}
-                                          </h3>
-                                          <p className="text-sm text-gray-500">
-                                            {solicitud.type}
-                                          </p>
-                                        </div>
-                                        <span className="text-lg font-semibold text-green-600">
-                                          ${solicitud.amount.toLocaleString()}
                                         </span>
                                       </div>
-                                      <div className="space-y-2">
-                                        <div className="flex justify-between text-sm">
-                                          <span className="text-gray-500">
-                                            Plazo
-                                          </span>
-                                          <span className="text-gray-900">
-                                            {solicitud.term}
-                                          </span>
-                                        </div>
-                                        <div className="flex justify-between text-sm">
-                                          <span className="text-gray-500">
-                                            Forma de Pago
-                                          </span>
-                                          <span className="text-gray-900">
-                                            {solicitud.payment}
-                                          </span>
-                                        </div>
-                                        <div className="flex justify-between text-sm">
-                                          <span className="text-gray-500">
-                                            Ingresos Anuales Comprobables
-                                          </span>
-                                          <span className="text-gray-900">
-                                            ${solicitud.income.toLocaleString()}
-                                          </span>
-                                        </div>
+                                      <div className="flex justify-between text-sm">
+                                        <span className="text-gray-500">
+                                          Forma de Pago
+                                        </span>
+                                        <span className="text-gray-900">
+                                          {solicitud.payment}
+                                        </span>
                                       </div>
-                                      <div className="pt-4">
-                                        <div className="flex justify-between items-center mb-2">
-                                          <span className="text-sm font-medium text-gray-700">
-                                            Ofertas disponibles
-                                          </span>
-                                          <span className="text-sm text-gray-500">
-                                            {offerCounts[solicitud.id] || 0}{" "}
-                                            ofertas
-                                          </span>
-                                        </div>
-                                        <Progress
-                                          value={
-                                            offerCounts[solicitud.id]
-                                              ? offerCounts[solicitud.id] * 20
-                                              : 0
-                                          }
-                                          className="h-2"
-                                          color="success"
-                                        />
+                                      <div className="flex justify-between text-sm">
+                                        <span className="text-gray-500">
+                                          Ingresos
+                                        </span>
+                                        <span className="text-gray-900">
+                                          ${solicitud.income.toLocaleString()}
+                                        </span>
                                       </div>
                                     </div>
                                     <div className="pt-4">

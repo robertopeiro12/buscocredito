@@ -78,11 +78,10 @@ export function LenderSidebar({
             startContent={<LogOut className="w-5 h-5" />}
             className="w-full justify-start h-12 text-gray-600 hover:text-red-600 hover:bg-red-50 transition-all duration-200 ease-in-out"
             onPress={onSignOut}
-
           >
             Cerrar Sesión
           </Button>
-        </nav>
+        </div>
       </div>
     </div>
   );

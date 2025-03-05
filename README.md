@@ -246,8 +246,6 @@ Take note that im using next js typescript and tailwind so that you can get fami
 
 Tomar en cuenta que BuscoCredito no ofrece prestamos, es un marketplace financiero. Es un intermediario entre prestamistas y prestamiantes.
 
-IMPORTANTE: BUSCOCREDITO NO OFRECE PRESTAMOS, ES UN MARKETPLACE FINANCIERO. ES UN INTERMEDIARIO ENTRE PRESTAMISTAS Y PRESTAMIANTES. NUNCA SE OFRECERA UN PRESTAMO, SOLO SE OFRECEN OFERTAS DE PRESTAMOS.
-
 ## Figma
 
 https://www.figma.com/file/77OQziJaORO4hYF91wu3fQ/BuscoCredito

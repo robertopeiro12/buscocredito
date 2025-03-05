@@ -1,61 +1,69 @@
 export type SiteConfig = typeof siteConfig;
 
 export const siteConfig = {
-	name: "BuscoCredito",
-	description: "Encuentra el préstamo perfecto para ti - Marketplace líder en soluciones financieras",
+	name: "BuscaCredito",
+	description: "Encuentra tu credito rapido y sencillo",
 	navItems: [
 		{
-			label: "Inicio",
+			label: "Home",
 			href: "/",
 		},
     {
-      label: "Préstamos",
-      href: "/prestamos",
+      label: "Docs",
+      href: "/docs",
     },
     {
-      label: "Cómo Funciona",
-      href: "/como-funciona",
+      label: "Pricing",
+      href: "/pricing",
     },
     {
-      label: "Acerca de",
-      href: "/acerca-de",
+      label: "Blog",
+      href: "/blog",
     },
     {
-      label: "Transparencia",
-      href: "/transparencia",
+      label: "About",
+      href: "/about",
     }
 	],
 	navMenuItems: [
 		{
-			label: "Mi Perfil",
-			href: "/perfil",
+			label: "Profile",
+			href: "/profile",
 		},
 		{
-			label: "Panel de Control",
-			href: "/panel",
+			label: "Dashboard",
+			href: "/dashboard",
 		},
 		{
-			label: "Mis Solicitudes",
-			href: "/solicitudes",
+			label: "Projects",
+			href: "/projects",
 		},
 		{
-			label: "Configuración",
-			href: "/configuracion",
+			label: "Team",
+			href: "/team",
 		},
 		{
-			label: "Ayuda",
-			href: "/ayuda",
+			label: "Calendar",
+			href: "/calendar",
 		},
 		{
-			label: "Cerrar Sesión",
+			label: "Settings",
+			href: "/settings",
+		},
+		{
+			label: "Help & Feedback",
+			href: "/help-feedback",
+		},
+		{
+			label: "Logout",
 			href: "/logout",
 		},
 	],
 	links: {
-		github: "https://github.com/buscocredito",
-		twitter: "https://twitter.com/buscocredito",
-		facebook: "https://facebook.com/buscocredito",
-		linkedin: "https://linkedin.com/company/buscocredito",
-    website: "https://buscocredito.com"
+		github: "https://github.com/nextui-org/nextui",
+		twitter: "https://twitter.com/getnextui",
+		docs: "https://nextui.org",
+		discord: "https://discord.gg/9b6yyZKmH4",
+    sponsor: "https://patreon.com/jrgarciadev"
 	},
 };

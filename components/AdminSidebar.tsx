@@ -12,24 +12,6 @@ export function AdminSidebar({
   setActiveTab,
   handleSignOut,
 }: AdminSidebarProps) {
-  const navItems = [
-    {
-      icon: Users,
-      label: "Subcuentas",
-      id: "subaccounts",
-    },
-    {
-      icon: Settings,
-      label: "Configuración",
-      id: "settings",
-    },
-    {
-      icon: HelpCircle,
-      label: "Ayuda",
-      id: "help",
-    },
-  ];
-
   return (
     <div className="w-64 bg-white border-r border-gray-200 shadow-sm">
       <div className="flex flex-col h-full">
@@ -38,29 +20,50 @@ export function AdminSidebar({
             Empresa Administrativa
           </h1>
         </div>
-        <nav className="flex-1 px-3 py-4">
-          {navItems.map((item) => (
-            <Button
-              key={item.id}
-              startContent={<item.icon className="w-5 h-5" />}
-              className={`w-full justify-start h-12 px-4 mb-2 transition-all duration-200 ease-in-out ${
-                activeTab === item.id
-                  ? "bg-green-50 text-green-700 hover:bg-green-100"
-                  : "bg-transparent text-gray-600 hover:bg-gray-50"
-              }`}
-              onPress={() => setActiveTab(item.id)}
-            >
-              {item.label}
-            </Button>
-          ))}
+        <nav className="flex-1 px-3 py-4 space-y-1">
+          <Button
+            startContent={<Users className="w-5 h-5" />}
+            className={`w-full justify-start h-12 px-4 mb-2 transition-all duration-200 ease-in-out ${
+              activeTab === "subaccounts"
+                ? "bg-green-50 text-green-700 hover:bg-green-100"
+                : "bg-transparent text-gray-600 hover:bg-gray-50"
+            }`}
+            onPress={() => setActiveTab("subaccounts")}
+          >
+            Subcuentas
+          </Button>
+          <Button
+            startContent={<Settings className="w-5 h-5" />}
+            className={`w-full justify-start h-12 px-4 mb-2 transition-all duration-200 ease-in-out ${
+              activeTab === "settings"
+                ? "bg-green-50 text-green-700 hover:bg-green-100"
+                : "bg-transparent text-gray-600 hover:bg-gray-50"
+            }`}
+            onPress={() => setActiveTab("settings")}
+          >
+            Configuración
+          </Button>
+          <Button
+            startContent={<HelpCircle className="w-5 h-5" />}
+            className={`w-full justify-start h-12 px-4 mb-2 transition-all duration-200 ease-in-out ${
+              activeTab === "help"
+                ? "bg-green-50 text-green-700 hover:bg-green-100"
+                : "bg-transparent text-gray-600 hover:bg-gray-50"
+            }`}
+            onPress={() => setActiveTab("help")}
+          >
+            Ayuda
+          </Button>
+        </nav>
+        <div className="p-4 border-t border-gray-200">
           <Button
             startContent={<LogOut className="w-5 h-5" />}
-            className="w-full justify-start h-12 text-gray-600 hover:text-red-600 hover:bg-red-50 transition-all duration-200 ease-in-out mt-2"
+            className="w-full justify-start h-12 text-gray-600 hover:text-red-600 hover:bg-red-50 transition-all duration-200 ease-in-out"
             onPress={handleSignOut}
           >
             Cerrar Sesión
           </Button>
-        </nav>
+        </div>
       </div>
     </div>
   );
