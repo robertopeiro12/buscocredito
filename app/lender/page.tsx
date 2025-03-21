@@ -10,6 +10,7 @@ import { useEffect } from "react";
 import { auth } from "../firebase";
 import { LenderSidebar } from "@/components/LenderSidebar";
 import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 import {
   doc,
   getFirestore,
@@ -39,6 +40,7 @@ import {
   Briefcase,
   CreditCard,
   Wallet,
+  RefreshCw,
 } from "lucide-react";
 
 // Hooks
@@ -76,6 +78,8 @@ export default function LenderPage() {
     term: "all",
   });
   const [userData, setUserData] = useState<PublicUserData | null>(null);
+  const [lenderProposals, setLenderProposals] = useState<any[]>([]);
+  const [loadingProposals, setLoadingProposals] = useState(false);
 
   const { loans: requests, loading } = useLoans();
   const selectedRequest = selectedRequestId
@@ -142,10 +146,10 @@ export default function LenderPage() {
   >({});
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        setUser(user.uid);
-        getPartnerData(user.uid);
+    const unsubscribe = onAuthStateChanged(auth, async (userAuth) => {
+      if (userAuth) {
+        setUser(userAuth.uid);
+        getPartnerData(userAuth.uid);
       } else {
         router.push("/login");
       }
@@ -256,8 +260,21 @@ export default function LenderPage() {
   const handleSubmitOffer = async () => {
     const success = await submitProposal();
     if (success) {
+      // Mostrar notificación de éxito
+      toast.success("Tu propuesta ha sido enviada exitosamente", {
+        duration: 4000,
+        position: "top-center",
+      });
+      
+      // Cerrar el formulario de propuesta
       setIsCreatingOffer(false);
       resetProposal();
+      
+      // Volver al mercado de ofertas
+      setSelectedRequestId(null);
+      
+      // Actualizar la vista para mostrar el mercado
+      setActiveTab("marketplace");
     }
   };
 
@@ -270,6 +287,42 @@ export default function LenderPage() {
         console.error("Error signing out:", error);
       });
   };
+
+  // Cargar las propuestas del lender cuando se activa la pestaña "myoffers"
+  useEffect(() => {
+    if (activeTab === "myoffers" && user) {
+      fetchLenderProposals();
+    }
+  }, [activeTab, user]);
+
+  const fetchLenderProposals = async () => {
+    if (!user) return;
+    
+    setLoadingProposals(true);
+    try {
+      const response = await fetch("/api/getLenderProposals", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ lenderId: user }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setLenderProposals(data.data || []);
+      } else {
+        console.error("Error fetching proposals:", response.statusText);
+        toast.error("Error al cargar tus propuestas");
+      }
+    } catch (error) {
+      console.error("Error fetching proposals:", error);
+      toast.error("Error al cargar tus propuestas");
+    } finally {
+      setLoadingProposals(false);
+    }
+  };
+
   return (
     <div className="flex min-h-screen bg-gray-50">
       <LenderSidebar
@@ -587,7 +640,102 @@ export default function LenderPage() {
         {/* Resto de las pestañas se mantienen igual */}
         {activeTab === "myoffers" && (
           <div className="p-8">
-            <h1 className="text-2xl font-bold text-gray-900">Mis Ofertas</h1>
+            <div className="flex justify-between items-center mb-6">
+              <h1 className="text-2xl font-bold text-gray-900">Mis Ofertas</h1>
+              <Button 
+                color="primary" 
+                variant="light"
+                onClick={fetchLenderProposals}
+                isLoading={loadingProposals}
+                startContent={<RefreshCw className="w-4 h-4" />}
+              >
+                Actualizar
+              </Button>
+            </div>
+            
+            {loadingProposals ? (
+              <div className="flex items-center justify-center h-64">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+              </div>
+            ) : lenderProposals.length === 0 ? (
+              <div className="text-center p-10 bg-white rounded-lg shadow">
+                <div className="text-5xl text-gray-300 mb-4">📝</div>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No has enviado propuestas</h3>
+                <p className="text-gray-600 mb-6">
+                  Cuando envíes propuestas a los solicitantes, aparecerán aquí.
+                </p>
+                <Button 
+                  color="primary"
+                  onClick={() => setActiveTab("marketplace")}
+                >
+                  Ir al mercado
+                </Button>
+              </div>
+            ) : (
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {lenderProposals.map((proposal) => (
+                  <Card key={proposal.id} className="shadow-md">
+                    <CardBody className="p-6">
+                      <div className="flex justify-between items-start mb-4">
+                        <div>
+                          <h3 className="text-lg font-semibold">
+                            {proposal.requestInfo?.purpose || "Sin propósito"}
+                          </h3>
+                          <p className="text-sm text-gray-500">
+                            {proposal.requestInfo?.type || "Préstamo"}
+                          </p>
+                        </div>
+                        <Chip
+                          className={`text-white ${
+                            proposal.status === 'pending' ? 'bg-amber-500' :
+                            proposal.status === 'accepted' ? 'bg-green-500' :
+                            'bg-red-500'
+                          }`}
+                        >
+                          {proposal.status === 'pending' ? 'Pendiente' :
+                           proposal.status === 'accepted' ? 'Aceptada' :
+                           'Rechazada'}
+                        </Chip>
+                      </div>
+                      
+                      <div className="space-y-3">
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-600">Monto:</span>
+                          <span className="font-medium">${proposal.amount?.toLocaleString()}</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-600">Tasa de interés:</span>
+                          <span className="font-medium">{proposal.interest_rate}%</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-600">Plazo:</span>
+                          <span className="font-medium">{proposal.term} meses</span>
+                        </div>
+                        {proposal.createdAt && (
+                          <div className="flex justify-between items-center">
+                            <span className="text-gray-600">Enviada el:</span>
+                            <span className="font-medium">
+                              {new Date(proposal.createdAt).toLocaleDateString()}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                      
+                      <div className="mt-4 pt-4 border-t border-gray-100">
+                        <Button
+                          fullWidth
+                          color="primary"
+                          variant="light"
+                          onClick={() => router.push(`/lender/proposal/${proposal.id}`)}
+                        >
+                          Ver detalles
+                        </Button>
+                      </div>
+                    </CardBody>
+                  </Card>
+                ))}
+              </div>
+            )}
           </div>
         )}
 

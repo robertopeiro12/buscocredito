@@ -1,6 +1,6 @@
 // hooks/useLoans.ts
 import { useState, useEffect } from 'react';
-import { getFirestore, collection, onSnapshot, Timestamp } from 'firebase/firestore';
+import { getFirestore, collection, onSnapshot, Timestamp, query, where } from 'firebase/firestore';
 
 // Asegúrate que la interfaz coincida con tus datos
 interface LoanRequest {
@@ -24,8 +24,11 @@ export function useLoans() {
   useEffect(() => {
     const db = getFirestore();
     const solicitudesRef = collection(db, "solicitudes");
+    
+    // Crear una query que solo obtenga solicitudes con estado "pending"
+    const pendingLoansQuery = query(solicitudesRef, where("status", "==", "pending"));
 
-    const unsubscribe = onSnapshot(solicitudesRef, 
+    const unsubscribe = onSnapshot(pendingLoansQuery, 
       (snapshot) => {
         const fetchedLoans = snapshot.docs.map(doc => {
           const data = doc.data();

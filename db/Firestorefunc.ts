@@ -114,6 +114,7 @@ export const getLoanOffers = async (loanId: string) => {
     const offers = snapshot.docs.map(doc => {
       const data = doc.data();
       return {
+        id: doc.id,
         lender_name: data.company,
         amount: data.amount,
         interest_rate: data.interest_rate,
@@ -140,4 +141,58 @@ function calculateMonthlyPayment(amount: number, interestRate: number, term: num
                  (Math.pow(1 + monthlyRate, payments) - 1);
   return Math.round(payment * 100) / 100;
 }
+
+export const getLenderProposals = async (lenderId: string) => {
+  const Firestore = getFirestore();
+  const propuestasRef = Firestore.collection("propuestas");
+  
+  try {
+    // Primero intentamos buscar por "partner"
+    const snapshot1 = await propuestasRef
+      .where("partner", "==", lenderId)
+      .get();
+    
+    // Luego buscamos por "Partner" (podría ser que se guarde con mayúscula)
+    const snapshot2 = await propuestasRef
+      .where("Partner", "==", lenderId)
+      .get();
+    
+    // Combinamos los resultados
+    const allDocs = [...snapshot1.docs, ...snapshot2.docs];
+    
+    // Eliminamos duplicados (si los hubiera)
+    const uniqueIds = new Set();
+    const uniqueDocs = allDocs.filter(doc => {
+      if (uniqueIds.has(doc.id)) {
+        return false;
+      }
+      uniqueIds.add(doc.id);
+      return true;
+    });
+    
+    // Mapeamos los documentos
+    const proposals = uniqueDocs.map(doc => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        loanId: data.loanId,
+        userId: data.userId,
+        amount: data.amount,
+        interest_rate: data.interest_rate,
+        term: data.deadline,
+        status: data.status || 'pending',
+        company: data.company,
+        createdAt: data.createdAt?.toDate ? data.createdAt.toDate().toISOString() : 
+                  data.createdAt instanceof Date ? data.createdAt.toISOString() : null,
+        requestInfo: data.requestInfo || {}
+      };
+    });
+
+    console.log("Propuestas encontradas:", proposals.length);
+    return { status: 200, data: proposals };
+  } catch (error: any) {
+    console.error("Error getting lender proposals: ", error);
+    return { error: error.message, status: 500 };
+  }
+};
 
