@@ -1,5 +1,5 @@
 import { Button } from "@nextui-org/react";
-import { Users, Settings, HelpCircle, LogOut } from "lucide-react";
+import { Users, Settings, HelpCircle, LogOut, BarChart } from "lucide-react";
 
 type AdminSidebarProps = {
   activeTab: string;
@@ -17,6 +17,11 @@ export function AdminSidebar({
       icon: Users,
       label: "Subcuentas",
       id: "subaccounts",
+    },
+    {
+      icon: BarChart,
+      label: "Métricas",
+      id: "metrics",
     },
     {
       icon: Settings,
