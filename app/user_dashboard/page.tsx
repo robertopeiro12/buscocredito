@@ -381,6 +381,8 @@ export default function DashboardPage() {
         }
         
         // If we get here, no accepted offer was found
+        console.log("offers test");
+        console.log(offers);
         set_offer_Data(offers);
       }
     } catch (error) {
@@ -902,9 +904,7 @@ export default function DashboardPage() {
                                                 </span>
                                               )}
                                             </div>
-                                            <p className="text-sm text-gray-500">
-                                              {offer.term}
-                                            </p>
+                                          
                                           </div>
                                           <div className="text-right">
                                             <p className="text-2xl font-bold text-green-600">
@@ -925,11 +925,11 @@ export default function DashboardPage() {
                                             <div className="space-y-3">
                                               <div className="flex justify-between text-sm">
                                                 <span className="text-gray-500">
-                                                  Pago mensual:
+                                                  Pago {offer.monthly_payment?.toLocaleString()}:
                                                 </span>
                                                 <span className="font-medium">
                                                   $
-                                                  {offer.monthly_payment?.toLocaleString()}
+                                                  {offer.amortization?.toLocaleString()}
                                                 </span>
                                               </div>
                                               {offer.comision !== undefined && (

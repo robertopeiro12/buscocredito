@@ -115,11 +115,12 @@ export const getLoanOffers = async (loanId: string) => {
       const data = doc.data();
       return {
         id: doc.id,
+        
         lender_name: data.company,
         amount: data.amount,
         interest_rate: data.interest_rate,
         term: data.deadline,
-        monthly_payment: calculateMonthlyPayment(data.amount, data.interest_rate, data.deadline),
+        monthly_payment: data.amortization_frequency,
         amortization: data.amortization,
         medical_balance: data.medical_balance,
         comision: data.comision
