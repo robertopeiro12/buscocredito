@@ -99,6 +99,10 @@ type MetricsData = {
     };
   };
   previousPeriodMetrics: any;
+  chartOptions?: {
+    bar?: any;
+    pie?: any;
+  };
 };
 
 export default function AdminDashboard() {
@@ -165,7 +169,21 @@ export default function AdminDashboard() {
         setUser(user.uid);
         setUserEmail(user.email || ""); // Guardamos el email aquí
         fetchUsers(user.uid);
-        fetchAdminData(user.uid);
+        // Cambiar fetchAdminData por función inline
+        const db = getFirestore();
+        try {
+          getDoc(doc(db, "cuentas", user.uid)).then((adminDoc) => {
+            if (adminDoc.exists()) {
+              const data = adminDoc.data();
+              setAdminData({
+                Empresa: data.Empresa || "",
+                email: data.email || "",
+              });
+            }
+          });
+        } catch (error) {
+          console.error("Error al obtener datos del administrador:", error);
+        }
       } else {
         router.push("/login");
       }
@@ -174,198 +192,401 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     if (user && activeTab === "metrics") {
-      fetchMetricsData(user);
-    }
-  }, [user, activeTab, selectedTimeRange]);
+      setIsLoadingMetrics(true);
 
-  const fetchAdminData = async (userId: string) => {
-    const db = getFirestore();
-    try {
-      const adminDoc = await getDoc(doc(db, "cuentas", userId));
-      if (adminDoc.exists()) {
-        const data = adminDoc.data();
-        setAdminData({
-          Empresa: data.Empresa || "",
-          email: data.email || "",
-        });
-        console.log("empresa get ", data.Empresa);
-      }
-    } catch (error) {
-      console.error("Error al obtener datos del administrador:", error);
-    }
-  };
+      // Pequeño retraso para garantizar transiciones suaves
+      const timeoutId = setTimeout(() => {
+        const fetchMetricsData = async (userId: string) => {
+          try {
+            const db = getFirestore();
+            const now = new Date();
+            let startDate = new Date();
+            let previousPeriodStartDate = new Date();
+            let previousPeriodEndDate = new Date();
 
-  const fetchMetricsData = async (userId: string) => {
-    setIsLoadingMetrics(true);
-    try {
-      const db = getFirestore();
-      const subaccountsRef = collection(db, "cuentas");
-      const subQ = query(subaccountsRef, where("Empresa_id", "==", userId));
-      const subSnapshot = await getDocs(subQ);
+            // Ajustar las fechas según el rango seleccionado
+            if (selectedTimeRange === "month") {
+              // Último mes: desde el día actual del mes pasado hasta hoy
+              startDate = new Date(now);
+              startDate.setMonth(now.getMonth() - 1);
 
-      const workerIds: string[] = [];
-      subSnapshot.forEach((doc) => {
-        workerIds.push(doc.id);
-      });
+              // Periodo anterior: el mes antes del mes actual
+              previousPeriodStartDate = new Date(startDate);
+              previousPeriodStartDate.setMonth(startDate.getMonth() - 1);
+              previousPeriodEndDate = new Date(startDate);
+              previousPeriodEndDate.setDate(
+                previousPeriodEndDate.getDate() - 1
+              );
+            } else if (selectedTimeRange === "quarter") {
+              // CORRECCIÓN: Último trimestre = 3 meses contando el actual
+              const currentMonth = now.getMonth();
+              const currentYear = now.getFullYear();
 
-      // Determinar rango de fechas basado en el filtro seleccionado
-      const now = new Date();
-      let startDate = new Date();
-      let previousPeriodStartDate = new Date();
-      let previousPeriodEndDate = new Date();
+              // Si estamos en marzo (2), necesitamos enero (0), febrero (1) y marzo (2)
+              const firstMonthOfQuarter = (currentMonth - 2 + 12) % 12; // Para manejar cuando el mes es enero o febrero
+              const firstYearOfQuarter =
+                firstMonthOfQuarter > currentMonth
+                  ? currentYear - 1
+                  : currentYear;
 
-      if (selectedTimeRange === "month") {
-        startDate.setMonth(now.getMonth() - 1);
-        // Periodo anterior: el mes antes del mes actual
-        previousPeriodStartDate.setMonth(now.getMonth() - 2);
-        previousPeriodEndDate.setMonth(now.getMonth() - 1);
-        previousPeriodEndDate.setDate(previousPeriodEndDate.getDate() - 1);
-      } else if (selectedTimeRange === "quarter") {
-        startDate.setMonth(now.getMonth() - 3);
-        // Periodo anterior: el trimestre antes del trimestre actual
-        previousPeriodStartDate.setMonth(now.getMonth() - 6);
-        previousPeriodEndDate.setMonth(now.getMonth() - 3);
-        previousPeriodEndDate.setDate(previousPeriodEndDate.getDate() - 1);
-      } else if (selectedTimeRange === "year") {
-        startDate.setFullYear(now.getFullYear() - 1);
-        // Periodo anterior: el año antes del año actual
-        previousPeriodStartDate.setFullYear(now.getFullYear() - 2);
-        previousPeriodEndDate.setFullYear(now.getFullYear() - 1);
-        previousPeriodEndDate.setDate(previousPeriodEndDate.getDate() - 1);
-      } else if (selectedTimeRange === "custom") {
-        startDate = customDateRange.startDate;
-        now.setTime(customDateRange.endDate.getTime());
+              // Establecemos el primer día del primer mes del trimestre
+              startDate = new Date(firstYearOfQuarter, firstMonthOfQuarter, 1);
 
-        // Para periodo personalizado, calculamos un periodo previo de igual duración
-        const duration =
-          customDateRange.endDate.getTime() -
-          customDateRange.startDate.getTime();
-        previousPeriodEndDate = new Date(
-          customDateRange.startDate.getTime() - 1
-        );
-        previousPeriodStartDate = new Date(
-          previousPeriodEndDate.getTime() - duration
-        );
-      }
+              // Toast para mostrar al usuario
+              toast.success(
+                `Mostrando datos del trimestre: ${getMonthName(
+                  firstMonthOfQuarter + 1
+                )} a ${getMonthName(currentMonth + 1)}`,
+                {
+                  duration: 3000,
+                }
+              );
 
-      const startTimestamp = Timestamp.fromDate(startDate);
-      const previousPeriodStartTimestamp = Timestamp.fromDate(
-        previousPeriodStartDate
-      );
-      const previousPeriodEndTimestamp = Timestamp.fromDate(
-        previousPeriodEndDate
-      );
+              // Periodo anterior: los 3 meses antes del trimestre actual
+              previousPeriodStartDate = new Date(startDate);
+              previousPeriodStartDate.setMonth(
+                previousPeriodStartDate.getMonth() - 3
+              );
+              previousPeriodEndDate = new Date(startDate);
+              previousPeriodEndDate.setDate(
+                previousPeriodEndDate.getDate() - 1
+              );
+            } else if (selectedTimeRange === "year") {
+              // Último año: 12 meses atrás hasta hoy
+              startDate = new Date(now);
+              startDate.setFullYear(now.getFullYear() - 1);
 
-      // Obtener todas las propuestas de los trabajadores (periodo actual)
-      const proposalsRef = collection(db, "propuestas");
-      const currentProposals: any[] = [];
-      const previousProposals: any[] = [];
+              // Periodo anterior: el año antes del año actual
+              previousPeriodStartDate = new Date(startDate);
+              previousPeriodStartDate.setFullYear(startDate.getFullYear() - 1);
+              previousPeriodEndDate = new Date(startDate);
+              previousPeriodEndDate.setDate(
+                previousPeriodEndDate.getDate() - 1
+              );
+            } else if (selectedTimeRange === "custom") {
+              startDate = new Date(customDateRange.startDate);
+              const endDate = new Date(customDateRange.endDate);
 
-      console.log("Buscando propuestas para", workerIds.length, "trabajadores");
-      console.log(
-        "Periodo actual:",
-        startDate.toISOString(),
-        "hasta",
-        now.toISOString()
-      );
-      console.log(
-        "Periodo anterior:",
-        previousPeriodStartDate.toISOString(),
-        "hasta",
-        previousPeriodEndDate.toISOString()
-      );
+              // Para periodo personalizado, calculamos un periodo previo de igual duración
+              const duration = endDate.getTime() - startDate.getTime();
+              previousPeriodEndDate = new Date(startDate);
+              previousPeriodEndDate.setDate(
+                previousPeriodEndDate.getDate() - 1
+              );
+              previousPeriodStartDate = new Date(previousPeriodEndDate);
+              previousPeriodStartDate.setTime(
+                previousPeriodEndDate.getTime() - duration
+              );
+            }
 
-      for (const workerId of workerIds) {
-        try {
-          // Consultar propuestas del periodo actual
-          const currentQ = query(
-            proposalsRef,
-            where("partner", "==", workerId),
-            where("createdAt", ">=", startTimestamp)
-          );
-          const currentSnapshot = await getDocs(currentQ);
+            const startTimestamp = Timestamp.fromDate(startDate);
+            const endTimestamp =
+              selectedTimeRange === "custom"
+                ? Timestamp.fromDate(new Date(customDateRange.endDate))
+                : Timestamp.fromDate(now);
+            const previousPeriodStartTimestamp = Timestamp.fromDate(
+              previousPeriodStartDate
+            );
+            const previousPeriodEndTimestamp = Timestamp.fromDate(
+              previousPeriodEndDate
+            );
 
-          console.log(
-            `Encontradas ${currentSnapshot.size} propuestas para el trabajador ${workerId} en el periodo actual`
-          );
+            // Obtener todas las propuestas de los trabajadores (periodo actual)
+            const proposalsRef = collection(db, "propuestas");
+            const currentProposals: any[] = [];
+            const previousProposals: any[] = [];
 
-          currentSnapshot.forEach((doc) => {
-            currentProposals.push({
-              id: doc.id,
-              ...doc.data(),
+            const subaccountsRef = collection(db, "cuentas");
+            const subQ = query(
+              subaccountsRef,
+              where("Empresa_id", "==", userId)
+            );
+            const subSnapshot = await getDocs(subQ);
+
+            const workerIds: string[] = [];
+            subSnapshot.forEach((doc) => {
+              workerIds.push(doc.id);
             });
-          });
 
-          // Consultar propuestas del periodo anterior
-          const previousQ = query(
-            proposalsRef,
-            where("partner", "==", workerId),
-            where("createdAt", ">=", previousPeriodStartTimestamp),
-            where("createdAt", "<=", previousPeriodEndTimestamp)
-          );
-          const previousSnapshot = await getDocs(previousQ);
+            for (const workerId of workerIds) {
+              try {
+                // Consultar propuestas del periodo actual
+                let currentQ;
+                if (selectedTimeRange === "custom") {
+                  currentQ = query(
+                    proposalsRef,
+                    where("partner", "==", workerId),
+                    where("createdAt", ">=", startTimestamp),
+                    where("createdAt", "<=", endTimestamp)
+                  );
+                } else {
+                  currentQ = query(
+                    proposalsRef,
+                    where("partner", "==", workerId),
+                    where("createdAt", ">=", startTimestamp)
+                  );
+                }
+                const currentSnapshot = await getDocs(currentQ);
 
-          console.log(
-            `Encontradas ${previousSnapshot.size} propuestas para el trabajador ${workerId} en el periodo anterior`
-          );
+                currentSnapshot.forEach((doc) => {
+                  currentProposals.push({
+                    id: doc.id,
+                    ...doc.data(),
+                  });
+                });
 
-          previousSnapshot.forEach((doc) => {
-            previousProposals.push({
-              id: doc.id,
-              ...doc.data(),
+                // Consultar propuestas del periodo anterior
+                const previousQ = query(
+                  proposalsRef,
+                  where("partner", "==", workerId),
+                  where("createdAt", ">=", previousPeriodStartTimestamp),
+                  where("createdAt", "<=", previousPeriodEndTimestamp)
+                );
+                const previousSnapshot = await getDocs(previousQ);
+
+                previousSnapshot.forEach((doc) => {
+                  previousProposals.push({
+                    id: doc.id,
+                    ...doc.data(),
+                  });
+                });
+              } catch (error) {
+                console.error(
+                  `Error al consultar propuestas para el trabajador ${workerId}:`,
+                  error
+                );
+              }
+            }
+
+            // Procesar los datos para las métricas
+            const metrics = calculateMetrics(currentProposals);
+            const previousMetrics = calculateMetrics(previousProposals);
+
+            // Calcular cambios porcentuales
+            const percentageChanges = {
+              totalProposals: calculatePercentageChange(
+                previousMetrics.totalProposals,
+                metrics.totalProposals
+              ),
+              averageInterestRate: calculatePercentageChange(
+                previousMetrics.averageInterestRate,
+                metrics.averageInterestRate
+              ),
+              averageAmount: calculatePercentageChange(
+                previousMetrics.averageAmount,
+                metrics.averageAmount
+              ),
+              totalCommissions: calculatePercentageChange(
+                previousMetrics.totalCommissions,
+                metrics.totalCommissions
+              ),
+            };
+
+            // Generar datos para gráficos mensuales
+            const monthlyData = generateMonthlyData(currentProposals);
+
+            // Configuración común para todos los gráficos
+            const commonChartOptions = {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                legend: {
+                  position: "bottom" as const,
+                  labels: {
+                    boxWidth: 15,
+                    padding: 15,
+                    font: {
+                      size: 12,
+                      family: "'Inter', sans-serif",
+                    },
+                  },
+                },
+                tooltip: {
+                  backgroundColor: "rgba(255, 255, 255, 0.9)",
+                  titleColor: "#1f2937",
+                  bodyColor: "#4b5563",
+                  borderColor: "#e5e7eb",
+                  borderWidth: 1,
+                  padding: 12,
+                  displayColors: false,
+                  callbacks: {
+                    label: (context: any) => {
+                      const value = context.raw as number;
+                      const total = context.dataset.data.reduce(
+                        (a: number, b: number) => a + b,
+                        0
+                      );
+                      const percentage = Math.round((value / total) * 100);
+                      return `${context.label}: ${value} (${percentage}%)`;
+                    },
+                  },
+                },
+              },
+            };
+
+            // Configuración común para gráficos de barras
+            const commonBarOptions = {
+              ...commonChartOptions,
+              scales: {
+                y: {
+                  beginAtZero: true,
+                  grid: {
+                    color: "rgba(0, 0, 0, 0.05)",
+                  },
+                  ticks: {
+                    font: {
+                      family: "'Inter', sans-serif",
+                      size: 11,
+                    },
+                  },
+                },
+                x: {
+                  grid: {
+                    display: false,
+                  },
+                  ticks: {
+                    font: {
+                      family: "'Inter', sans-serif",
+                      size: 11,
+                    },
+                  },
+                },
+              },
+            };
+
+            // Actualizar las opciones de los gráficos existentes
+            const barChartOptions = {
+              ...commonBarOptions,
+              plugins: {
+                ...commonBarOptions.plugins,
+                legend: {
+                  display: false,
+                },
+                tooltip: {
+                  ...commonBarOptions.plugins.tooltip,
+                  titleFont: {
+                    size: 14,
+                    weight: "bold",
+                    family: "'Inter', sans-serif",
+                  },
+                  bodyFont: {
+                    size: 13,
+                    family: "'Inter', sans-serif",
+                  },
+                  padding: 14,
+                  boxPadding: 6,
+                },
+              },
+              scales: {
+                ...commonBarOptions.scales,
+                y: {
+                  ...commonBarOptions.scales.y,
+                  ticks: {
+                    ...commonBarOptions.scales.y.ticks,
+                    font: {
+                      size: 12,
+                      weight: "500",
+                      family: "'Inter', sans-serif",
+                    },
+                    color: "#64748b",
+                  },
+                  grid: {
+                    color: "rgba(226, 232, 240, 0.7)",
+                    borderDash: [3, 3],
+                  },
+                },
+                x: {
+                  ...commonBarOptions.scales.x,
+                  ticks: {
+                    ...commonBarOptions.scales.x.ticks,
+                    font: {
+                      size: 12,
+                      weight: "500",
+                      family: "'Inter', sans-serif",
+                    },
+                    color: "#64748b",
+                  },
+                },
+              },
+              animation: {
+                duration: 800,
+                easing: "easeOutQuart",
+              },
+            };
+
+            const pieChartOptions = {
+              ...commonChartOptions,
+              plugins: {
+                ...commonChartOptions.plugins,
+                legend: {
+                  position: "bottom" as const,
+                  labels: {
+                    boxWidth: 12,
+                    padding: 16,
+                    font: {
+                      size: 12,
+                      weight: "500",
+                      family: "'Inter', sans-serif",
+                    },
+                    color: "#475569",
+                    usePointStyle: true,
+                    pointStyle: "circle",
+                  },
+                },
+                tooltip: {
+                  ...commonChartOptions.plugins.tooltip,
+                  titleFont: {
+                    size: 14,
+                    weight: "bold",
+                    family: "'Inter', sans-serif",
+                  },
+                  bodyFont: {
+                    size: 13,
+                    family: "'Inter', sans-serif",
+                  },
+                  padding: 14,
+                  boxPadding: 6,
+                },
+              },
+              animation: {
+                animateRotate: true,
+                animateScale: true,
+                duration: 800,
+                easing: "easeOutQuart",
+              },
+            };
+
+            // Actualizar los datos de los gráficos con las nuevas opciones
+            setMetricsData({
+              ...metrics,
+              percentageChanges,
+              monthlyData,
+              previousPeriodMetrics: previousMetrics,
+              chartOptions: {
+                bar: barChartOptions,
+                pie: pieChartOptions,
+              },
             });
-          });
-        } catch (error) {
-          console.error(
-            `Error al consultar propuestas para el trabajador ${workerId}:`,
-            error
-          );
-        }
-      }
+          } catch (error) {
+            console.error("Error al cargar métricas:", error);
+            toast.error("Error al cargar las métricas. Verifica tu conexión.", {
+              icon: "🔄",
+              duration: 5000,
+            });
+          } finally {
+            setIsLoadingMetrics(false);
+          }
+        };
 
-      // Procesar los datos para las métricas
-      const metrics = calculateMetrics(currentProposals);
-      const previousMetrics = calculateMetrics(previousProposals);
+        fetchMetricsData(user);
+      }, 100);
 
-      // Calcular cambios porcentuales
-      const percentageChanges = {
-        totalProposals: calculatePercentageChange(
-          previousMetrics.totalProposals,
-          metrics.totalProposals
-        ),
-        averageInterestRate: calculatePercentageChange(
-          previousMetrics.averageInterestRate,
-          metrics.averageInterestRate
-        ),
-        averageAmount: calculatePercentageChange(
-          previousMetrics.averageAmount,
-          metrics.averageAmount
-        ),
-        totalCommissions: calculatePercentageChange(
-          previousMetrics.totalCommissions,
-          metrics.totalCommissions
-        ),
+      // Limpieza del timeout en caso de desmontaje
+      return () => {
+        clearTimeout(timeoutId);
       };
-
-      // Generar datos para gráficos mensuales
-      const monthlyData = generateMonthlyData(currentProposals, 6);
-
-      setMetricsData({
-        ...metrics,
-        percentageChanges,
-        monthlyData,
-        previousPeriodMetrics: previousMetrics,
-      });
-    } catch (error) {
-      console.error("Error al cargar métricas:", error);
-      toast.error("Error al cargar las métricas. Verifica tu conexión.", {
-        icon: "🔄",
-        duration: 5000,
-      });
-    } finally {
-      setIsLoadingMetrics(false);
     }
-  };
+  }, [user, activeTab, selectedTimeRange, customDateRange]);
 
   // Función para calcular métricas a partir de propuestas
   const calculateMetrics = (proposals: any[]) => {
@@ -454,22 +675,58 @@ export default function AdminDashboard() {
   };
 
   // Función para generar datos de los últimos meses
-  const generateMonthlyData = (proposals: any[], monthCount: number = 6) => {
+  const generateMonthlyData = (proposals: any[]) => {
     const now = new Date();
     const result: { [key: string]: any } = {};
 
-    // Inicializar los últimos meses con ceros
-    for (let i = 0; i < monthCount; i++) {
-      const date = new Date(now);
-      date.setMonth(date.getMonth() - i);
-      const monthYear = `${date.getMonth() + 1}-${date.getFullYear()}`;
-      result[monthYear] = { proposals: 0, commissions: 0 };
+    // Para el trimestre, forzamos los tres meses específicos
+    if (selectedTimeRange === "quarter") {
+      // Obtener mes y año actual
+      const currentMonth = now.getMonth();
+      const currentYear = now.getFullYear();
+
+      // Forzar la creación de los últimos 3 meses exactamente, independientemente de los datos
+      // Ejemplo: si estamos en marzo (2), necesitamos enero (0), febrero (1) y marzo (2)
+      for (let i = 0; i < 3; i++) {
+        // Calculamos el mes correcto (incluso si cruza años)
+        const targetMonth = (currentMonth - 2 + i + 12) % 12;
+
+        // Ajustar el año si el mes calculado es después de diciembre
+        const targetYear =
+          currentMonth - 2 + i < 0 ? currentYear - 1 : currentYear;
+
+        // Crear la clave del mes-año y asignar objeto vacío de datos
+        const monthKey = `${targetMonth + 1}-${targetYear}`;
+        result[monthKey] = { proposals: 0, commissions: 0 };
+      }
+    } else {
+      // Para los otros rangos, usamos la lógica normal
+      let startPeriod = new Date();
+
+      if (selectedTimeRange === "month") {
+        startPeriod.setMonth(now.getMonth() - 1);
+      } else if (selectedTimeRange === "year") {
+        startPeriod.setFullYear(now.getFullYear() - 1);
+      } else if (selectedTimeRange === "custom") {
+        startPeriod = new Date(customDateRange.startDate);
+      }
+
+      // Inicializamos los meses del rango con datos vacíos
+      const currentDate = new Date();
+      let iterDate = new Date(startPeriod);
+
+      while (iterDate <= currentDate) {
+        const monthYear = `${
+          iterDate.getMonth() + 1
+        }-${iterDate.getFullYear()}`;
+        result[monthYear] = { proposals: 0, commissions: 0 };
+        iterDate.setMonth(iterDate.getMonth() + 1);
+      }
     }
 
-    // Poblar con datos reales
+    // Poblar con datos reales de propuestas solo para las claves que ya existen
     proposals.forEach((proposal) => {
       if (proposal.createdAt) {
-        // Manejo seguro de diferentes formatos de fecha
         let date;
         try {
           date = proposal.createdAt.toDate
@@ -485,10 +742,11 @@ export default function AdminDashboard() {
         }
 
         const monthYear = `${date.getMonth() + 1}-${date.getFullYear()}`;
+
+        // Solo agregamos datos a los meses ya inicializados en el objeto result
         if (result[monthYear]) {
           result[monthYear].proposals += 1;
 
-          // Comisiones por mes - verificar ambos campos posibles (comision/commission)
           if (proposal.comision) {
             const commissionValue = parseFloat(proposal.comision.toString());
             if (!isNaN(commissionValue)) {
@@ -508,8 +766,8 @@ export default function AdminDashboard() {
   };
 
   // Función auxiliar para obtener las etiquetas de los meses
-  const getMonthName = (monthNumber: number) => {
-    const months = [
+  const getMonthName = (monthNumber: number, year?: number) => {
+    const monthsShort = [
       "Ene",
       "Feb",
       "Mar",
@@ -523,7 +781,39 @@ export default function AdminDashboard() {
       "Nov",
       "Dic",
     ];
-    return months[monthNumber - 1];
+
+    const monthsFull = [
+      "Enero",
+      "Febrero",
+      "Marzo",
+      "Abril",
+      "Mayo",
+      "Junio",
+      "Julio",
+      "Agosto",
+      "Septiembre",
+      "Octubre",
+      "Noviembre",
+      "Diciembre",
+    ];
+
+    // Usar nombre completo para el trimestre para mayor claridad
+    if (selectedTimeRange === "quarter") {
+      if (year) {
+        return `${monthsFull[monthNumber - 1]} ${year}`;
+      }
+      return monthsFull[monthNumber - 1];
+    }
+
+    // Si es año o personalizado y abarca más de un año, incluimos el año
+    if (
+      (selectedTimeRange === "year" || selectedTimeRange === "custom") &&
+      year
+    ) {
+      return `${monthsShort[monthNumber - 1]} ${year}`;
+    }
+
+    return monthsShort[monthNumber - 1];
   };
 
   // Función para convertir datos de distribución en array ordenado para visualización
@@ -548,8 +838,20 @@ export default function AdminDashboard() {
   };
 
   const handleDateRangeConfirm = () => {
+    // Validar que la fecha de inicio sea anterior a la fecha de fin
+    if (customDateRange.startDate > customDateRange.endDate) {
+      toast.error("La fecha de inicio debe ser anterior a la fecha de fin", {
+        icon: "⚠️",
+        duration: 3000,
+      });
+      return;
+    }
+
+    // Cerrar el modal y forzar la actualización de los datos
     setIsDateRangeModalOpen(false);
-    fetchMetricsData(user); // Esto activará la consulta con el nuevo rango personalizado
+    setIsLoadingMetrics(true);
+
+    // El efecto useEffect se encargará de actualizar los datos
   };
 
   const validateForm = () => {
@@ -673,7 +975,6 @@ export default function AdminDashboard() {
 
     setIsCreating(true);
     try {
-      console.log("empresa name ", adminData.Empresa);
       await createSubaccount({
         ...newSubaccount,
         userId: user,
@@ -918,39 +1219,55 @@ export default function AdminDashboard() {
                 <h2 className="text-xl font-semibold text-gray-900">
                   Métricas de Desempeño
                 </h2>
-                <div className="flex gap-4">
+                <div className="bg-gray-50 p-1 rounded-lg shadow-sm border border-gray-100 flex gap-1">
                   <Button
                     size="sm"
-                    color="primary"
-                    variant={selectedTimeRange === "month" ? "solid" : "flat"}
-                    className="font-medium"
+                    color={
+                      selectedTimeRange === "month" ? "primary" : "default"
+                    }
+                    variant={selectedTimeRange === "month" ? "solid" : "light"}
+                    className={`font-medium px-3 py-1 rounded-md transition-all duration-200 ${
+                      selectedTimeRange === "month" ? "shadow-sm" : ""
+                    }`}
                     onPress={() => setSelectedTimeRange("month")}
                   >
                     Último mes
                   </Button>
                   <Button
                     size="sm"
-                    color="primary"
-                    variant={selectedTimeRange === "quarter" ? "solid" : "flat"}
-                    className="font-medium"
+                    color={
+                      selectedTimeRange === "quarter" ? "primary" : "default"
+                    }
+                    variant={
+                      selectedTimeRange === "quarter" ? "solid" : "light"
+                    }
+                    className={`font-medium px-3 py-1 rounded-md transition-all duration-200 ${
+                      selectedTimeRange === "quarter" ? "shadow-sm" : ""
+                    }`}
                     onPress={() => setSelectedTimeRange("quarter")}
                   >
                     Último trimestre
                   </Button>
                   <Button
                     size="sm"
-                    color="primary"
-                    variant={selectedTimeRange === "year" ? "solid" : "flat"}
-                    className="font-medium"
+                    color={selectedTimeRange === "year" ? "primary" : "default"}
+                    variant={selectedTimeRange === "year" ? "solid" : "light"}
+                    className={`font-medium px-3 py-1 rounded-md transition-all duration-200 ${
+                      selectedTimeRange === "year" ? "shadow-sm" : ""
+                    }`}
                     onPress={() => setSelectedTimeRange("year")}
                   >
                     Último año
                   </Button>
                   <Button
                     size="sm"
-                    color="primary"
-                    variant={selectedTimeRange === "custom" ? "solid" : "flat"}
-                    className="font-medium"
+                    color={
+                      selectedTimeRange === "custom" ? "primary" : "default"
+                    }
+                    variant={selectedTimeRange === "custom" ? "solid" : "light"}
+                    className={`font-medium px-3 py-1 rounded-md transition-all duration-200 ${
+                      selectedTimeRange === "custom" ? "shadow-sm" : ""
+                    }`}
                     onPress={handleOpenDateRangeModal}
                   >
                     Personalizado
@@ -993,18 +1310,52 @@ export default function AdminDashboard() {
                 <div className="transition-all duration-300 ease-in-out">
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {/* Total de propuestas */}
-                    <Card className="bg-white shadow-sm hover:shadow-md transition-shadow duration-200">
-                      <CardBody className="p-6">
-                        <div className="flex items-center justify-between mb-4">
-                          <h3 className="text-lg font-medium text-gray-900">
+                    <Card className="bg-white shadow-sm hover:shadow-md transition-shadow duration-300 rounded-xl overflow-hidden border border-gray-100">
+                      <CardBody className="p-0">
+                        <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-4 border-b border-gray-100">
+                          <h3 className="text-lg font-semibold text-green-800">
                             Total de Propuestas
                           </h3>
                         </div>
-                        <div className="h-64 flex flex-col justify-center items-center">
+                        <div className="h-64 flex flex-col justify-center items-center p-6">
                           <div className="mb-4 text-5xl font-bold text-green-600 transition-all duration-500 ease-in-out">
                             {metricsData.totalProposals}
                           </div>
-                          <div className="text-sm text-gray-500">
+                          <div
+                            className={`text-sm font-medium ${
+                              metricsData.percentageChanges.totalProposals >= 0
+                                ? "text-green-600"
+                                : "text-red-500"
+                            } flex items-center gap-1 mb-4`}
+                          >
+                            {metricsData.percentageChanges.totalProposals >=
+                            0 ? (
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                className="h-4 w-4"
+                                viewBox="0 0 20 20"
+                                fill="currentColor"
+                              >
+                                <path
+                                  fillRule="evenodd"
+                                  d="M12 7a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0V8.414l-4.293 4.293a1 1 0 01-1.414 0L8 10.414l-4.293 4.293a1 1 0 01-1.414-1.414l5-5a1 1 0 011.414 0L11 10.586 14.586 7H12z"
+                                  clipRule="evenodd"
+                                />
+                              </svg>
+                            ) : (
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                className="h-4 w-4"
+                                viewBox="0 0 20 20"
+                                fill="currentColor"
+                              >
+                                <path
+                                  fillRule="evenodd"
+                                  d="M12 13a1 1 0 110 2H7a1 1 0 01-1-1v-5a1 1 0 112 0v2.586l4.293-4.293a1 1 0 011.414 0L16 9.586l4.293-4.293a1 1 0 111.414 1.414l-5 5a1 1 0 01-1.414 0L12 8.414l-3.293 3.293a1 1 0 01-1.414 0V13z"
+                                  clipRule="evenodd"
+                                />
+                              </svg>
+                            )}
                             {metricsData.percentageChanges.totalProposals > 0
                               ? "+"
                               : ""}
@@ -1013,7 +1364,7 @@ export default function AdminDashboard() {
                             )}
                             % respecto al período anterior
                           </div>
-                          <div className="mt-4 w-full h-36">
+                          <div className="mt-2 w-full h-36">
                             {Object.keys(metricsData.monthlyData).length >
                               0 && (
                               <Bar
@@ -1022,21 +1373,24 @@ export default function AdminDashboard() {
                                     metricsData.monthlyData
                                   )
                                     .sort((a, b) => {
-                                      const [monthA, yearA] = a[0]
+                                      const [month1, year1] = a[0]
                                         .split("-")
                                         .map(Number);
-                                      const [monthB, yearB] = b[0]
+                                      const [month2, year2] = b[0]
                                         .split("-")
                                         .map(Number);
                                       return (
-                                        yearA * 12 +
-                                        monthA -
-                                        (yearB * 12 + monthB)
+                                        year1 * 12 +
+                                        month1 -
+                                        (year2 * 12 + month2)
                                       );
                                     })
-                                    .map(([key]) =>
-                                      getMonthName(parseInt(key.split("-")[0]))
-                                    ),
+                                    .map(([key]) => {
+                                      const [month, year] = key
+                                        .split("-")
+                                        .map(Number);
+                                      return getMonthName(month, year);
+                                    }),
                                   datasets: [
                                     {
                                       label: "Propuestas",
@@ -1044,50 +1398,30 @@ export default function AdminDashboard() {
                                         metricsData.monthlyData
                                       )
                                         .sort((a, b) => {
-                                          const [monthA, yearA] = a[0]
+                                          const [month1, year1] = a[0]
                                             .split("-")
                                             .map(Number);
-                                          const [monthB, yearB] = b[0]
+                                          const [month2, year2] = b[0]
                                             .split("-")
                                             .map(Number);
                                           return (
-                                            yearA * 12 +
-                                            monthA -
-                                            (yearB * 12 + monthB)
+                                            year1 * 12 +
+                                            month1 -
+                                            (year2 * 12 + month2)
                                           );
                                         })
                                         .map(([_, data]) => data.proposals),
-                                      backgroundColor: "rgba(34, 197, 94, 0.7)",
-                                      borderColor: "rgb(22, 163, 74)",
+                                      backgroundColor:
+                                        "rgba(16, 185, 129, 0.8)",
+                                      borderColor: "rgb(5, 150, 105)",
                                       borderWidth: 1,
-                                      borderRadius: 4,
+                                      borderRadius: 6,
+                                      hoverBackgroundColor:
+                                        "rgba(16, 185, 129, 1)",
                                     },
                                   ],
                                 }}
-                                options={{
-                                  responsive: true,
-                                  maintainAspectRatio: false,
-                                  plugins: {
-                                    legend: {
-                                      display: false,
-                                    },
-                                    tooltip: {
-                                      callbacks: {
-                                        label: function (context) {
-                                          return `${context.parsed.y} propuestas`;
-                                        },
-                                      },
-                                    },
-                                  },
-                                  scales: {
-                                    y: {
-                                      beginAtZero: true,
-                                      ticks: {
-                                        precision: 0,
-                                      },
-                                    },
-                                  },
-                                }}
+                                options={metricsData.chartOptions?.bar}
                               />
                             )}
                           </div>
@@ -1096,14 +1430,14 @@ export default function AdminDashboard() {
                     </Card>
 
                     {/* Distribución por tipo de préstamo */}
-                    <Card className="bg-white shadow-sm hover:shadow-md transition-shadow duration-200">
-                      <CardBody className="p-6">
-                        <div className="flex items-center justify-between mb-4">
-                          <h3 className="text-lg font-medium text-gray-900">
+                    <Card className="bg-white shadow-sm hover:shadow-md transition-shadow duration-300 rounded-xl overflow-hidden border border-gray-100">
+                      <CardBody className="p-0">
+                        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 border-b border-gray-100">
+                          <h3 className="text-lg font-semibold text-blue-800">
                             Distribución por Tipo de Préstamo
                           </h3>
                         </div>
-                        <div className="h-64 flex flex-col justify-center items-center">
+                        <div className="h-64 flex flex-col justify-center items-center p-6">
                           {Object.keys(metricsData.loanTypeDistribution)
                             .length > 0 ? (
                             <div className="w-full h-full">
@@ -1120,11 +1454,11 @@ export default function AdminDashboard() {
                                         5
                                       ).map((item) => item.value),
                                       backgroundColor: [
-                                        "rgba(59, 130, 246, 0.7)", // blue
-                                        "rgba(16, 185, 129, 0.7)", // green
-                                        "rgba(139, 92, 246, 0.7)", // purple
-                                        "rgba(245, 158, 11, 0.7)", // amber
-                                        "rgba(239, 68, 68, 0.7)", // red
+                                        "rgba(59, 130, 246, 0.85)",
+                                        "rgba(16, 185, 129, 0.85)",
+                                        "rgba(139, 92, 246, 0.85)",
+                                        "rgba(245, 158, 11, 0.85)",
+                                        "rgba(239, 68, 68, 0.85)",
                                       ],
                                       borderColor: [
                                         "rgb(30, 64, 175)",
@@ -1134,42 +1468,11 @@ export default function AdminDashboard() {
                                         "rgb(185, 28, 28)",
                                       ],
                                       borderWidth: 1,
+                                      hoverOffset: 6,
                                     },
                                   ],
                                 }}
-                                options={{
-                                  responsive: true,
-                                  maintainAspectRatio: false,
-                                  plugins: {
-                                    legend: {
-                                      position: "bottom",
-                                      labels: {
-                                        boxWidth: 15,
-                                        padding: 15,
-                                        font: {
-                                          size: 11,
-                                        },
-                                      },
-                                    },
-                                    tooltip: {
-                                      callbacks: {
-                                        label: function (context) {
-                                          const value = context.raw as number;
-                                          const total =
-                                            context.dataset.data.reduce(
-                                              (a, b) =>
-                                                (a as number) + (b as number),
-                                              0
-                                            );
-                                          const percentage = Math.round(
-                                            (value / (total as number)) * 100
-                                          );
-                                          return `${context.label}: ${value} (${percentage}%)`;
-                                        },
-                                      },
-                                    },
-                                  },
-                                }}
+                                options={metricsData.chartOptions?.pie}
                               />
                             </div>
                           ) : (
@@ -1182,14 +1485,14 @@ export default function AdminDashboard() {
                     </Card>
 
                     {/* Distribución por propósito */}
-                    <Card className="bg-white shadow-sm hover:shadow-md transition-shadow duration-200">
-                      <CardBody className="p-6">
-                        <div className="flex items-center justify-between mb-4">
-                          <h3 className="text-lg font-medium text-gray-900">
+                    <Card className="bg-white shadow-sm hover:shadow-md transition-shadow duration-300 rounded-xl overflow-hidden border border-gray-100">
+                      <CardBody className="p-0">
+                        <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-4 border-b border-gray-100">
+                          <h3 className="text-lg font-semibold text-purple-800">
                             Distribución por Propósito
                           </h3>
                         </div>
-                        <div className="h-64 flex flex-col justify-center items-center">
+                        <div className="h-64 flex flex-col justify-center items-center p-6">
                           {Object.keys(metricsData.purposeDistribution).length >
                           0 ? (
                             <div className="w-full h-full">
@@ -1206,11 +1509,11 @@ export default function AdminDashboard() {
                                         5
                                       ).map((item) => item.value),
                                       backgroundColor: [
-                                        "rgba(245, 158, 11, 0.7)", // amber
-                                        "rgba(239, 68, 68, 0.7)", // red
-                                        "rgba(99, 102, 241, 0.7)", // indigo
-                                        "rgba(20, 184, 166, 0.7)", // teal
-                                        "rgba(236, 72, 153, 0.7)", // pink
+                                        "rgba(245, 158, 11, 0.85)",
+                                        "rgba(239, 68, 68, 0.85)",
+                                        "rgba(99, 102, 241, 0.85)",
+                                        "rgba(20, 184, 166, 0.85)",
+                                        "rgba(236, 72, 153, 0.85)",
                                       ],
                                       borderColor: [
                                         "rgb(180, 83, 9)",
@@ -1220,42 +1523,11 @@ export default function AdminDashboard() {
                                         "rgb(219, 39, 119)",
                                       ],
                                       borderWidth: 1,
+                                      hoverOffset: 6,
                                     },
                                   ],
                                 }}
-                                options={{
-                                  responsive: true,
-                                  maintainAspectRatio: false,
-                                  plugins: {
-                                    legend: {
-                                      position: "bottom",
-                                      labels: {
-                                        boxWidth: 15,
-                                        padding: 15,
-                                        font: {
-                                          size: 11,
-                                        },
-                                      },
-                                    },
-                                    tooltip: {
-                                      callbacks: {
-                                        label: function (context) {
-                                          const value = context.raw as number;
-                                          const total =
-                                            context.dataset.data.reduce(
-                                              (a, b) =>
-                                                (a as number) + (b as number),
-                                              0
-                                            );
-                                          const percentage = Math.round(
-                                            (value / (total as number)) * 100
-                                          );
-                                          return `${context.label}: ${value} (${percentage}%)`;
-                                        },
-                                      },
-                                    },
-                                  },
-                                }}
+                                options={metricsData.chartOptions?.pie}
                               />
                             </div>
                           ) : (
@@ -1268,14 +1540,14 @@ export default function AdminDashboard() {
                     </Card>
 
                     {/* Distribución por frecuencia de pago */}
-                    <Card className="bg-white shadow-sm hover:shadow-md transition-shadow duration-200">
-                      <CardBody className="p-6">
-                        <div className="flex items-center justify-between mb-4">
-                          <h3 className="text-lg font-medium text-gray-900">
+                    <Card className="bg-white shadow-sm hover:shadow-md transition-shadow duration-300 rounded-xl overflow-hidden border border-gray-100">
+                      <CardBody className="p-0">
+                        <div className="bg-gradient-to-r from-yellow-50 to-orange-50 p-4 border-b border-gray-100">
+                          <h3 className="text-lg font-semibold text-yellow-800">
                             Distribución por Frecuencia de Pago
                           </h3>
                         </div>
-                        <div className="h-64 flex flex-col justify-center items-center">
+                        <div className="h-64 flex flex-col justify-center items-center p-6">
                           {Object.keys(metricsData.paymentFrequencyDistribution)
                             .length > 0 ? (
                             <div className="w-full h-full">
@@ -1292,56 +1564,25 @@ export default function AdminDashboard() {
                                         5
                                       ).map((item) => item.value),
                                       backgroundColor: [
-                                        "rgba(59, 130, 246, 0.7)", // blue
-                                        "rgba(16, 185, 129, 0.7)", // green
-                                        "rgba(245, 158, 11, 0.7)", // amber
-                                        "rgba(139, 92, 246, 0.7)", // purple
-                                        "rgba(239, 68, 68, 0.7)", // red
+                                        "rgba(245, 158, 11, 0.85)",
+                                        "rgba(239, 68, 68, 0.85)",
+                                        "rgba(245, 158, 11, 0.85)",
+                                        "rgba(139, 92, 246, 0.85)",
+                                        "rgba(239, 68, 68, 0.85)",
                                       ],
                                       borderColor: [
-                                        "rgb(30, 64, 175)",
-                                        "rgb(5, 150, 105)",
+                                        "rgb(180, 83, 9)",
+                                        "rgb(185, 28, 28)",
                                         "rgb(180, 83, 9)",
                                         "rgb(109, 40, 217)",
                                         "rgb(185, 28, 28)",
                                       ],
                                       borderWidth: 1,
+                                      hoverOffset: 6,
                                     },
                                   ],
                                 }}
-                                options={{
-                                  responsive: true,
-                                  maintainAspectRatio: false,
-                                  plugins: {
-                                    legend: {
-                                      position: "bottom",
-                                      labels: {
-                                        boxWidth: 15,
-                                        padding: 15,
-                                        font: {
-                                          size: 11,
-                                        },
-                                      },
-                                    },
-                                    tooltip: {
-                                      callbacks: {
-                                        label: function (context) {
-                                          const value = context.raw as number;
-                                          const total =
-                                            context.dataset.data.reduce(
-                                              (a, b) =>
-                                                (a as number) + (b as number),
-                                              0
-                                            );
-                                          const percentage = Math.round(
-                                            (value / (total as number)) * 100
-                                          );
-                                          return `${context.label}: ${value} (${percentage}%)`;
-                                        },
-                                      },
-                                    },
-                                  },
-                                }}
+                                options={metricsData.chartOptions?.pie}
                               />
                             </div>
                           ) : (
@@ -1354,15 +1595,15 @@ export default function AdminDashboard() {
                     </Card>
 
                     {/* Tasa de interés promedio */}
-                    <Card className="bg-white shadow-sm hover:shadow-md transition-shadow duration-200">
-                      <CardBody className="p-6">
-                        <div className="flex items-center justify-between mb-4">
-                          <h3 className="text-lg font-medium text-gray-900">
+                    <Card className="bg-white shadow-sm hover:shadow-md transition-shadow duration-300 rounded-xl overflow-hidden border border-gray-100">
+                      <CardBody className="p-0">
+                        <div className="bg-gradient-to-r from-teal-50 to-lime-50 p-4 border-b border-gray-100">
+                          <h3 className="text-lg font-semibold text-teal-800">
                             Tasa de Interés Promedio
                           </h3>
                         </div>
-                        <div className="h-64 flex flex-col justify-between">
-                          <div className="text-4xl font-bold text-blue-600 text-center mb-2">
+                        <div className="h-64 flex flex-col justify-center items-center p-6">
+                          <div className="text-4xl font-bold text-teal-600 text-center mb-2">
                             {metricsData.averageInterestRate.toFixed(2)}%
                           </div>
                           <div className="text-sm text-center mb-4">
@@ -1393,47 +1634,47 @@ export default function AdminDashboard() {
                               data={{
                                 labels: Object.entries(metricsData.monthlyData)
                                   .sort((a, b) => {
-                                    const [monthA, yearA] = a[0]
+                                    const [month1, year1] = a[0]
                                       .split("-")
                                       .map(Number);
-                                    const [monthB, yearB] = b[0]
+                                    const [month2, year2] = b[0]
                                       .split("-")
                                       .map(Number);
                                     return (
-                                      yearA * 12 +
-                                      monthA -
-                                      (yearB * 12 + monthB)
+                                      year1 * 12 +
+                                      month1 -
+                                      (year2 * 12 + month2)
                                     );
                                   })
-                                  .map(([key]) =>
-                                    getMonthName(parseInt(key.split("-")[0]))
-                                  ),
+                                  .map(([key]) => {
+                                    const [month, year] = key
+                                      .split("-")
+                                      .map(Number);
+                                    return getMonthName(month, year);
+                                  }),
                                 datasets: [
                                   {
                                     label: "Tasa Promedio",
-                                    // Calculamos el monto promedio por mes de forma estimada
                                     data: Object.entries(
                                       metricsData.monthlyData
                                     )
                                       .sort((a, b) => {
-                                        const [monthA, yearA] = a[0]
+                                        const [month1, year1] = a[0]
                                           .split("-")
                                           .map(Number);
-                                        const [monthB, yearB] = b[0]
+                                        const [month2, year2] = b[0]
                                           .split("-")
                                           .map(Number);
                                         return (
-                                          yearA * 12 +
-                                          monthA -
-                                          (yearB * 12 + monthB)
+                                          year1 * 12 +
+                                          month1 -
+                                          (year2 * 12 + month2)
                                         );
                                       })
                                       .map(([_, data]) => {
-                                        // Si hay propuestas en ese mes, estimamos monto promedio
                                         if (data.proposals > 0) {
-                                          // Generamos un valor cercano al promedio general
                                           const variation =
-                                            Math.random() * 0.4 - 0.2; // -20% a +20%
+                                            Math.random() * 0.4 - 0.2;
                                           return (
                                             metricsData.averageAmount *
                                             (1 + variation)
@@ -1441,53 +1682,14 @@ export default function AdminDashboard() {
                                         }
                                         return 0;
                                       }),
-                                    backgroundColor: "rgba(14, 165, 233, 0.7)",
+                                    backgroundColor: "rgba(14, 165, 233, 0.8)",
                                     borderColor: "rgb(3, 105, 161)",
                                     borderWidth: 1,
-                                    borderRadius: 4,
+                                    borderRadius: 6,
                                   },
                                 ],
                               }}
-                              options={{
-                                responsive: true,
-                                maintainAspectRatio: false,
-                                plugins: {
-                                  legend: {
-                                    display: false,
-                                  },
-                                  tooltip: {
-                                    callbacks: {
-                                      label: function (context) {
-                                        return `${context.parsed.y.toLocaleString(
-                                          "es-MX",
-                                          {
-                                            minimumFractionDigits: 2,
-                                            maximumFractionDigits: 2,
-                                          }
-                                        )} MXN`;
-                                      },
-                                    },
-                                  },
-                                },
-                                scales: {
-                                  y: {
-                                    beginAtZero: false,
-                                    min: Math.max(
-                                      0,
-                                      metricsData.averageInterestRate * 0.7
-                                    ),
-                                    ticks: {
-                                      callback: function (value) {
-                                        return (
-                                          "$" +
-                                          (Number(value) / 1000).toFixed(0) +
-                                          "K"
-                                        );
-                                      },
-                                    },
-                                  },
-                                },
-                              }}
+                              options={metricsData.chartOptions?.bar}
                             />
                           </div>
                         </div>
@@ -1495,15 +1697,15 @@ export default function AdminDashboard() {
                     </Card>
 
                     {/* Monto promedio de propuestas */}
-                    <Card className="bg-white shadow-sm hover:shadow-md transition-shadow duration-200">
-                      <CardBody className="p-6">
-                        <div className="flex items-center justify-between mb-4">
-                          <h3 className="text-lg font-medium text-gray-900">
+                    <Card className="bg-white shadow-sm hover:shadow-md transition-shadow duration-300 rounded-xl overflow-hidden border border-gray-100">
+                      <CardBody className="p-0">
+                        <div className="bg-gradient-to-r from-pink-50 to-rose-50 p-4 border-b border-gray-100">
+                          <h3 className="text-lg font-semibold text-pink-800">
                             Monto Promedio de Propuestas
                           </h3>
                         </div>
-                        <div className="h-64 flex flex-col justify-between">
-                          <div className="mb-2 text-4xl font-bold text-blue-600 text-center">
+                        <div className="h-64 flex flex-col justify-center items-center p-6">
+                          <div className="mb-2 text-4xl font-bold text-pink-600 text-center">
                             $
                             {metricsData.averageAmount.toLocaleString("es-MX", {
                               minimumFractionDigits: 2,
@@ -1537,47 +1739,47 @@ export default function AdminDashboard() {
                               data={{
                                 labels: Object.entries(metricsData.monthlyData)
                                   .sort((a, b) => {
-                                    const [monthA, yearA] = a[0]
+                                    const [month1, year1] = a[0]
                                       .split("-")
                                       .map(Number);
-                                    const [monthB, yearB] = b[0]
+                                    const [month2, year2] = b[0]
                                       .split("-")
                                       .map(Number);
                                     return (
-                                      yearA * 12 +
-                                      monthA -
-                                      (yearB * 12 + monthB)
+                                      year1 * 12 +
+                                      month1 -
+                                      (year2 * 12 + month2)
                                     );
                                   })
-                                  .map(([key]) =>
-                                    getMonthName(parseInt(key.split("-")[0]))
-                                  ),
+                                  .map(([key]) => {
+                                    const [month, year] = key
+                                      .split("-")
+                                      .map(Number);
+                                    return getMonthName(month, year);
+                                  }),
                                 datasets: [
                                   {
                                     label: "Monto Promedio",
-                                    // Calculamos el monto promedio por mes de forma estimada
                                     data: Object.entries(
                                       metricsData.monthlyData
                                     )
                                       .sort((a, b) => {
-                                        const [monthA, yearA] = a[0]
+                                        const [month1, year1] = a[0]
                                           .split("-")
                                           .map(Number);
-                                        const [monthB, yearB] = b[0]
+                                        const [month2, year2] = b[0]
                                           .split("-")
                                           .map(Number);
                                         return (
-                                          yearA * 12 +
-                                          monthA -
-                                          (yearB * 12 + monthB)
+                                          year1 * 12 +
+                                          month1 -
+                                          (year2 * 12 + month2)
                                         );
                                       })
                                       .map(([_, data]) => {
-                                        // Si hay propuestas en ese mes, estimamos monto promedio
                                         if (data.proposals > 0) {
-                                          // Generamos un valor cercano al promedio general
                                           const variation =
-                                            Math.random() * 0.4 - 0.2; // -20% a +20%
+                                            Math.random() * 0.4 - 0.2;
                                           return (
                                             metricsData.averageAmount *
                                             (1 + variation)
@@ -1585,53 +1787,14 @@ export default function AdminDashboard() {
                                         }
                                         return 0;
                                       }),
-                                    backgroundColor: "rgba(14, 165, 233, 0.7)",
+                                    backgroundColor: "rgba(14, 165, 233, 0.8)",
                                     borderColor: "rgb(3, 105, 161)",
                                     borderWidth: 1,
-                                    borderRadius: 4,
+                                    borderRadius: 6,
                                   },
                                 ],
                               }}
-                              options={{
-                                responsive: true,
-                                maintainAspectRatio: false,
-                                plugins: {
-                                  legend: {
-                                    display: false,
-                                  },
-                                  tooltip: {
-                                    callbacks: {
-                                      label: function (context) {
-                                        return `$${context.parsed.y.toLocaleString(
-                                          "es-MX",
-                                          {
-                                            minimumFractionDigits: 2,
-                                            maximumFractionDigits: 2,
-                                          }
-                                        )} MXN`;
-                                      },
-                                    },
-                                  },
-                                },
-                                scales: {
-                                  y: {
-                                    beginAtZero: false,
-                                    min: Math.max(
-                                      0,
-                                      metricsData.averageAmount * 0.7
-                                    ),
-                                    ticks: {
-                                      callback: function (value) {
-                                        return (
-                                          "$" +
-                                          (Number(value) / 1000).toFixed(0) +
-                                          "K"
-                                        );
-                                      },
-                                    },
-                                  },
-                                },
-                              }}
+                              options={metricsData.chartOptions?.bar}
                             />
                           </div>
                         </div>
@@ -1711,15 +1874,26 @@ export default function AdminDashboard() {
       <Modal
         isOpen={isDateRangeModalOpen}
         onClose={() => setIsDateRangeModalOpen(false)}
+        classNames={{
+          base: "rounded-xl shadow-xl",
+          header: "border-b border-gray-100",
+          body: "py-6",
+          footer: "border-t border-gray-100",
+        }}
       >
         <ModalContent>
           <ModalHeader className="flex flex-col gap-1">
-            Seleccionar Rango de Fechas
+            <div className="text-lg font-semibold text-gray-900">
+              Seleccionar Rango de Fechas
+            </div>
+            <div className="text-xs text-gray-500">
+              Elige un período personalizado para analizar tus métricas
+            </div>
           </ModalHeader>
           <ModalBody>
-            <div className="space-y-4">
+            <div className="space-y-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                   Fecha de inicio
                 </label>
                 <Input
@@ -1731,10 +1905,16 @@ export default function AdminDashboard() {
                       startDate: new Date(e.target.value),
                     })
                   }
+                  className="w-full"
+                  classNames={{
+                    input: "bg-gray-50 border border-gray-200",
+                    inputWrapper:
+                      "bg-gray-50 hover:bg-gray-100 transition-colors",
+                  }}
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                   Fecha de fin
                 </label>
                 <Input
@@ -1746,6 +1926,12 @@ export default function AdminDashboard() {
                       endDate: new Date(e.target.value),
                     })
                   }
+                  className="w-full"
+                  classNames={{
+                    input: "bg-gray-50 border border-gray-200",
+                    inputWrapper:
+                      "bg-gray-50 hover:bg-gray-100 transition-colors",
+                  }}
                 />
               </div>
             </div>
@@ -1755,11 +1941,16 @@ export default function AdminDashboard() {
               color="danger"
               variant="light"
               onPress={() => setIsDateRangeModalOpen(false)}
+              className="rounded-md"
             >
               Cancelar
             </Button>
-            <Button color="success" onPress={handleDateRangeConfirm}>
-              Aplicar
+            <Button
+              color="primary"
+              onPress={handleDateRangeConfirm}
+              className="rounded-md shadow-sm"
+            >
+              Aplicar Filtro
             </Button>
           </ModalFooter>
         </ModalContent>
