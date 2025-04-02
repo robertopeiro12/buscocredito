@@ -81,7 +81,8 @@ export default function LenderPage() {
   const [lenderProposals, setLenderProposals] = useState<any[]>([]);
   const [loadingProposals, setLoadingProposals] = useState(false);
 
-  const { loans: requests, loading } = useLoans();
+  const { loans: requests, loading, refreshLoans } = useLoans(partnerData.company);
+
   const selectedRequest = selectedRequestId
     ? requests.find((r) => r.id === selectedRequestId) || null
     : null;
@@ -150,6 +151,7 @@ export default function LenderPage() {
       if (userAuth) {
         setUser(userAuth.uid);
         getPartnerData(userAuth.uid);
+       
       } else {
         router.push("/login");
       }
@@ -158,6 +160,12 @@ export default function LenderPage() {
     return () => unsubscribe();
   }, [router]);
 
+  useEffect(() => {
+    if (partnerData.company) {
+      // Refresh loans when company data becomes available
+      refreshLoans();
+    }
+  }, [partnerData.company, refreshLoans]);
   useEffect(() => {
     // Cargar datos de usuario para todas las solicitudes
     const loadAllUserData = async () => {
@@ -270,6 +278,8 @@ export default function LenderPage() {
       setIsCreatingOffer(false);
       resetProposal();
       
+      refreshLoans();
+
       // Volver al mercado de ofertas
       setSelectedRequestId(null);
       
