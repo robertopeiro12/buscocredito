@@ -123,7 +123,8 @@ export const getLoanOffers = async (loanId: string) => {
         monthly_payment: data.amortization_frequency,
         amortization: data.amortization,
         medical_balance: data.medical_balance,
-        comision: data.comision
+        comision: data.comision,
+        deadline: data.deadline
       };
     });
 

@@ -893,18 +893,28 @@ export default function DashboardPage() {
                                       <div className="space-y-6">
                                         {/* Header Section */}
                                         <div className="flex justify-between items-start">
-                                          <div>
+                                          <div className="flex-col gap-2">
+
                                             <div className="flex items-center gap-2">
-                                              <h4 className="text-xl font-semibold text-gray-900">
+                                              <h4 className="text-xl font-medium text-gray-900">
                                                 {offer.lender_name}
                                               </h4>
+                                              
                                               {acceptedOfferId === offer.id && (
                                                 <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full font-medium">
                                                   Aceptada
                                                 </span>
                                               )}
                                             </div>
-                                          
+                                            <div className="flex gap-2 font-bold text-lg">
+                                                <span className="text-black">
+                                                  Pago {offer.monthly_payment?.toLocaleString()}:
+                                                </span>
+                                                <span className="font-bold">
+                                                  $
+                                                  {offer.amortization?.toLocaleString()}
+                                                </span>
+                                              </div>
                                           </div>
                                           <div className="text-right">
                                             <p className="text-2xl font-bold text-green-600">
@@ -914,7 +924,9 @@ export default function DashboardPage() {
                                               {offer.interest_rate}% interés
                                             </p>
                                           </div>
+                                          
                                         </div>
+                                       
 
                                         {/* Main Info Grid */}
                                         <div className="grid grid-cols-1 gap-6 pt-4 border-t">
@@ -923,15 +935,7 @@ export default function DashboardPage() {
                                               Información del Préstamo
                                             </h5>
                                             <div className="space-y-3">
-                                              <div className="flex justify-between text-sm">
-                                                <span className="text-gray-500">
-                                                  Pago {offer.monthly_payment?.toLocaleString()}:
-                                                </span>
-                                                <span className="font-medium">
-                                                  $
-                                                  {offer.amortization?.toLocaleString()}
-                                                </span>
-                                              </div>
+                                              
                                               {offer.comision !== undefined && (
                                                 <div className="flex justify-between text-sm">
                                                   <span className="text-gray-500">
@@ -952,6 +956,17 @@ export default function DashboardPage() {
                                                   <span className="font-medium">
                                                     $
                                                     {offer.medical_balance?.toLocaleString()}
+                                                  </span>
+                                                </div>
+                                              )}
+                                              {offer.deadline !==
+                                                undefined && (
+                                                <div className="flex justify-between text-sm">
+                                                  <span className="text-gray-500">
+                                                    Plazo del prestamo:
+                                                  </span>
+                                                  <span className="font-medium">  
+                                                    {offer.deadline?.toLocaleString()} meses  
                                                   </span>
                                                 </div>
                                               )}
@@ -1486,3 +1501,5 @@ export default function DashboardPage() {
     </ErrorBoundary>
   );
 }
+
+// FIxear ofertas no disponibles
