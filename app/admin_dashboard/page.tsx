@@ -523,7 +523,7 @@ export default function AdminDashboard() {
                 y: {
                   ...barChartOptions.scales.y,
                   beginAtZero: true,
-                  suggestedMax: Math.max(metrics.averageInterestRate * 1.5, 5), // Ajustar el máximo para tasas de interés
+                  suggestedMax: Math.max(metrics.averageInterestRate * 1.5, 5),
                   ticks: {
                     callback: (value: any) => {
                       return value.toFixed(2) + "%";
@@ -1457,12 +1457,12 @@ export default function AdminDashboard() {
                                     y: {
                                       beginAtZero: true,
                                       suggestedMax: Math.max(
-                                        metricsData.averageInterestRate * 1.5,
+                                        metricsData.totalProposals * 1.5,
                                         5
                                       ),
                                       ticks: {
                                         callback: (value: any) => {
-                                          return value.toFixed(2) + "%";
+                                          return value.toFixed(0);
                                         },
                                         font: {
                                           size: 12,
@@ -1485,9 +1485,9 @@ export default function AdminDashboard() {
                                         ?.tooltip,
                                       callbacks: {
                                         label: (context: any) => {
-                                          return `Tasa: ${context.raw.toFixed(
-                                            2
-                                          )}%`;
+                                          return `Propuestas: ${context.raw.toFixed(
+                                            0
+                                          )}`;
                                         },
                                       },
                                     },
@@ -1782,6 +1782,18 @@ export default function AdminDashboard() {
                                     },
                                   },
                                   x: metricsData.chartOptions?.bar?.scales?.x,
+                                },
+                                plugins: {
+                                  ...metricsData.chartOptions?.bar?.plugins,
+                                  tooltip: {
+                                    callbacks: {
+                                      label: (context: any) => {
+                                        return `Tasa: ${context.raw.toFixed(
+                                          2
+                                        )}%`;
+                                      },
+                                    },
+                                  },
                                 },
                               }}
                             />
