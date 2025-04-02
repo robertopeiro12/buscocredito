@@ -102,6 +102,7 @@ type MetricsData = {
   chartOptions?: {
     bar?: any;
     pie?: any;
+    interestRate?: any;
   };
 };
 
@@ -514,6 +515,24 @@ export default function AdminDashboard() {
               },
             };
 
+            // Opciones específicas para el gráfico de tasa de interés
+            const interestRateChartOptions = {
+              ...barChartOptions,
+              scales: {
+                ...barChartOptions.scales,
+                y: {
+                  ...barChartOptions.scales.y,
+                  beginAtZero: true,
+                  suggestedMax: Math.max(metrics.averageInterestRate * 1.5, 5), // Ajustar el máximo para tasas de interés
+                  ticks: {
+                    callback: (value: any) => {
+                      return value.toFixed(2) + "%";
+                    },
+                  },
+                },
+              },
+            };
+
             const pieChartOptions = {
               ...commonChartOptions,
               plugins: {
@@ -565,6 +584,7 @@ export default function AdminDashboard() {
               chartOptions: {
                 bar: barChartOptions,
                 pie: pieChartOptions,
+                interestRate: interestRateChartOptions,
               },
             });
           } catch (error) {
@@ -599,6 +619,7 @@ export default function AdminDashboard() {
     let totalInterestRate = 0;
     let totalAmount = 0;
     let totalCommissions = 0;
+    let validInterestRateCount = 0;
 
     proposals.forEach((proposal) => {
       // Distribución por tipo de préstamo
@@ -618,8 +639,13 @@ export default function AdminDashboard() {
         (paymentFrequencies[paymentFrequency] || 0) + 1;
 
       // Sumar interés, monto y comisiones
-      if (proposal.interest_rate)
-        totalInterestRate += parseFloat(proposal.interest_rate.toString());
+      if (proposal.interest_rate) {
+        const interestRateValue = parseFloat(proposal.interest_rate.toString());
+        if (!isNaN(interestRateValue)) {
+          totalInterestRate += interestRateValue;
+          validInterestRateCount++;
+        }
+      }
       if (proposal.amount)
         totalAmount += parseFloat(proposal.amount.toString());
       if (proposal.comision)
@@ -651,9 +677,13 @@ export default function AdminDashboard() {
 
     // Calcular promedios
     const averageInterestRate =
-      proposals.length > 0 ? totalInterestRate / proposals.length : 0;
+      validInterestRateCount > 0
+        ? parseFloat((totalInterestRate / validInterestRateCount).toFixed(2))
+        : 0;
     const averageAmount =
-      proposals.length > 0 ? totalAmount / proposals.length : 0;
+      proposals.length > 0
+        ? parseFloat((totalAmount / proposals.length).toFixed(2))
+        : 0;
 
     return {
       totalProposals: proposals.length,
@@ -671,7 +701,7 @@ export default function AdminDashboard() {
   // Función para calcular cambios porcentuales
   const calculatePercentageChange = (previous: number, current: number) => {
     if (previous === 0) return current > 0 ? 100 : 0;
-    return ((current - previous) / previous) * 100;
+    return parseFloat((((current - previous) / previous) * 100).toFixed(2));
   };
 
   // Función para generar datos de los últimos meses
@@ -1421,7 +1451,48 @@ export default function AdminDashboard() {
                                     },
                                   ],
                                 }}
-                                options={metricsData.chartOptions?.bar}
+                                options={{
+                                  ...metricsData.chartOptions?.bar,
+                                  scales: {
+                                    y: {
+                                      beginAtZero: true,
+                                      suggestedMax: Math.max(
+                                        metricsData.averageInterestRate * 1.5,
+                                        5
+                                      ),
+                                      ticks: {
+                                        callback: (value: any) => {
+                                          return value.toFixed(2) + "%";
+                                        },
+                                        font: {
+                                          size: 12,
+                                          weight: "500",
+                                          family: "'Inter', sans-serif",
+                                        },
+                                        color: "#64748b",
+                                      },
+                                      grid: {
+                                        color: "rgba(226, 232, 240, 0.7)",
+                                        borderDash: [3, 3],
+                                      },
+                                    },
+                                    x: metricsData.chartOptions?.bar?.scales?.x,
+                                  },
+                                  plugins: {
+                                    ...metricsData.chartOptions?.bar?.plugins,
+                                    tooltip: {
+                                      ...metricsData.chartOptions?.bar?.plugins
+                                        ?.tooltip,
+                                      callbacks: {
+                                        label: (context: any) => {
+                                          return `Tasa: ${context.raw.toFixed(
+                                            2
+                                          )}%`;
+                                        },
+                                      },
+                                    },
+                                  },
+                                }}
                               />
                             )}
                           </div>
@@ -1654,7 +1725,7 @@ export default function AdminDashboard() {
                                   }),
                                 datasets: [
                                   {
-                                    label: "Tasa Promedio",
+                                    label: "Tasa Promedio (%)",
                                     data: Object.entries(
                                       metricsData.monthlyData
                                     )
@@ -1673,12 +1744,8 @@ export default function AdminDashboard() {
                                       })
                                       .map(([_, data]) => {
                                         if (data.proposals > 0) {
-                                          const variation =
-                                            Math.random() * 0.4 - 0.2;
-                                          return (
-                                            metricsData.averageAmount *
-                                            (1 + variation)
-                                          );
+                                          // Usar el valor exacto del promedio en vez de uno aleatorio
+                                          return metricsData.averageInterestRate;
                                         }
                                         return 0;
                                       }),
@@ -1689,7 +1756,34 @@ export default function AdminDashboard() {
                                   },
                                 ],
                               }}
-                              options={metricsData.chartOptions?.bar}
+                              options={{
+                                ...metricsData.chartOptions?.bar,
+                                scales: {
+                                  y: {
+                                    beginAtZero: true,
+                                    suggestedMax: Math.max(
+                                      metricsData.averageInterestRate * 1.5,
+                                      5
+                                    ),
+                                    ticks: {
+                                      callback: (value: any) => {
+                                        return value.toFixed(2) + "%";
+                                      },
+                                      font: {
+                                        size: 12,
+                                        weight: "500",
+                                        family: "'Inter', sans-serif",
+                                      },
+                                      color: "#64748b",
+                                    },
+                                    grid: {
+                                      color: "rgba(226, 232, 240, 0.7)",
+                                      borderDash: [3, 3],
+                                    },
+                                  },
+                                  x: metricsData.chartOptions?.bar?.scales?.x,
+                                },
+                              }}
                             />
                           </div>
                         </div>
@@ -1778,12 +1872,8 @@ export default function AdminDashboard() {
                                       })
                                       .map(([_, data]) => {
                                         if (data.proposals > 0) {
-                                          const variation =
-                                            Math.random() * 0.4 - 0.2;
-                                          return (
-                                            metricsData.averageAmount *
-                                            (1 + variation)
-                                          );
+                                          // Usar el valor exacto del promedio en vez de uno aleatorio
+                                          return metricsData.averageAmount;
                                         }
                                         return 0;
                                       }),
@@ -1794,7 +1884,48 @@ export default function AdminDashboard() {
                                   },
                                 ],
                               }}
-                              options={metricsData.chartOptions?.bar}
+                              options={{
+                                ...metricsData.chartOptions?.bar,
+                                scales: {
+                                  y: {
+                                    beginAtZero: true,
+                                    suggestedMax: Math.max(
+                                      metricsData.averageAmount * 1.5,
+                                      5
+                                    ),
+                                    ticks: {
+                                      callback: (value: any) => {
+                                        return (
+                                          "$" + value.toLocaleString("es-MX")
+                                        );
+                                      },
+                                      font: {
+                                        size: 12,
+                                        weight: "500",
+                                        family: "'Inter', sans-serif",
+                                      },
+                                      color: "#64748b",
+                                    },
+                                    grid: {
+                                      color: "rgba(226, 232, 240, 0.7)",
+                                      borderDash: [3, 3],
+                                    },
+                                  },
+                                  x: metricsData.chartOptions?.bar?.scales?.x,
+                                },
+                                plugins: {
+                                  ...metricsData.chartOptions?.bar?.plugins,
+                                  tooltip: {
+                                    callbacks: {
+                                      label: (context: any) => {
+                                        return `Monto: $${context.raw.toLocaleString(
+                                          "es-MX"
+                                        )} MXN`;
+                                      },
+                                    },
+                                  },
+                                },
+                              }}
                             />
                           </div>
                         </div>
