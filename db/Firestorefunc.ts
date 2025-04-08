@@ -150,40 +150,23 @@ export const getLenderProposals = async (lenderId: string) => {
   
   try {
     // Primero intentamos buscar por "partner"
-    const snapshot1 = await propuestasRef
+    const allDocs = await propuestasRef
       .where("partner", "==", lenderId)
       .get();
     
-    // Luego buscamos por "Partner" (podría ser que se guarde con mayúscula)
-    const snapshot2 = await propuestasRef
-      .where("Partner", "==", lenderId)
-      .get();
-    
-    // Combinamos los resultados
-    const allDocs = [...snapshot1.docs, ...snapshot2.docs];
-    
-    // Eliminamos duplicados (si los hubiera)
-    const uniqueIds = new Set();
-    const uniqueDocs = allDocs.filter(doc => {
-      if (uniqueIds.has(doc.id)) {
-        return false;
-      }
-      uniqueIds.add(doc.id);
-      return true;
-    });
-    
-    // Mapeamos los documentos
-    const proposals = uniqueDocs.map(doc => {
+    const proposals = allDocs.docs.map(doc => {
       const data = doc.data();
       return {
         id: doc.id,
-        loanId: data.loanId,
-        userId: data.userId,
+        amortization: data.amortization,
+        amortization_frequency: data.amortization_frequency,
+        medical_balance: data.medical_balance,
+        comision: data.comision,
         amount: data.amount,
+        deadline: data.deadline,
         interest_rate: data.interest_rate,
         term: data.deadline,
-        status: data.status || 'pending',
-        company: data.company,
+        status: data.status,
         createdAt: data.createdAt?.toDate ? data.createdAt.toDate().toISOString() : 
                   data.createdAt instanceof Date ? data.createdAt.toISOString() : null,
         requestInfo: data.requestInfo || {}
