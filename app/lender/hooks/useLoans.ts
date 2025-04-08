@@ -1,6 +1,6 @@
 // hooks/useLoans.ts
-import { useState, useEffect } from 'react';
-import { getFirestore, collection, onSnapshot, Timestamp, query, where } from 'firebase/firestore';
+import { useState, useEffect, useCallback } from 'react';
+import { getFirestore, collection, onSnapshot, Timestamp, query, where, getDocs } from 'firebase/firestore';
 
 // Asegúrate que la interfaz coincida con tus datos
 interface LoanRequest {
@@ -16,21 +16,48 @@ interface LoanRequest {
   type: string;    // Tipo de préstamo
 }
 
-export function useLoans() {
+export function useLoans(companyName: string = '') {
   const [loans, setLoans] = useState<LoanRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
-  useEffect(() => {
+  // Create a refreshLoans function that can be called whenever needed
+  const refreshLoans = useCallback(async () => {
+    console.log(`Refreshing loans with company name: "${companyName}"`);
+    if (!companyName) {
+      console.log("Waiting for company name before fetching loans...");
+      setLoading(false); // Set loading to false when no company name is available
+      return;
+    }
+    
+    setLoading(true);
+    
     const db = getFirestore();
     const solicitudesRef = collection(db, "solicitudes");
+    const propuestasRef = collection(db, "propuestas");
     
-    // Crear una query que solo obtenga solicitudes con estado "pending"
-    const pendingLoansQuery = query(solicitudesRef, where("status", "==", "pending"));
+    try {
+      // Query to get proposals where company is the provided value
+      console.log(`Looking for proposals from company: ${companyName}`);
+      const propuestasQuery = query(propuestasRef, where("company", "==", companyName));
+      const propuestasSnapshot = await getDocs(propuestasQuery);
+      
+      // Create a set of existing loanIds
+      const existingLoanIds = new Set();
+      propuestasSnapshot.forEach(doc => {
+        const data = doc.data();
+        if (data.loanId) {
+          existingLoanIds.add(data.loanId);
+        }
+      });
+      console.log(`Found ${existingLoanIds.size} existing proposals`);
 
-    const unsubscribe = onSnapshot(pendingLoansQuery, 
-      (snapshot) => {
-        const fetchedLoans = snapshot.docs.map(doc => {
+      // Fetch pending loans
+      const pendingLoansQuery = query(solicitudesRef, where("status", "==", "pending"));
+      const loansSnapshot = await getDocs(pendingLoansQuery);
+      
+      const fetchedLoans = loansSnapshot.docs
+        .map(doc => {
           const data = doc.data();
           return {
             id: doc.id,
@@ -44,20 +71,48 @@ export function useLoans() {
             purpose: data.purpose || 'No especificado',
             type: data.type || 'No especificado'
           } as LoanRequest;
-        });
-        
-        setLoans(fetchedLoans);
-        setLoading(false);
-      },
-      (err) => {
-        console.error("Error fetching loans:", err);
-        setError(err);
-        setLoading(false);
-      }
-    );
+        })
+        // Filter out loans that already have proposals
+        .filter(loan => !existingLoanIds.has(loan.id));
+      
+      console.log(`Fetched ${loansSnapshot.docs.length} total loans, filtered to ${fetchedLoans.length} available loans`);
+      setLoans(fetchedLoans);
+      setError(null);
+    } catch (err) {
+      console.error("Error refreshing loans:", err);
+      setError(err as Error);
+    } finally {
+      setLoading(false);
+    }
+  }, [companyName]); // Add companyName to the dependency array so the function updates when it changes
 
-    return () => unsubscribe();
-  }, []);
+  useEffect(() => {
+    console.log(`useLoans effect triggered with company name: "${companyName}"`);
+    // Initial fetch
+    refreshLoans();
+    
+    // Set up real-time listener only if we have a company name
+    if (companyName) {
+      const db = getFirestore();
+      const solicitudesRef = collection(db, "solicitudes");
+      const pendingLoansQuery = query(solicitudesRef, where("status", "==", "pending"));
+      
+      const unsubscribe = onSnapshot(pendingLoansQuery, 
+        () => {
+          // When any change is detected, refresh the loans
+          refreshLoans();
+        },
+        (err) => {
+          console.error("Error in loans listener:", err);
+          setError(err);
+        }
+      );
 
-  return { loans, loading, error };
+      return () => unsubscribe();
+    }
+    
+    return () => {}; // Return empty cleanup if no listener was set
+  }, [refreshLoans]); // Since refreshLoans depends on companyName, this will re-run when companyName changes
+
+  return { loans, loading, error, refreshLoans };
 }
