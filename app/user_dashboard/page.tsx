@@ -130,7 +130,7 @@ const formatDate = (timestamp: Timestamp | null) => {
 
 const ErrorFallback = ({ error, resetErrorBoundary }: FallbackProps) => {
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+    <div className="min-h-[calc(100vh-64px)] bg-gray-50 flex items-center justify-center p-4">
       <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-6 text-center">
         <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
           <RefreshCw className="w-8 h-8 text-red-600" />
@@ -217,23 +217,6 @@ export default function DashboardPage() {
   });
   const { showNotification } = useNotification();
 
-  const { execute: executeFetchSolicitudes } = useRetry(
-    () => fetchSolicitudes(user?.uid || ""),
-    { maxAttempts: 3 }
-  );
-
-  const { execute: executeFetchUserData } = useRetry(
-    () => fetchUserData(user?.uid || ""),
-    { maxAttempts: 3 }
-  );
-
-  const { execute: executeFetchOfferData } = useRetry<void>(
-    async () => {
-      if (!selectedSolicitudId) return;
-      await fetch_offer_data(selectedSolicitudId);
-    },
-    { maxAttempts: 3 }
-  );
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -276,12 +259,12 @@ export default function DashboardPage() {
       
       // Check if we already know about an accepted offer from localStorage
       let storedAcceptedOfferId = null;
-      try {
-        const acceptedOffers = JSON.parse(localStorage.getItem('acceptedOffers') || '{}');
-        storedAcceptedOfferId = acceptedOffers[loanId] || null;
-      } catch (err) {
-        console.error('Error reading from localStorage', err);
-      }
+      // try {
+      //   const acceptedOffers = JSON.parse(localStorage.getItem('acceptedOffers') || '{}');
+      //   storedAcceptedOfferId = acceptedOffers[loanId] || null;
+      // } catch (err) {
+      //   console.error('Error reading from localStorage', err);
+      // }
       
       // Also check if the solicitud is marked as approved in Firestore
       let firestoreAcceptedOfferId = null;
@@ -447,13 +430,14 @@ export default function DashboardPage() {
         comision: data.comision,
       });
     });
+    fetchedSolicitudes.forEach((solicitud) => {
+      fetchOfferCount(solicitud.id);
+    });
 
     setSolicitudes(fetchedSolicitudes);
 
     // Fetch offer counts for each solicitud
-    fetchedSolicitudes.forEach((solicitud) => {
-      fetchOfferCount(solicitud.id);
-    });
+    
   };
 
   const deleteSolicitud = async (solicitudId: string) => {
@@ -479,23 +463,25 @@ export default function DashboardPage() {
   };
 
   const openBanksModal = async (solicitudId: string) => {
+    console.log("Opening banks modal for solicitud ID:", solicitudId);
     setSelectedSolicitudId(solicitudId);
     
     // First check if we have a record of this solicitud having an accepted offer in localStorage
-    try {
-      const acceptedOffers = JSON.parse(localStorage.getItem('acceptedOffers') || '{}');
-      if (acceptedOffers[solicitudId]) {
-        setAcceptedOfferId(acceptedOffers[solicitudId]);
-      } else {
-        setAcceptedOfferId(null);
-      }
-    } catch (err) {
-      console.error('Error reading from localStorage', err);
-    }
+    // try {
+    //   const acceptedOffers = JSON.parse(localStorage.getItem('acceptedOffers') || '{}');
+    //   if (acceptedOffers[solicitudId]) {
+    //     console.log("Found accepted offer ID in localStorage:", acceptedOffers);
+    //     setAcceptedOfferId(acceptedOffers[solicitudId]);
+    //   } else {
+    //     setAcceptedOfferId(null);
+    //   }
+    // } catch (err) {
+    //   console.error('Error reading from localStorage', err);
+    // }
     
     // Also check if this solicitud is already marked as approved in Firestore
     try {
-      const db = getFirestore();
+      const db = getFirestore();                                                                                                                                                                        
       const solicitudDoc = await getDoc(doc(db, "solicitudes", solicitudId));
       if (solicitudDoc.exists() && solicitudDoc.data().status === "approved" && solicitudDoc.data().acceptedOfferId) {
         setAcceptedOfferId(solicitudDoc.data().acceptedOfferId);
@@ -505,30 +491,32 @@ export default function DashboardPage() {
     }
     
     try {
-      await executeFetchOfferData();
-      if (offer_data && offer_data.length > 0) {
-        // Check if we found an accepted offer
-        if (acceptedOfferId) {
-          showNotification({
-            type: "success",
-            message: "Oferta aceptada",
-            description: "Estás viendo la oferta que has aceptado para esta solicitud.",
-          });
-        } else {
-          showNotification({
-            type: "info",
-            message: "Ofertas disponibles",
-            description: "Se han encontrado ofertas para tu solicitud.",
-          });
-        }
-      } else {
-        showNotification({
-          type: "warning",
-          message: "Sin ofertas disponibles",
-          description:
-            "No se encontraron ofertas para tu solicitud en este momento.",
-        });
-      }
+      await fetch_offer_data(solicitudId);
+      
+
+      // if (offer_data && offer_data.length > 0) {
+      //   // Check if we found an accepted offer
+      //   if (acceptedOfferId) {
+      //     showNotification({
+      //       type: "success",
+      //       message: "Oferta aceptada",
+      //       description: "Estás viendo la oferta que has aceptado para esta solicitud.",
+      //     });
+      //   } else {
+      //     showNotification({
+      //       type: "info",
+      //       message: "Ofertas disponibles",
+      //       description: "Se han encontrado ofertas para tu solicitud.",
+      //     });
+      //   }
+      // } else {
+      //   showNotification({
+      //     type: "warning",
+      //     message: "Sin ofertas disponibles",
+      //     description:
+      //       "No se encontraron ofertas para tu solicitud en este momento.",
+      //   });
+      // }
     } catch (error) {
       showNotification({
         type: "error",
@@ -719,7 +707,7 @@ export default function DashboardPage() {
         });
       }}
     >
-      <div className="flex min-h-screen bg-gray-50">
+      <div className="flex min-h-[calc(100vh-64px)] bg-gray-50">
         <AnimatePresence>
           {errors.loans && (
             <ErrorNotification
@@ -877,7 +865,12 @@ export default function DashboardPage() {
                                 </h2>
                                 <Button
                                   variant="light"
-                                  onPress={() => setSelectedSolicitudId(null)}
+                                  onPress={() => {
+                                    setSelectedSolicitudId(null);
+                                    setAcceptedOfferId(null);
+                                    set_offer_Data([]);
+                  
+                                  } }
                                   size="sm"
                                   endContent={
                                     <ChevronRight className="w-4 h-4 rotate-180" />
