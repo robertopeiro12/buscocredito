@@ -10,7 +10,7 @@ import {
   Mail,
   Phone,
 } from "lucide-react";
-import Footer from "@/components/Footer";
+import Footer from "@/components/common/layout/Footer";
 
 export default function PrestamistaPage() {
   return (

@@ -5,8 +5,8 @@ import { useRouter } from "next/navigation";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { doc, getFirestore, setDoc, Timestamp } from "firebase/firestore";
 import { auth } from "../firebase";
-import NavBar from "@/components/navbar";
-import Footer from "@/components/Footer";
+import NavBar from "@/components/common/layout/navbar";
+import Footer from "@/components/common/layout/Footer";
 import {
   CheckCircle,
   AlertCircle,

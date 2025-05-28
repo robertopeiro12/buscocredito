@@ -1,7 +1,7 @@
 import React from "react";
 import Link from "next/link";
 import { ArrowRight, Shield, Clock, FileText, CheckCircle } from "lucide-react";
-import Footer from "@/components/Footer";
+import Footer from "@/components/common/layout/Footer";
 
 export default function PrestamosPage() {
   return (

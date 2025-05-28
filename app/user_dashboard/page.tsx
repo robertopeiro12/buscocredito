@@ -28,7 +28,7 @@ import {
   RefreshCw,
   CheckCircle2,
 } from "lucide-react";
-import CreditForm from "@/components/CreditForm";
+import CreditForm from "@/components/features/loans/CreditForm";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   doc,
@@ -44,9 +44,9 @@ import {
   updateDoc,
 } from "firebase/firestore";
 import { useRetry } from "@/hooks/useRetry";
-import ErrorNotification from "@/components/ErrorNotification";
+import ErrorNotification from "@/components/common/ui/ErrorNotification";
 import { ErrorBoundary, FallbackProps } from "react-error-boundary";
-import { useNotification } from "@/components/NotificationProvider";
+import { useNotification } from "@/components/common/ui/NotificationProvider";
 
 interface Address {
   street: string;
@@ -174,7 +174,10 @@ export default function DashboardPage() {
   const [showForm, setShowForm] = useState(false);
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [showAcceptConfirmation, setShowAcceptConfirmation] = useState(false);
-  const [offerToAccept, setOfferToAccept] = useState<{offer: Offer, index: number} | null>(null);
+  const [offerToAccept, setOfferToAccept] = useState<{
+    offer: Offer;
+    index: number;
+  } | null>(null);
   const [solicitudes, setSolicitudes] = useState<SolicitudData[]>([]);
   const [selectedSolicitud, setSelectedSolicitud] =
     useState<SolicitudData | null>(null);
@@ -217,7 +220,6 @@ export default function DashboardPage() {
   });
   const { showNotification } = useNotification();
 
-
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
@@ -256,7 +258,7 @@ export default function DashboardPage() {
   const fetch_offer_data = async (loanId: string) => {
     try {
       setIsLoading((prev) => ({ ...prev, offers: true }));
-      
+
       // Check if we already know about an accepted offer from localStorage
       let storedAcceptedOfferId = null;
       // try {
@@ -265,25 +267,29 @@ export default function DashboardPage() {
       // } catch (err) {
       //   console.error('Error reading from localStorage', err);
       // }
-      
+
       // Also check if the solicitud is marked as approved in Firestore
       let firestoreAcceptedOfferId = null;
       try {
         const db = getFirestore();
         const solicitudDoc = await getDoc(doc(db, "solicitudes", loanId));
-        if (solicitudDoc.exists() && solicitudDoc.data().status === "approved" && solicitudDoc.data().acceptedOfferId) {
+        if (
+          solicitudDoc.exists() &&
+          solicitudDoc.data().status === "approved" &&
+          solicitudDoc.data().acceptedOfferId
+        ) {
           firestoreAcceptedOfferId = solicitudDoc.data().acceptedOfferId;
         }
       } catch (err) {
-        console.error('Error checking solicitud status', err);
+        console.error("Error checking solicitud status", err);
       }
-      
+
       // If we know about an accepted offer from either source, set it
       if (storedAcceptedOfferId || firestoreAcceptedOfferId) {
         const acceptedId = storedAcceptedOfferId || firestoreAcceptedOfferId;
         setAcceptedOfferId(acceptedId);
       }
-      
+
       // Fetch offers as normal
       const response = await fetch("/api/fetch_loan_offer", {
         method: "POST",
@@ -299,15 +305,18 @@ export default function DashboardPage() {
 
       const data = await response.json();
       const offers: Offer[] = data.data ? JSON.parse(data.data) : [];
-      
+
       // Check if any offer is already accepted based on its status field
-      const acceptedOffer = offers.find((offer: Offer) => offer.status === "accepted");
-      
+      const acceptedOffer = offers.find(
+        (offer: Offer) => offer.status === "accepted"
+      );
+
       // If we've already identified an accepted offer ID, try to find that offer
       const knownAcceptedId = storedAcceptedOfferId || firestoreAcceptedOfferId;
-      const knownAcceptedOffer = knownAcceptedId ? 
-        offers.find((offer: Offer) => offer.id === knownAcceptedId) : null;
-      
+      const knownAcceptedOffer = knownAcceptedId
+        ? offers.find((offer: Offer) => offer.id === knownAcceptedId)
+        : null;
+
       if (acceptedOffer) {
         // If an offer is explicitly marked as accepted, use that
         setAcceptedOfferId(acceptedOffer.id);
@@ -317,7 +326,7 @@ export default function DashboardPage() {
         // But add the accepted status to it
         const updatedOffer = {
           ...knownAcceptedOffer,
-          status: "accepted"
+          status: "accepted",
         };
         setAcceptedOfferId(knownAcceptedOffer.id);
         set_offer_Data([updatedOffer]);
@@ -332,27 +341,34 @@ export default function DashboardPage() {
             },
             body: JSON.stringify({ loanId }),
           });
-          
+
           if (statusCheckResponse.ok) {
             const statusData = await statusCheckResponse.json();
             if (statusData.acceptedOfferId) {
               // Find the accepted offer in our current offers
-              const foundOffer = offers.find((o: Offer) => o.id === statusData.acceptedOfferId);
+              const foundOffer = offers.find(
+                (o: Offer) => o.id === statusData.acceptedOfferId
+              );
               if (foundOffer) {
                 const updatedOffer = {
                   ...foundOffer,
-                  status: "accepted"
+                  status: "accepted",
                 };
                 setAcceptedOfferId(foundOffer.id);
                 set_offer_Data([updatedOffer]);
-                
+
                 // Also update local storage
                 try {
-                  const acceptedOffers = JSON.parse(localStorage.getItem('acceptedOffers') || '{}');
+                  const acceptedOffers = JSON.parse(
+                    localStorage.getItem("acceptedOffers") || "{}"
+                  );
                   acceptedOffers[loanId] = foundOffer.id;
-                  localStorage.setItem('acceptedOffers', JSON.stringify(acceptedOffers));
+                  localStorage.setItem(
+                    "acceptedOffers",
+                    JSON.stringify(acceptedOffers)
+                  );
                 } catch (err) {
-                  console.error('Error saving to localStorage', err);
+                  console.error("Error saving to localStorage", err);
                 }
                 return;
               }
@@ -362,7 +378,7 @@ export default function DashboardPage() {
           console.error("Error checking offer status:", statusCheckError);
           // Continue with all offers if there's an error
         }
-        
+
         // If we get here, no accepted offer was found
         console.log("offers test");
         console.log(offers);
@@ -437,7 +453,6 @@ export default function DashboardPage() {
     setSolicitudes(fetchedSolicitudes);
 
     // Fetch offer counts for each solicitud
-    
   };
 
   const deleteSolicitud = async (solicitudId: string) => {
@@ -465,7 +480,7 @@ export default function DashboardPage() {
   const openBanksModal = async (solicitudId: string) => {
     console.log("Opening banks modal for solicitud ID:", solicitudId);
     setSelectedSolicitudId(solicitudId);
-    
+
     // First check if we have a record of this solicitud having an accepted offer in localStorage
     // try {
     //   const acceptedOffers = JSON.parse(localStorage.getItem('acceptedOffers') || '{}');
@@ -478,21 +493,24 @@ export default function DashboardPage() {
     // } catch (err) {
     //   console.error('Error reading from localStorage', err);
     // }
-    
+
     // Also check if this solicitud is already marked as approved in Firestore
     try {
-      const db = getFirestore();                                                                                                                                                                        
+      const db = getFirestore();
       const solicitudDoc = await getDoc(doc(db, "solicitudes", solicitudId));
-      if (solicitudDoc.exists() && solicitudDoc.data().status === "approved" && solicitudDoc.data().acceptedOfferId) {
+      if (
+        solicitudDoc.exists() &&
+        solicitudDoc.data().status === "approved" &&
+        solicitudDoc.data().acceptedOfferId
+      ) {
         setAcceptedOfferId(solicitudDoc.data().acceptedOfferId);
       }
     } catch (err) {
-      console.error('Error checking solicitud status', err);
+      console.error("Error checking solicitud status", err);
     }
-    
+
     try {
       await fetch_offer_data(solicitudId);
-      
 
       // if (offer_data && offer_data.length > 0) {
       //   // Check if we found an accepted offer
@@ -536,31 +554,31 @@ export default function DashboardPage() {
   // Function to handle accepting an offer
   const handleAcceptOffer = async () => {
     if (!selectedSolicitudId || !offerToAccept) return;
-    
+
     const { offer, index } = offerToAccept;
-    
+
     try {
       setIsLoading((prev) => ({ ...prev, offers: true }));
-      
+
       // Verificamos que la oferta seleccionada tenga un ID
       if (!offer.id) {
         console.error("Error: La oferta seleccionada no tiene ID");
         throw new Error("La oferta seleccionada no tiene ID");
       }
-      
+
       console.log("Aceptando oferta con ID:", offer.id);
       console.log("ID de solicitud:", selectedSolicitudId);
-      
+
       // Update the proposal status using our new endpoint
       const response = await fetch("/api/updateProposalStatus", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ 
-          proposalId: offer.id,  // Enviamos solo el ID de la propuesta seleccionada
+        body: JSON.stringify({
+          proposalId: offer.id, // Enviamos solo el ID de la propuesta seleccionada
           loanId: selectedSolicitudId,
-          status: "accepted" 
+          status: "accepted",
         }),
       });
 
@@ -572,56 +590,60 @@ export default function DashboardPage() {
 
       const successData = await response.json();
       console.log("Respuesta exitosa:", successData);
-      
+
       showNotification({
         message: "Oferta aceptada exitosamente",
-        description: `Has aceptado la oferta de ${offer.lender_name} por $${offer.amount.toLocaleString()}.`,
-        type: "success"
+        description: `Has aceptado la oferta de ${
+          offer.lender_name
+        } por $${offer.amount.toLocaleString()}.`,
+        type: "success",
       });
-      
+
       // Update the offer with the accepted status
       const updatedOffer = {
         ...offer,
-        status: "accepted"
+        status: "accepted",
       };
-      
+
       // Set the accepted offer ID
       setAcceptedOfferId(offer.id);
-      
+
       // Filter offers to show only the accepted one with updated status
       set_offer_Data([updatedOffer]);
-      
+
       // Also update the solicitud status to show that it has an accepted offer
       const db = getFirestore();
       const solicitudRef = doc(db, "solicitudes", selectedSolicitudId);
       await updateDoc(solicitudRef, {
         status: "approved",
         updatedAt: new Date().toISOString(),
-        acceptedOfferId: offer.id
+        acceptedOfferId: offer.id,
       });
-      
+
       // Refresh solicitudes list in the background
       fetchSolicitudes(user?.uid || "");
-      
+
       // Close the modal
       setShowAcceptConfirmation(false);
       setOfferToAccept(null);
-      
+
       // Store the accepted status in local storage to maintain state between reloads
       try {
-        const acceptedOffers = JSON.parse(localStorage.getItem('acceptedOffers') || '{}');
+        const acceptedOffers = JSON.parse(
+          localStorage.getItem("acceptedOffers") || "{}"
+        );
         acceptedOffers[selectedSolicitudId] = offer.id;
-        localStorage.setItem('acceptedOffers', JSON.stringify(acceptedOffers));
+        localStorage.setItem("acceptedOffers", JSON.stringify(acceptedOffers));
       } catch (err) {
-        console.error('Error saving to localStorage', err);
+        console.error("Error saving to localStorage", err);
       }
-      
     } catch (error) {
       console.error("Error accepting offer:", error);
       showNotification({
         message: "Error al aceptar la oferta",
-        description: "No se pudo aceptar la oferta. Por favor, intenta de nuevo.",
-        type: "error"
+        description:
+          "No se pudo aceptar la oferta. Por favor, intenta de nuevo.",
+        type: "error",
       });
     } finally {
       setIsLoading((prev) => ({ ...prev, offers: false }));
@@ -861,7 +883,9 @@ export default function DashboardPage() {
                             <div className="space-y-4">
                               <div className="flex justify-between items-center">
                                 <h2 className="text-xl font-semibold text-gray-900">
-                                  {acceptedOfferId ? "Oferta Aceptada" : "Ofertas Disponibles"}
+                                  {acceptedOfferId
+                                    ? "Oferta Aceptada"
+                                    : "Ofertas Disponibles"}
                                 </h2>
                                 <Button
                                   variant="light"
@@ -869,8 +893,7 @@ export default function DashboardPage() {
                                     setSelectedSolicitudId(null);
                                     setAcceptedOfferId(null);
                                     set_offer_Data([]);
-                  
-                                  } }
+                                  }}
                                   size="sm"
                                   endContent={
                                     <ChevronRight className="w-4 h-4 rotate-180" />
@@ -881,18 +904,24 @@ export default function DashboardPage() {
                               </div>
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 {offer_data.map((offer, idx) => (
-                                  <Card key={idx} className={`w-full ${acceptedOfferId === offer.id ? "border-2 border-green-500" : ""}`}>
+                                  <Card
+                                    key={idx}
+                                    className={`w-full ${
+                                      acceptedOfferId === offer.id
+                                        ? "border-2 border-green-500"
+                                        : ""
+                                    }`}
+                                  >
                                     <CardBody className="p-6">
                                       <div className="space-y-6">
                                         {/* Header Section */}
                                         <div className="flex justify-between items-start">
                                           <div className="flex-col gap-2">
-
                                             <div className="flex items-center gap-2">
                                               <h4 className="text-xl font-medium text-gray-900">
                                                 {offer.lender_name}
                                               </h4>
-                                              
+
                                               {acceptedOfferId === offer.id && (
                                                 <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full font-medium">
                                                   Aceptada
@@ -900,14 +929,16 @@ export default function DashboardPage() {
                                               )}
                                             </div>
                                             <div className="flex gap-2 font-bold text-lg">
-                                                <span className="text-black">
-                                                  Pago {offer.monthly_payment?.toLocaleString()}:
-                                                </span>
-                                                <span className="font-bold">
-                                                  $
-                                                  {offer.amortization?.toLocaleString()}
-                                                </span>
-                                              </div>
+                                              <span className="text-black">
+                                                Pago{" "}
+                                                {offer.monthly_payment?.toLocaleString()}
+                                                :
+                                              </span>
+                                              <span className="font-bold">
+                                                $
+                                                {offer.amortization?.toLocaleString()}
+                                              </span>
+                                            </div>
                                           </div>
                                           <div className="text-right">
                                             <p className="text-2xl font-bold text-green-600">
@@ -917,9 +948,7 @@ export default function DashboardPage() {
                                               {offer.interest_rate}% interés
                                             </p>
                                           </div>
-                                          
                                         </div>
-                                       
 
                                         {/* Main Info Grid */}
                                         <div className="grid grid-cols-1 gap-6 pt-4 border-t">
@@ -928,7 +957,6 @@ export default function DashboardPage() {
                                               Información del Préstamo
                                             </h5>
                                             <div className="space-y-3">
-                                              
                                               {offer.comision !== undefined && (
                                                 <div className="flex justify-between text-sm">
                                                   <span className="text-gray-500">
@@ -952,14 +980,14 @@ export default function DashboardPage() {
                                                   </span>
                                                 </div>
                                               )}
-                                              {offer.deadline !==
-                                                undefined && (
+                                              {offer.deadline !== undefined && (
                                                 <div className="flex justify-between text-sm">
                                                   <span className="text-gray-500">
                                                     Plazo del prestamo:
                                                   </span>
-                                                  <span className="font-medium">  
-                                                    {offer.deadline?.toLocaleString()} meses  
+                                                  <span className="font-medium">
+                                                    {offer.deadline?.toLocaleString()}{" "}
+                                                    meses
                                                   </span>
                                                 </div>
                                               )}
@@ -1030,7 +1058,7 @@ export default function DashboardPage() {
                                               </div>
                                             )}
                                         </div>
-                                        
+
                                         {/* Accept Button or Status */}
                                         <div className="pt-4 border-t">
                                           <div className="space-y-3">
@@ -1038,15 +1066,23 @@ export default function DashboardPage() {
                                               acceptedOfferId === offer.id ? (
                                                 <div className="bg-green-50 border border-green-100 rounded-lg p-3 text-center">
                                                   <CheckCircle2 className="w-5 h-5 text-green-600 mx-auto mb-2" />
-                                                  <p className="text-sm text-green-700 font-medium">Esta oferta ha sido aceptada. El prestamista se pondrá en contacto contigo.</p>
+                                                  <p className="text-sm text-green-700 font-medium">
+                                                    Esta oferta ha sido
+                                                    aceptada. El prestamista se
+                                                    pondrá en contacto contigo.
+                                                  </p>
                                                 </div>
                                               ) : null
                                             ) : (
                                               <Button
                                                 color="success"
                                                 className="w-full bg-green-600 hover:bg-green-700 text-white font-medium shadow-md"
-                                                onPress={() => confirmAcceptOffer(offer, idx)}
-                                                startContent={<CheckCircle2 className="w-4 h-4" />}
+                                                onPress={() =>
+                                                  confirmAcceptOffer(offer, idx)
+                                                }
+                                                startContent={
+                                                  <CheckCircle2 className="w-4 h-4" />
+                                                }
                                               >
                                                 Aceptar Oferta
                                               </Button>
@@ -1061,7 +1097,9 @@ export default function DashboardPage() {
                               {acceptedOfferId && (
                                 <div className="mt-8 flex justify-center">
                                   <p className="text-sm text-gray-500 mb-4 text-center max-w-md">
-                                    Has aceptado esta oferta. El prestamista se pondrá en contacto contigo para los siguientes pasos.
+                                    Has aceptado esta oferta. El prestamista se
+                                    pondrá en contacto contigo para los
+                                    siguientes pasos.
                                   </p>
                                 </div>
                               )}
@@ -1452,18 +1490,34 @@ export default function DashboardPage() {
                     <div className="space-y-4">
                       <p>
                         Estás a punto de aceptar la oferta de{" "}
-                        <span className="font-semibold">{offerToAccept.offer.lender_name}</span> por{" "}
+                        <span className="font-semibold">
+                          {offerToAccept.offer.lender_name}
+                        </span>{" "}
+                        por{" "}
                         <span className="font-semibold text-green-600">
                           ${offerToAccept.offer.amount.toLocaleString()}
                         </span>
                       </p>
                       <div className="bg-amber-50 p-3 rounded-md border border-amber-200">
-                        <p className="text-amber-800 text-sm font-medium">Importante</p>
+                        <p className="text-amber-800 text-sm font-medium">
+                          Importante
+                        </p>
                         <ul className="text-sm text-amber-700 list-disc pl-5 mt-2 space-y-1">
-                          <li>Al aceptar esta oferta, las demás ofertas para esta solicitud se marcarán como rechazadas.</li>
-                          <li>Solo el prestamista de la oferta aceptada podrá ver tu solicitud.</li>
-                          <li>Tu solicitud ya no será visible para otros prestamistas.</li>
-                          <li>No podrás deshacer esta acción después de confirmar.</li>
+                          <li>
+                            Al aceptar esta oferta, las demás ofertas para esta
+                            solicitud se marcarán como rechazadas.
+                          </li>
+                          <li>
+                            Solo el prestamista de la oferta aceptada podrá ver
+                            tu solicitud.
+                          </li>
+                          <li>
+                            Tu solicitud ya no será visible para otros
+                            prestamistas.
+                          </li>
+                          <li>
+                            No podrás deshacer esta acción después de confirmar.
+                          </li>
                         </ul>
                       </div>
                     </div>

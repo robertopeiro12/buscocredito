@@ -1,5 +1,5 @@
 "use client";
-import NavBar from "@/components/navbar";
+import NavBar from "@/components/common/layout/navbar";
 import { useEffect, useState } from "react";
 
 export default function LoginLayout({

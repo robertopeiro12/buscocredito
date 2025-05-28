@@ -2,7 +2,7 @@ import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import Footer from "@/components/Footer";
+import Footer from "@/components/common/layout/Footer";
 
 export default function AcercaDePage() {
   return (

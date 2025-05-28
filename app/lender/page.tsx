@@ -8,7 +8,7 @@ import { LogOut } from "lucide-react";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { useEffect } from "react";
 import { auth } from "../firebase";
-import { LenderSidebar } from "@/components/LenderSidebar";
+import { LenderSidebar } from "@/components/features/dashboard/LenderSidebar";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import {
@@ -44,13 +44,13 @@ import {
 } from "lucide-react";
 
 // Hooks
-import { useLoans } from "./hooks/useLoans";
+import { useLoan } from "@/hooks/useLoans";
 import { useProposal } from "./hooks/useProposal";
 
 // Components
-import LoanRequestList from "@/components/LoanRequestList";
-import LoanRequestDetails from "@/components/LoanRequestDetails";
-import { ProposalForm } from "@/components/ProposalForm";
+import LoanRequestList from "@/components/features/loans/LoanRequestList";
+import LoanRequestDetails from "@/components/features/loans/LoanRequestDetails";
+import { ProposalForm } from "@/components/features/loans/ProposalForm";
 
 // Types
 import type {
@@ -81,7 +81,15 @@ export default function LenderPage() {
   const [lenderProposals, setLenderProposals] = useState<any[]>([]);
   const [loadingProposals, setLoadingProposals] = useState(false);
 
-  const { loans: requests, loading, refreshLoans } = useLoans(partnerData.company);
+  const {
+    loans: requests,
+    loading,
+    fetchLoans: refreshLoans,
+  } = useLoan({
+    companyName: partnerData.company,
+    status: "pending",
+    enableRealtime: true,
+  });
 
   const selectedRequest = selectedRequestId
     ? requests.find((r) => r.id === selectedRequestId) || null
@@ -151,7 +159,6 @@ export default function LenderPage() {
       if (userAuth) {
         setUser(userAuth.uid);
         getPartnerData(userAuth.uid);
-       
       } else {
         router.push("/login");
       }
@@ -212,7 +219,6 @@ export default function LenderPage() {
         company: docSnap.data().Empresa,
         company_id: docSnap.data().company_id,
       });
-      console.log("partner data", docSnap.data());
     }
   };
 
@@ -244,8 +250,6 @@ export default function LenderPage() {
   };
 
   const updateOffer = async (id: string) => {
-    console.log("updating offer", id);
-    console.log("proposaldata", proposalData);
     try {
       const response = await fetch("/api/addOfferAcepted", {
         method: "POST",
@@ -256,7 +260,6 @@ export default function LenderPage() {
       });
 
       if (response.ok) {
-        console.log("xd");
       } else {
         console.error("Error fetching user data:", response.statusText);
       }
@@ -273,16 +276,16 @@ export default function LenderPage() {
         duration: 4000,
         position: "top-center",
       });
-      
+
       // Cerrar el formulario de propuesta
       setIsCreatingOffer(false);
       resetProposal();
-      
+
       refreshLoans();
 
       // Volver al mercado de ofertas
       setSelectedRequestId(null);
-      
+
       // Actualizar la vista para mostrar el mercado
       setActiveTab("marketplace");
     }
@@ -307,7 +310,7 @@ export default function LenderPage() {
 
   const fetchLenderProposals = async () => {
     if (!user) return;
-    
+
     setLoadingProposals(true);
     try {
       const response = await fetch("/api/getLenderProposals", {
@@ -653,21 +656,22 @@ export default function LenderPage() {
             <div className="flex justify-between items-center mb-6">
               <h1 className="text-2xl font-bold text-gray-900">Mis Ofertas</h1>
             </div>
-            
+
             {loadingProposals ? (
               <div className="flex items-center justify-center h-64">
                 {/* <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"> */}
-                <div className="w-16 h-16 border-4 border-green-200 border-t-green-600 rounded-full animate-spin">
-                </div>
+                <div className="w-16 h-16 border-4 border-green-200 border-t-green-600 rounded-full animate-spin"></div>
               </div>
             ) : lenderProposals.length === 0 ? (
               <div className="text-center p-10 bg-white rounded-lg shadow">
                 <div className="text-5xl text-gray-300 mb-4">📝</div>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No has enviado propuestas</h3>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                  No has enviado propuestas
+                </h3>
                 <p className="text-gray-600 mb-6">
                   Cuando envíes propuestas a los solicitantes, aparecerán aquí.
                 </p>
-                <Button 
+                <Button
                   color="success"
                   className="bg-green-600 hover:bg-green-700 text-white"
                   onClick={() => setActiveTab("marketplace")}
@@ -690,58 +694,81 @@ export default function LenderPage() {
                           </p>
                         </div>
                         <div className="flex flex-col items-center">
-                        <span className="text-lg font-semibold text-green-600">
-                        ${proposal.amount?.toLocaleString()}
-                        </span>
-                        <Chip
-                          className={`text-white text-sm ${
-                            proposal.status === 'pending' ?  'bg-gray-500' :
-                            proposal.status === 'accepted' ? 'bg-green-500' :
-                            'bg-red-500'
-                          }`}
-                        >
-                          {proposal.status === 'pending' ? 'Pendiente' :
-                           proposal.status === 'accepted' ? 'Aceptada' :
-                           'Rechazada'}
-                        </Chip>
+                          <span className="text-lg font-semibold text-green-600">
+                            ${proposal.amount?.toLocaleString()}
+                          </span>
+                          <Chip
+                            className={`text-white text-sm ${
+                              proposal.status === "pending"
+                                ? "bg-gray-500"
+                                : proposal.status === "accepted"
+                                ? "bg-green-500"
+                                : "bg-red-500"
+                            }`}
+                          >
+                            {proposal.status === "pending"
+                              ? "Pendiente"
+                              : proposal.status === "accepted"
+                              ? "Aceptada"
+                              : "Rechazada"}
+                          </Chip>
                         </div>
                       </div>
-                      
-                      <div className="space-y-3"> 
+
+                      <div className="space-y-3">
                         <div className="flex justify-between items-center">
-                          <span className="text-gray-500">Tasa de interés:</span>
-                          <span className="font-medium">{proposal.interest_rate}%</span>
+                          <span className="text-gray-500">
+                            Tasa de interés:
+                          </span>
+                          <span className="font-medium">
+                            {proposal.interest_rate}%
+                          </span>
                         </div>
                         <div className="flex justify-between items-center">
-                          <span className="text-gray-500">Plazo del prestamo:</span>
-                          <span className="font-medium">{proposal.deadline} meses</span>
+                          <span className="text-gray-500">
+                            Plazo del prestamo:
+                          </span>
+                          <span className="font-medium">
+                            {proposal.deadline} meses
+                          </span>
                         </div>
                         <div className="flex justify-between items-center">
                           <span className="text-gray-600">Amortizacion:</span>
-                          <span className="font-medium">${proposal.amortization}</span>
+                          <span className="font-medium">
+                            ${proposal.amortization}
+                          </span>
                         </div>
                         <div className="flex justify-between items-center">
-                          <span className="text-gray-500">Frequencia de pago:</span>
-                          <span className="font-medium">{proposal.amortization_frequency}</span>
+                          <span className="text-gray-500">
+                            Frequencia de pago:
+                          </span>
+                          <span className="font-medium">
+                            {proposal.amortization_frequency}
+                          </span>
                         </div>
                         <div className="flex justify-between items-center">
                           <span className="text-gray-500">Comision:</span>
-                          <span className="font-medium">${proposal.comision}</span>
+                          <span className="font-medium">
+                            ${proposal.comision}
+                          </span>
                         </div>
                         <div className="flex justify-between items-center">
                           <span className="text-gray-500">Seguro de vida:</span>
-                          <span className="font-medium">${proposal.medical_balance}</span>
+                          <span className="font-medium">
+                            ${proposal.medical_balance}
+                          </span>
                         </div>
                         {proposal.createdAt && (
                           <div className="flex justify-between items-center">
                             <span className="text-gray-500">Enviada el:</span>
                             <span className="font-medium">
-                              {new Date(proposal.createdAt).toLocaleDateString()}
+                              {new Date(
+                                proposal.createdAt
+                              ).toLocaleDateString()}
                             </span>
                           </div>
                         )}
                       </div>
-                      
                     </CardBody>
                   </Card>
                 ))}

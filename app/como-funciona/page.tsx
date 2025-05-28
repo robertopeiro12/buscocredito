@@ -10,7 +10,7 @@ import {
   LineChart,
   BarChart,
 } from "lucide-react";
-import Footer from "@/components/Footer";
+import Footer from "@/components/common/layout/Footer";
 
 export default function ComoFuncionaPage() {
   return (
