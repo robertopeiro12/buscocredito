@@ -1,28 +1,41 @@
 // app/login/page.tsx
 "use client";
 import { Input, Button } from "@nextui-org/react";
-import { useState } from "react";
 import { useAuth } from "../../contexts/AuthContext";
+import { useForm } from "../../hooks/useForm";
+
+// Reglas de validación
+const validationRules = {
+  email: (value: string) => {
+    if (!value) return "El email es requerido";
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+      return "Email inválido";
+    }
+  },
+  password: (value: string) => {
+    if (!value) return "La contraseña es requerida";
+    if (value.length < 6) {
+      return "La contraseña debe tener al menos 6 caracteres";
+    }
+  },
+};
 
 export default function LoginPage() {
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-  });
-  const { signIn, loading, error } = useAuth();
-
-  const handleInputChange = (value: string, field: "email" | "password") => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
-  };
+  const { signIn, loading, error: authError } = useAuth();
+  const {
+    values: formData,
+    errors,
+    touched,
+    isSubmitting,
+    handleChange,
+    handleBlur,
+    handleSubmit,
+  } = useForm({ email: "", password: "" }, validationRules);
 
   const handleSignIn = async () => {
-    if (!formData.email || !formData.password) {
-      return;
-    }
-    await signIn(formData.email, formData.password);
+    await handleSubmit(async (values) => {
+      await signIn(values.email, values.password);
+    });
   };
 
   return (
@@ -37,8 +50,10 @@ export default function LoginPage() {
           label="Email"
           placeholder="correo@ejemplo.com"
           value={formData.email}
-          onValueChange={(value) => handleInputChange(value, "email")}
-          isInvalid={!!error}
+          onValueChange={(value) => handleChange("email", value)}
+          onBlur={() => handleBlur("email")}
+          isInvalid={!!errors.email && touched.email}
+          errorMessage={touched.email && errors.email}
           classNames={{
             input: "bg-transparent",
             inputWrapper: [
@@ -54,8 +69,10 @@ export default function LoginPage() {
           label="Contraseña"
           placeholder="••••••••"
           value={formData.password}
-          onValueChange={(value) => handleInputChange(value, "password")}
-          isInvalid={!!error}
+          onValueChange={(value) => handleChange("password", value)}
+          onBlur={() => handleBlur("password")}
+          isInvalid={!!errors.password && touched.password}
+          errorMessage={touched.password && errors.password}
           classNames={{
             input: "bg-transparent",
             inputWrapper: [
@@ -66,7 +83,9 @@ export default function LoginPage() {
           }}
         />
 
-        {error && <p className="text-red-500 text-sm text-center">{error}</p>}
+        {authError && (
+          <p className="text-red-500 text-sm text-center">{authError}</p>
+        )}
 
         <div className="flex justify-end">
           <a
@@ -80,10 +99,10 @@ export default function LoginPage() {
         <Button
           color="success"
           onClick={handleSignIn}
-          isLoading={loading}
+          isLoading={loading || isSubmitting}
           className="w-full bg-[#55A555] hover:opacity-90 transition-opacity"
         >
-          {loading ? "Iniciando sesión..." : "Iniciar Sesión"}
+          {loading || isSubmitting ? "Iniciando sesión..." : "Iniciar Sesión"}
         </Button>
       </div>
     </div>

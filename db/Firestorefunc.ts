@@ -44,7 +44,6 @@ export const getUserOfferData = async (id: string) => {
   const accountRef = Firestore.collection("cuentas").doc(id)
   try {
     const snapshot = await accountRef.get()
-    console.log("snapshot", snapshot.data())
     const userData = snapshot.data();
     
     if (!userData) {
@@ -59,7 +58,6 @@ export const getUserOfferData = async (id: string) => {
       purpose: userData.purpose || 'No especificado'
     }
     const json_data = JSON.stringify(filteredData)
-    console.log("json_data", json_data)
     return { status: 200, data: json_data }
   } catch (error: any) {
     console.error("Error getting offer: ", error)
@@ -76,7 +74,6 @@ export const add_propuesta = async (id: string, offer_data: any) => {
     try {
     const newDocRef = await propuestasRef.add(offer_data);
     const newDocId = newDocRef.id;
-    console.log("New document ID: ", newDocId);
       
      await accountRef.update({
             accepted: FieldValue.arrayUnion(newDocId)

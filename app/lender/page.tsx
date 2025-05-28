@@ -44,7 +44,7 @@ import {
 } from "lucide-react";
 
 // Hooks
-import { useLoans } from "./hooks/useLoans";
+import { useLoan } from "@/hooks/useLoans";
 import { useProposal } from "./hooks/useProposal";
 
 // Components
@@ -84,8 +84,12 @@ export default function LenderPage() {
   const {
     loans: requests,
     loading,
-    refreshLoans,
-  } = useLoans(partnerData.company);
+    fetchLoans: refreshLoans,
+  } = useLoan({
+    companyName: partnerData.company,
+    status: "pending",
+    enableRealtime: true,
+  });
 
   const selectedRequest = selectedRequestId
     ? requests.find((r) => r.id === selectedRequestId) || null
@@ -215,7 +219,6 @@ export default function LenderPage() {
         company: docSnap.data().Empresa,
         company_id: docSnap.data().company_id,
       });
-      console.log("partner data", docSnap.data());
     }
   };
 
@@ -247,8 +250,6 @@ export default function LenderPage() {
   };
 
   const updateOffer = async (id: string) => {
-    console.log("updating offer", id);
-    console.log("proposaldata", proposalData);
     try {
       const response = await fetch("/api/addOfferAcepted", {
         method: "POST",
@@ -259,7 +260,6 @@ export default function LenderPage() {
       });
 
       if (response.ok) {
-        console.log("xd");
       } else {
         console.error("Error fetching user data:", response.statusText);
       }
