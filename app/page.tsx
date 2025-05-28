@@ -1,8 +1,8 @@
 "use client";
 
-import Introduction from "@/components/Introduction";
-import Acerca from "@/components/Acerca";
-import Footer from "@/components/Footer";
+import Introduction from "@/components/shared/Introduction";
+import Acerca from "@/components/shared/Acerca";
+import Footer from "@/components/common/layout/Footer";
 import React, { useState, useEffect } from "react";
 
 export default function Home() {

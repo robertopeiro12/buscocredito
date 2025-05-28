@@ -27,8 +27,8 @@ import {
   Spinner,
 } from "@nextui-org/react";
 import { Search, PlusCircle, User, BarChart } from "lucide-react";
-import { AdminSidebar } from "@/components/AdminSidebar";
-import { SubaccountCard } from "@/components/SubaccountCard";
+import { AdminSidebar } from "@/components/features/dashboard/AdminSidebar";
+import { SubaccountCard } from "@/components/features/dashboard/SubaccountCard";
 import {
   Chart as ChartJS,
   CategoryScale,
