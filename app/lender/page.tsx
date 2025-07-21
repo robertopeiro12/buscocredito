@@ -323,6 +323,7 @@ export default function LenderPage() {
 
       if (response.ok) {
         const data = await response.json();
+        console.log("Proposals received:", data.data); // Debug log
         setLenderProposals(data.data || []);
       } else {
         console.error("Error fetching proposals:", response.statusText);
@@ -773,6 +774,37 @@ export default function LenderPage() {
                           </span>
                         </div>
                       </div>
+
+                      {/* Datos de contacto para propuestas aceptadas */}
+                      {proposal.status === "accepted" && proposal.contactInfo && (
+                        <div className="mt-4 pt-4 border-t border-gray-200">
+                          {console.log(`Rendering contact info for proposal ${proposal.id}:`, proposal.contactInfo)}
+                          <h4 className="font-semibold text-green-700 mb-3 flex items-center">
+                            <User className="h-4 w-4 mr-2" />
+                            Datos de Contacto
+                          </h4>
+                          <div className="space-y-2 bg-green-50 p-3 rounded-md">
+                            <div className="flex justify-between items-center">
+                              <span className="text-gray-600">Nombre completo:</span>
+                              <span className="font-medium text-gray-800">
+                                {proposal.contactInfo.fullName || "No disponible"}
+                              </span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                              <span className="text-gray-600">Email:</span>
+                              <span className="font-medium text-gray-800">
+                                {proposal.contactInfo.email || "No disponible"}
+                              </span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                              <span className="text-gray-600">Teléfono:</span>
+                              <span className="font-medium text-gray-800">
+                                {proposal.contactInfo.phone || "No disponible"}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </CardBody>
                   </Card>
                 ))}

@@ -20,7 +20,10 @@ export async function POST(req: NextRequest) {
     
     // Update the selected proposal to accepted
     const selectedProposalRef = db.collection('propuestas').doc(proposalId);
-    batch.update(selectedProposalRef, { status: status });
+    batch.update(selectedProposalRef, { 
+      status: status,
+      loanId: loanId // Asegurar que el loanId esté presente
+    });
     
     // Update the solicitud to mark as accepted and hide from other lenders
     const solicitudRef = db.collection('solicitudes').doc(loanId);

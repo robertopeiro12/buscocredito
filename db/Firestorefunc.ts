@@ -151,8 +151,43 @@ export const getLenderProposals = async (lenderId: string) => {
       .where("partner", "==", lenderId)
       .get();
     
-    const proposals = allDocs.docs.map(doc => {
+    const proposals = await Promise.all(allDocs.docs.map(async (doc) => {
       const data = doc.data();
+      let contactInfo = null;
+      
+      // Si la propuesta fue aceptada, obtener datos de contacto del solicitante
+      if (data.status === "accepted" && data.loanId) {
+        try {
+          // Obtener la solicitud para conseguir el userId
+          const solicitudDoc = await Firestore.collection("solicitudes").doc(data.loanId).get();
+          if (solicitudDoc.exists) {
+            const solicitudData = solicitudDoc.data();
+            const userId = solicitudData?.userId;
+            
+            if (userId) {
+              // Obtener datos de contacto del usuario
+              const userDoc = await Firestore.collection("cuentas").doc(userId).get();
+              if (userDoc.exists) {
+                const userData = userDoc.data();
+                // Construir nombre completo con los campos correctos
+                const firstName = userData?.name || '';
+                const lastName = userData?.last_name || '';
+                const secondLastName = userData?.second_last_name || '';
+                const fullName = `${firstName} ${lastName} ${secondLastName}`.trim().replace(/\s+/g, ' ');
+                
+                contactInfo = {
+                  fullName: fullName || userData?.Nombre || "No disponible",
+                  email: userData?.email || "No disponible",
+                  phone: userData?.phone || userData?.telefono || "No disponible"
+                };
+              }
+            }
+          }
+        } catch (error) {
+          console.error("Error getting contact info for proposal:", doc.id, error);
+        }
+      }
+      
       return {
         id: doc.id,
         amortization: data.amortization,
@@ -166,9 +201,15 @@ export const getLenderProposals = async (lenderId: string) => {
         status: data.status,
         createdAt: data.createdAt?.toDate ? data.createdAt.toDate().toISOString() : 
                   data.createdAt instanceof Date ? data.createdAt.toISOString() : null,
-        requestInfo: data.requestInfo || {}
+        requestInfo: data.requestInfo || {},
+        contactInfo: contactInfo
       };
-    });
+      
+      // Log para debugging
+      if (data.status === "accepted") {
+        console.log(`Proposal ${doc.id} contactInfo:`, contactInfo);
+      }
+    }));
 
     console.log("Propuestas encontradas:", proposals.length);
     return { status: 200, data: proposals };
