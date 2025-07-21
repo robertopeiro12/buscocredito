@@ -61,15 +61,17 @@ export async function POST(req: NextRequest) {
       await createNotification({
         recipientId: winningProposal.partner,
         type: "loan_accepted",
-        title: "Propuesta aceptada",
-        message: `El solicitante ha seleccionado tu oferta de $${winningProposal.amount?.toLocaleString()} con una tasa de interés del ${winningProposal.interest_rate}%. Te contactaremos pronto para proceder con la formalización del préstamo.`,
+        title: "Propuesta Aceptada",
+        message: `El solicitante ha seleccionado tu oferta de $${winningProposal.amount?.toLocaleString()} con una tasa de interés del ${winningProposal.interest_rate}%.`,
         data: {
           loanId: loanId,
           proposalId: proposalId,
           amount: winningProposal.amount,
           interestRate: winningProposal.interest_rate,
+          amortizationFrequency: winningProposal.amortization_frequency,
           term: winningProposal.deadline,
-          nextSteps: "formal_process"
+          comision: winningProposal.comision,
+          medicalBalance: winningProposal.medical_balance
         }
       });
       
@@ -85,7 +87,7 @@ export async function POST(req: NextRequest) {
           return createNotification({
             recipientId: competitorProposal.partner,
             type: "loan_assigned_other",
-            title: "Préstamo asignado a otra propuesta",
+            title: "El Usuario ha aceptado otra propuesta",
             message: "La solicitud fue asignada a otra propuesta",
             data: {
               loanId: loanId,

@@ -15,8 +15,10 @@ interface NotificationData {
     proposalId?: string;
     amount?: number;
     interestRate?: number;
+    amortizationFrequency?: string;
     term?: number;
-    nextSteps?: string;
+    comision?: number;
+    medicalBalance?: number;
     winningOffer?: {
       amount?: number;
       interestRate?: number;
@@ -266,8 +268,7 @@ export default function NotificationCenter({ userId, compact = false }: Notifica
                       {/* Información adicional para competidores */}
                       {notification.type === "loan_assigned_other" && notification.data && (
                         <div className="mt-3 p-3 bg-gray-50 rounded-md text-xs">
-                          {console.log("Notification data:", notification.data)}
-                          <h5 className="font-medium text-gray-700 mb-2">Propuesta ganadora:</h5>
+                          <h5 className="font-medium text-gray-700 mb-2">Detalles de la propuesta ganadora:</h5>
                           <div className="space-y-1 text-gray-600">
                             <div>
                               <span className="font-medium">Monto:</span> ${notification.data.winningOffer?.amount?.toLocaleString() || 'N/A'}
@@ -294,24 +295,37 @@ export default function NotificationCenter({ userId, compact = false }: Notifica
                       {/* Información adicional para ganadores */}
                       {notification.type === "loan_accepted" && notification.data && (
                         <div className="mt-3 p-3 bg-green-50 rounded-md text-xs">
-                          <h5 className="font-medium text-green-700 mb-2">Detalles de tu propuesta aceptada:</h5>
-                          <div className="grid grid-cols-2 gap-2 text-green-600">
+                          <h5 className="font-medium text-green-700 mb-2">Detalles de la propuesta aceptada</h5>
+                          <div className="grid grid-cols-2 gap-2 text-green-600 mb-3">
                             <div>
                               <span className="font-medium">Monto:</span>
                               <br />${notification.data.amount?.toLocaleString()}
                             </div>
                             <div>
-                              <span className="font-medium">Tasa de interés:</span>
+                              <span className="font-medium">Tasa:</span>
                               <br />{notification.data.interestRate}%
+                            </div>
+                            <div>
+                              <span className="font-medium">Frecuencia:</span>
+                              <br />{notification.data.amortizationFrequency}
                             </div>
                             <div>
                               <span className="font-medium">Plazo:</span>
                               <br />{notification.data.term} meses
                             </div>
                             <div>
-                              <span className="font-medium">Próximos pasos:</span>
-                              <br />Formalización del proceso
+                              <span className="font-medium">Comisión:</span>
+                              <br />${notification.data.comision?.toLocaleString()}
                             </div>
+                            <div>
+                              <span className="font-medium">Seguro de vida:</span>
+                              <br />${notification.data.medicalBalance?.toLocaleString()}
+                            </div>
+                          </div>
+                          <div className="border-t border-green-200 pt-2">
+                            <span className="font-medium text-green-700">Próximos pasos:</span>
+                            <br />
+                            <span className="text-green-600">Contactate con el usuario</span>
                           </div>
                         </div>
                       )}
