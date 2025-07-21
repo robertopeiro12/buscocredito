@@ -2,6 +2,7 @@ import "server-only";
 import { NextRequest, NextResponse } from 'next/server';
 import { initAdmin } from '@/db/FirebaseAdmin';
 import { getFirestore } from 'firebase-admin/firestore';
+import { createNotification } from '@/db/FirestoreFunc';
 
 export async function POST(req: NextRequest) {
   const { proposalId, loanId, status } = await req.json();
@@ -48,9 +49,66 @@ export async function POST(req: NextRequest) {
     
     await batch.commit();
     
+    // Step 2: Create notifications after successful batch commit
+    console.log("Creating notifications for loan acceptance...");
+    
+    // Get the winning proposal data
+    const winningProposalDoc = await db.collection('propuestas').doc(proposalId).get();
+    const winningProposal = winningProposalDoc.data();
+    
+    if (winningProposal) {
+      // Notification for the winner
+      await createNotification({
+        recipientId: winningProposal.partner,
+        type: "loan_accepted",
+        title: "Propuesta aceptada",
+        message: `El solicitante ha seleccionado tu oferta de $${winningProposal.amount?.toLocaleString()} con una tasa de interés del ${winningProposal.interest_rate}%. Te contactaremos pronto para proceder con la formalización del préstamo.`,
+        data: {
+          loanId: loanId,
+          proposalId: proposalId,
+          amount: winningProposal.amount,
+          interestRate: winningProposal.interest_rate,
+          term: winningProposal.deadline,
+          nextSteps: "formal_process"
+        }
+      });
+      
+      // Get loan details for competitor notifications
+      const loanDoc = await db.collection('solicitudes').doc(loanId).get();
+      const loanData = loanDoc.data();
+      
+      // Notifications for competitors
+      const competitorNotifications = otherProposalsSnapshot.docs
+        .filter(doc => doc.id !== proposalId)
+        .map(async (doc) => {
+          const competitorProposal = doc.data();
+          return createNotification({
+            recipientId: competitorProposal.partner,
+            type: "loan_assigned_other",
+            title: "Préstamo asignado a otra propuesta",
+            message: "La solicitud fue asignada a otra propuesta",
+            data: {
+              loanId: loanId,
+              winningOffer: {
+                amount: winningProposal.amount,
+                interestRate: winningProposal.interest_rate,
+                amortizationFrequency: winningProposal.amortization_frequency,
+                term: winningProposal.deadline,
+                comision: winningProposal.comision,
+                medicalBalance: winningProposal.medical_balance
+              }
+            }
+          });
+        });
+      
+      // Send all competitor notifications
+      await Promise.all(competitorNotifications);
+      console.log(`Sent notifications to ${competitorNotifications.length} competitors`);
+    }
+    
     return NextResponse.json({ 
       status: 200, 
-      message: "Proposal status updated successfully",
+      message: "Proposal status updated successfully and notifications sent",
       proposalId: proposalId,
       loanId: loanId 
     });

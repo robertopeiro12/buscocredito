@@ -1,12 +1,14 @@
 // components/LenderSidebar.tsx
 import { Button } from "@nextui-org/react";
 import { Store, FileText, Settings, HelpCircle, LogOut } from "lucide-react";
+import NotificationCenter from "@/components/features/dashboard/NotificationCenter";
 
 type LenderSidebarProps = {
   activeTab: string;
   setActiveTab: (tab: string) => void;
   handleSignOut: () => void;
   companyName: string;
+  userId: string;
 };
 
 export function LenderSidebar({
@@ -14,6 +16,7 @@ export function LenderSidebar({
   setActiveTab,
   handleSignOut,
   companyName,
+  userId,
 }: LenderSidebarProps) {
   const navItems = [
     {
@@ -42,7 +45,10 @@ export function LenderSidebar({
     <div className="w-64 bg-white border-r border-gray-200 shadow-sm">
       <div className="flex flex-col h-full">
         <div className="p-6 border-b border-gray-200">
-          <h1 className="text-xl font-semibold text-gray-900">{companyName}</h1>
+          <div className="flex items-center justify-between">
+            <h1 className="text-xl font-semibold text-gray-900">{companyName}</h1>
+            <NotificationCenter userId={userId} compact />
+          </div>
         </div>
         <nav className="flex-1 px-3 py-4">
           {navItems.map((item) => (

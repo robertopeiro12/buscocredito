@@ -178,3 +178,95 @@ export const getLenderProposals = async (lenderId: string) => {
   }
 };
 
+// Notification functions
+export const createNotification = async (notificationData: {
+  recipientId: string;
+  type: string;
+  title: string;
+  message: string;
+  data?: any;
+}) => {
+  const Firestore = getFirestore();
+  const notificationsRef = Firestore.collection("notifications");
+  
+  try {
+    const newNotification = {
+      ...notificationData,
+      read: false,
+      createdAt: new Date(),
+    };
+    
+    const docRef = await notificationsRef.add(newNotification);
+    console.log(`Notification created with ID: ${docRef.id}`);
+    
+    return { status: 200, notificationId: docRef.id };
+  } catch (error: any) {
+    console.error("Error creating notification:", error);
+    return { error: error.message, status: 500 };
+  }
+};
+
+export const getNotificationsForUser = async (userId: string) => {
+  const Firestore = getFirestore();
+  const notificationsRef = Firestore.collection("notifications");
+  
+  try {
+    const snapshot = await notificationsRef
+      .where("recipientId", "==", userId)
+      .limit(50)
+      .get();
+    
+    const notifications = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+    
+    // Ordenar por fecha en el cliente
+    notifications.sort((a: any, b: any) => {
+      const dateA = a.createdAt?.toDate ? a.createdAt.toDate() : new Date(a.createdAt);
+      const dateB = b.createdAt?.toDate ? b.createdAt.toDate() : new Date(b.createdAt);
+      return dateB.getTime() - dateA.getTime(); // Más recientes primero
+    });
+    
+    console.log(`Found ${notifications.length} notifications for user ${userId}`);
+    return { status: 200, data: notifications };
+  } catch (error: any) {
+    console.error("Error getting notifications:", error);
+    return { error: error.message, status: 500 };
+  }
+};
+
+export const markNotificationAsRead = async (notificationId: string) => {
+  const Firestore = getFirestore();
+  const notificationRef = Firestore.collection("notifications").doc(notificationId);
+  
+  try {
+    await notificationRef.update({
+      read: true,
+      readAt: new Date()
+    });
+    
+    return { status: 200 };
+  } catch (error: any) {
+    console.error("Error marking notification as read:", error);
+    return { error: error.message, status: 500 };
+  }
+};
+
+export const getUnreadNotificationCount = async (userId: string) => {
+  const Firestore = getFirestore();
+  const notificationsRef = Firestore.collection("notifications");
+  
+  try {
+    const snapshot = await notificationsRef
+      .where("recipientId", "==", userId)
+      .where("read", "==", false)
+      .get();
+    
+    return { status: 200, count: snapshot.size };
+  } catch (error: any) {
+    console.error("Error getting unread count:", error);
+    return { error: error.message, status: 500 };
+  }
+};
+

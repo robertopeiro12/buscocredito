@@ -343,9 +343,23 @@ export default function LenderPage() {
         setActiveTab={setActiveTab}
         handleSignOut={handleSignOut}
         companyName={partnerData.company}
+        userId={user}
       />
 
       <div className="flex-1">
+        {/* Header */}
+        <div className="bg-white shadow-sm border-b border-gray-200 p-4">
+          <div>
+            <h1 className="text-xl font-semibold text-gray-800">
+              {activeTab === "marketplace" && "Mercado de Préstamos"}
+              {activeTab === "myoffers" && "Mis Ofertas"}
+              {activeTab === "settings" && "Configuración"}
+              {activeTab === "help" && "Ayuda"}
+            </h1>
+            <p className="text-sm text-gray-600">{partnerData.company}</p>
+          </div>
+        </div>
+
         {activeTab === "marketplace" && (
           <div className="p-8">
             {/* Barra de Filtros y Contador de solicitudes - Solo mostrar cuando no se está creando una oferta */}
@@ -664,7 +678,7 @@ export default function LenderPage() {
               </div>
             ) : lenderProposals.length === 0 ? (
               <div className="text-center p-10 bg-white rounded-lg shadow">
-                <div className="text-5xl text-gray-300 mb-4">📝</div>
+                <div className="text-5xl text-gray-300 mb-4">�</div>
                 <h3 className="text-lg font-medium text-gray-900 mb-2">
                   No has enviado propuestas
                 </h3>
@@ -758,16 +772,6 @@ export default function LenderPage() {
                             ${proposal.medical_balance}
                           </span>
                         </div>
-                        {proposal.createdAt && (
-                          <div className="flex justify-between items-center">
-                            <span className="text-gray-500">Enviada el:</span>
-                            <span className="font-medium">
-                              {new Date(
-                                proposal.createdAt
-                              ).toLocaleDateString()}
-                            </span>
-                          </div>
-                        )}
                       </div>
                     </CardBody>
                   </Card>
