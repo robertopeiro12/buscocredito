@@ -3,27 +3,95 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // Permitir que usuarios autenticados accedan a su propia información en "cuentas"
+    // Función helper para verificar si el usuario es admin
+    function isAdmin() {
+      return request.auth != null && 
+             exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'b_admin';
+    }
+    
+    // Función helper para verificar si el usuario es lender
+    function isLender() {
+      return request.auth != null && 
+             exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'b_sale';
+    }
+    
+    // Función helper para verificar si es el propietario del documento
+    function isOwner(userId) {
+      return request.auth != null && request.auth.uid == userId;
+    }
+
+    // USUARIOS: Solo pueden leer/modificar su propio perfil
+    match /users/{userId} {
+      allow read, write: if isOwner(userId);
+      allow read: if isAdmin(); // Los admins pueden leer todos los usuarios
+    }
+    
+    // CUENTAS: Mantener compatibilidad con estructura existente
     match /cuentas/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read, write: if isOwner(userId);
+      allow read: if isAdmin();
     }
-    
-    // Permitir que usuarios autenticados accedan a sus propias solicitudes
+
+    // SOLICITUDES DE PRÉSTAMO: 
+    // - Los usuarios solo pueden crear/leer/modificar sus propias solicitudes
+    // - Los lenders pueden leer todas las solicitudes para hacer propuestas
+    // - Los admins pueden ver todo
     match /solicitudes/{solicitudId} {
-      allow read, write, create: if request.auth != null;
+      allow create: if request.auth != null && 
+                      request.auth.uid == request.resource.data.userId;
+      allow read, update: if isOwner(resource.data.userId) || isLender() || isAdmin();
+      allow delete: if isOwner(resource.data.userId) || isAdmin();
     }
-    
-    // Permitir que usuarios autenticados lean propuestas
+
+    // PROPUESTAS:
+    // - Los lenders pueden crear propuestas para cualquier solicitud
+    // - Los usuarios pueden leer propuestas de sus solicitudes
+    // - Los lenders pueden leer/modificar sus propias propuestas
+    // - Los admins pueden ver todo
     match /propuestas/{propuestaId} {
-      allow read, write, create: if request.auth != null;
+      allow create: if isLender() && request.auth != null;
+      allow read: if isOwner(resource.data.lenderId) || 
+                    isOwner(resource.data.userId) || 
+                    isAdmin();
+      allow update: if isOwner(resource.data.lenderId) || isAdmin();
+      allow delete: if isAdmin();
     }
-    
-    // Permitir que usuarios autenticados accedan a las notificaciones
+
+    // NOTIFICACIONES:
+    // - Solo el destinatario puede leer sus notificaciones
+    // - Los admins pueden crear notificaciones
+    // - El destinatario puede marcar como leída
     match /notifications/{notificationId} {
-      allow read, write, create: if request.auth != null;
+      allow read, update: if isOwner(resource.data.userId);
+      allow create: if isAdmin() || isLender();
+      allow delete: if isOwner(resource.data.userId) || isAdmin();
     }
-    
-    // Por defecto, denegar acceso a todo lo demás
+
+    // SUBCUENTAS:
+    // - Solo los lenders pueden gestionar subcuentas
+    // - Solo pueden ver/modificar subcuentas de su organización
+    match /subcuentas/{subcuentaId} {
+      allow read, write: if isLender() && 
+                           exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+                           get(/databases/$(database)/documents/users/$(request.auth.uid)).data.company == resource.data.company;
+      allow read, write: if isAdmin();
+    }
+
+    // MÉTRICAS Y REPORTES:
+    // Solo admins y lenders pueden acceder
+    match /metrics/{document=**} {
+      allow read, write: if isAdmin() || isLender();
+    }
+
+    // CONFIGURACIÓN DEL SISTEMA:
+    // Solo admins
+    match /config/{document=**} {
+      allow read, write: if isAdmin();
+    }
+
+    // Por defecto: denegar todo lo demás
     match /{document=**} {
       allow read, write: if false;
     }

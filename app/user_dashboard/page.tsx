@@ -508,10 +508,18 @@ export default function DashboardPage() {
       createdAt: new Date().toISOString(),
     };
 
-    const db = getFirestore();
-    await addDoc(collection(db, "solicitudes"), solicitudData);
-    fetchSolicitudes(user?.uid || "");
-    setShowForm(false);
+    try {
+      const db = getFirestore();
+      await addDoc(collection(db, "solicitudes"), solicitudData);
+      fetchSolicitudes(user?.uid || "");
+      setShowForm(false);
+      
+      // Mostrar mensaje de éxito
+      alert("¡Solicitud creada exitosamente!");
+    } catch (error) {
+      console.error("Error al guardar solicitud:", error);
+      alert("Error al guardar la solicitud. Inténtalo de nuevo.");
+    }
   };
 
   const openBanksModal = async (solicitudId: string) => {
