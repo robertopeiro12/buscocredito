@@ -11,6 +11,7 @@ import {
   getDoc,
   updateDoc
 } from 'firebase/firestore';
+import { auth } from '@/app/firebase';
 
 export interface LoanRequest {
   id: string;
@@ -38,6 +39,13 @@ export function useLoan(options: UseLoanOptions = {}) {
   const [error, setError] = useState<Error | null>(null);
 
   const fetchLoans = useCallback(async () => {
+    // No hacer consultas si no hay usuario autenticado
+    if (!auth.currentUser) {
+      setLoading(false);
+      setLoans([]);
+      return;
+    }
+
     if (!options.companyName && !options.userId) {
       setLoading(false);
       return;
@@ -162,9 +170,18 @@ export function useLoan(options: UseLoanOptions = {}) {
       }
 
       const unsubscribe = onSnapshot(loansQuery, 
-        () => fetchLoans(),
+        () => {
+          // Solo fetch si el usuario sigue autenticado
+          if (auth.currentUser) {
+            fetchLoans();
+          }
+        },
         (err) => {
           console.error("Error in loans listener:", err);
+          // Si es un error de permisos y no hay usuario, no mostrar error
+          if (err.code === 'permission-denied' && !auth.currentUser) {
+            return;
+          }
           setError(err);
         }
       );

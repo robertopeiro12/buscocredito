@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { auth } from "../firebase";
 import { onAuthStateChanged, signOut, User } from "firebase/auth";
+import { useUserGuard } from "@/hooks/useRoleGuard";
 import {
   Button,
   Card,
@@ -164,6 +165,8 @@ const ErrorFallback = ({ error, resetErrorBoundary }: FallbackProps) => {
 };
 
 export default function DashboardPage() {
+  // TODOS LOS HOOKS PRIMERO (sin early returns)
+  const { isAuthorized, isLoading: isCheckingAuth } = useUserGuard();
   const [user, setUser] = useState<User | null>(null);
   const [activeTab, setActiveTab] = useState("loans");
   const [showBanksModal, setShowBanksModal] = useState(false);
@@ -220,6 +223,82 @@ export default function DashboardPage() {
   });
   const { showNotification } = useNotification();
 
+  // FUNCIONES DECLARADAS ANTES DEL useEffect
+  const fetchUserData = async (userId: string) => {
+    try {
+      const db = getFirestore();
+      const userDoc = await getDoc(doc(db, "cuentas", userId));
+      
+      if (userDoc.exists()) {
+        const userData = userDoc.data() as UserData;
+        setUserData(userData);
+      } else {
+        throw new Error('Documento de usuario no encontrado');
+      }
+    } catch (error) {
+      console.error('fetchUserData: Error occurred:', error);
+      throw error; // Re-throw para que se maneje en el useEffect
+    }
+  };
+
+  const fetchSolicitudes = async (userId: string) => {
+    try {
+      const db = getFirestore();
+      const solicitudesRef = collection(db, "solicitudes");
+      const q = query(solicitudesRef, where("userId", "==", userId));
+      const querySnapshot = await getDocs(q);
+
+      const fetchedSolicitudes: SolicitudData[] = [];
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        fetchedSolicitudes.push({
+          id: doc.id,
+          userId: data.userId,
+          purpose: data.purpose,
+          type: data.type,
+          amount: data.amount,
+          term: data.term,
+          payment: data.payment,
+          income: data.income,
+          status: data.status,
+          createdAt: data.createdAt,
+          updatedAt: data.updatedAt,
+          comision: data.comision,
+        });
+      });
+      
+      fetchedSolicitudes.forEach((solicitud) => {
+        fetchOfferCount(solicitud.id);
+      });
+
+      setSolicitudes(fetchedSolicitudes);
+    } catch (error) {
+      console.error('fetchSolicitudes: Error occurred:', error);
+      throw error; // Re-throw para que se maneje en el useEffect
+    }
+  };
+
+  const fetchOfferCount = async (loanId: string) => {
+    try {
+      const response = await fetch("/api/fetch_loan_offer", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ loanId }),
+        credentials: 'include', // Para incluir cookies de autenticación
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const offers = data.data ? JSON.parse(data.data) : [];
+        setOfferCounts((prev) => ({ ...prev, [loanId]: offers.length }));
+      }
+    } catch (error) {
+      console.error("Error getting offer count:", error);
+    }
+  };
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
@@ -227,16 +306,19 @@ export default function DashboardPage() {
         try {
           setIsLoading((prev) => ({ ...prev, loans: true }));
           await fetchSolicitudes(user.uid);
+          
           setIsLoading((prev) => ({ ...prev, settings: true }));
           await fetchUserData(user.uid);
         } catch (error) {
+          console.error('Error in useEffect:', error);
           if (error instanceof Error) {
+            console.error('Error details:', error.message, error.stack);
             setErrors((prev) => ({
               ...prev,
               loans:
-                "Error al cargar los préstamos. Por favor, intenta de nuevo.",
+                `Error al cargar los préstamos: ${error.message}`,
               settings:
-                "Error al cargar la configuración. Por favor, intenta de nuevo.",
+                `Error al cargar la configuración: ${error.message}`,
             }));
           }
         } finally {
@@ -254,6 +336,24 @@ export default function DashboardPage() {
 
     return () => unsubscribe();
   }, [router]);
+
+  // CONDICIONALES DESPUÉS DE TODOS LOS HOOKS
+  // Mostrar loading mientras verifica permisos
+  if (isCheckingAuth) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Verificando permisos de usuario...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Si no está autorizado, el hook ya manejó la redirección
+  if (!isAuthorized) {
+    return null;
+  }
 
   const fetch_offer_data = async (loanId: string) => {
     try {
@@ -380,8 +480,6 @@ export default function DashboardPage() {
         }
 
         // If we get here, no accepted offer was found
-        console.log("offers test");
-        console.log(offers);
         set_offer_Data(offers);
       }
     } catch (error) {
@@ -392,67 +490,6 @@ export default function DashboardPage() {
     } finally {
       setIsLoading((prev) => ({ ...prev, offers: false }));
     }
-  };
-
-  const fetchUserData = async (userId: string) => {
-    const db = getFirestore();
-    const userDoc = await getDoc(doc(db, "cuentas", userId));
-    if (userDoc.exists()) {
-      setUserData(userDoc.data() as UserData);
-    }
-  };
-
-  const fetchOfferCount = async (loanId: string) => {
-    try {
-      const response = await fetch("/api/fetch_loan_offer", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ loanId }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        const offers = data.data ? JSON.parse(data.data) : [];
-        setOfferCounts((prev) => ({ ...prev, [loanId]: offers.length }));
-      }
-    } catch (error) {
-      console.error("Error getting offer count:", error);
-    }
-  };
-
-  const fetchSolicitudes = async (userId: string) => {
-    const db = getFirestore();
-    const solicitudesRef = collection(db, "solicitudes");
-    const q = query(solicitudesRef, where("userId", "==", userId));
-    const querySnapshot = await getDocs(q);
-
-    const fetchedSolicitudes: SolicitudData[] = [];
-    querySnapshot.forEach((doc) => {
-      const data = doc.data();
-      fetchedSolicitudes.push({
-        id: doc.id,
-        userId: data.userId,
-        purpose: data.purpose,
-        type: data.type,
-        amount: data.amount,
-        term: data.term,
-        payment: data.payment,
-        income: data.income,
-        status: data.status,
-        createdAt: data.createdAt,
-        updatedAt: data.updatedAt,
-        comision: data.comision,
-      });
-    });
-    fetchedSolicitudes.forEach((solicitud) => {
-      fetchOfferCount(solicitud.id);
-    });
-
-    setSolicitudes(fetchedSolicitudes);
-
-    // Fetch offer counts for each solicitud
   };
 
   const deleteSolicitud = async (solicitudId: string) => {
@@ -478,14 +515,12 @@ export default function DashboardPage() {
   };
 
   const openBanksModal = async (solicitudId: string) => {
-    console.log("Opening banks modal for solicitud ID:", solicitudId);
     setSelectedSolicitudId(solicitudId);
 
     // First check if we have a record of this solicitud having an accepted offer in localStorage
     // try {
     //   const acceptedOffers = JSON.parse(localStorage.getItem('acceptedOffers') || '{}');
     //   if (acceptedOffers[solicitudId]) {
-    //     console.log("Found accepted offer ID in localStorage:", acceptedOffers);
     //     setAcceptedOfferId(acceptedOffers[solicitudId]);
     //   } else {
     //     setAcceptedOfferId(null);
@@ -565,9 +600,6 @@ export default function DashboardPage() {
         console.error("Error: La oferta seleccionada no tiene ID");
         throw new Error("La oferta seleccionada no tiene ID");
       }
-
-      console.log("Aceptando oferta con ID:", offer.id);
-      console.log("ID de solicitud:", selectedSolicitudId);
 
       // Update the proposal status using our new endpoint
       const response = await fetch("/api/updateProposalStatus", {
@@ -733,18 +765,21 @@ export default function DashboardPage() {
         <AnimatePresence>
           {errors.loans && (
             <ErrorNotification
+              key="error-loans"
               message={errors.loans}
               onClose={() => handleErrorClose("loans")}
             />
           )}
           {errors.settings && (
             <ErrorNotification
+              key="error-settings"
               message={errors.settings}
               onClose={() => handleErrorClose("settings")}
             />
           )}
           {errors.offers && (
             <ErrorNotification
+              key="error-offers"
               message={errors.offers}
               onClose={() => handleErrorClose("offers")}
             />
@@ -758,7 +793,7 @@ export default function DashboardPage() {
               <div className="space-y-3">
                 {[1, 2, 3].map((i) => (
                   <div
-                    key={i}
+                    key={`initial-loading-${i}`}
                     className="bg-white rounded-lg shadow-md p-6 animate-pulse"
                   >
                     <div className="space-y-3">
@@ -852,7 +887,7 @@ export default function DashboardPage() {
                       {isLoading.loans ? (
                         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                           {[1, 2, 3].map((i) => (
-                            <Card key={i} className="bg-white">
+                            <Card key={`loans-loading-${i}`} className="bg-white">
                               <CardBody className="p-6">
                                 <div className="space-y-4 animate-pulse">
                                   <div className="flex justify-between items-start">
@@ -905,7 +940,7 @@ export default function DashboardPage() {
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 {offer_data.map((offer, idx) => (
                                   <Card
-                                    key={idx}
+                                    key={`offer-${offer.id || idx}`}
                                     className={`w-full ${
                                       acceptedOfferId === offer.id
                                         ? "border-2 border-green-500"
@@ -1025,7 +1060,7 @@ export default function DashboardPage() {
                                                     <tbody className="bg-white divide-y divide-gray-200">
                                                       {offer.amortization.map(
                                                         (row, index) => (
-                                                          <tr key={index}>
+                                                          <tr key={`${offer.id || idx}-amortization-${index}`}>
                                                             <td className="px-3 py-2 text-xs text-gray-900">
                                                               {index + 1}
                                                             </td>
@@ -1232,7 +1267,7 @@ export default function DashboardPage() {
                               <div className="h-6 bg-gray-200 rounded w-1/4 mb-4" />
                               <div className="grid grid-cols-2 gap-4">
                                 {[1, 2, 3, 4].map((i) => (
-                                  <div key={i} className="space-y-2">
+                                  <div key={`solicitudes-loading-${i}`} className="space-y-2">
                                     <div className="h-4 bg-gray-200 rounded w-1/2 animate-pulse" />
                                     <div className="h-4 bg-gray-200 rounded w-3/4 animate-pulse" />
                                   </div>

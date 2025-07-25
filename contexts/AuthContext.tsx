@@ -12,6 +12,18 @@ import type { User, AuthContextType } from "../types/auth";
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Funciones para manejar cookies de autenticación
+const setAuthCookies = (token: string, userType: string) => {
+  // Configurar cookies para el middleware
+  document.cookie = `auth-token=${token}; path=/; max-age=86400; SameSite=Lax`;
+  document.cookie = `user-type=${userType}; path=/; max-age=86400; SameSite=Lax`;
+};
+
+const clearAuthCookies = () => {
+  document.cookie = `auth-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
+  document.cookie = `user-type=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
+};
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -27,13 +39,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
           if (userDoc.exists()) {
             const userData = userDoc.data();
-            setUser({
+            const userInfo = {
               uid: firebaseUser.uid,
               email: firebaseUser.email,
               type: userData.type,
               Empresa: userData.Empresa,
               Empresa_id: userData.Empresa_id,
-            });
+            };
+            
+            setUser(userInfo);
+            
+            // Configurar cookies para el middleware
+            const token = await firebaseUser.getIdToken();
+            setAuthCookies(token, userData.type);
           }
         } catch (error) {
           console.error("Error fetching user data:", error);
@@ -41,6 +59,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       } else {
         setUser(null);
+        clearAuthCookies();
       }
       setLoading(false);
     });
@@ -97,6 +116,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signOut = async () => {
     try {
       await firebaseSignOut(auth);
+      clearAuthCookies();
       router.push("/login");
     } catch (error) {
       console.error("Error signing out:", error);

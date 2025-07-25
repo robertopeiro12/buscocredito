@@ -39,6 +39,20 @@ export const getUserOffers = async () => {
   }
 }
 
+export const getUserOffersByUserId = async (userId: string) => {
+  const Firestore = getFirestore()
+  const accountRef = Firestore.collection("solicitudes")
+  try {
+    // Filtrar ofertas por el usuario específico
+    const snapshot = await accountRef.where("user_id", "==", userId).get()
+    const offers = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+    return { status: 200, offers: offers }
+  } catch (error: any) {
+    console.error("Error getting user offers: ", error)
+    return { error: error.message, status: 500 }
+  }
+}
+
 export const getUserOfferData = async (id: string) => {
   const Firestore = getFirestore()
   const accountRef = Firestore.collection("cuentas").doc(id)
@@ -204,14 +218,8 @@ export const getLenderProposals = async (lenderId: string) => {
         requestInfo: data.requestInfo || {},
         contactInfo: contactInfo
       };
-      
-      // Log para debugging
-      if (data.status === "accepted") {
-        console.log(`Proposal ${doc.id} contactInfo:`, contactInfo);
-      }
     }));
 
-    console.log("Propuestas encontradas:", proposals.length);
     return { status: 200, data: proposals };
   } catch (error: any) {
     console.error("Error getting lender proposals: ", error);
@@ -238,7 +246,6 @@ export const createNotification = async (notificationData: {
     };
     
     const docRef = await notificationsRef.add(newNotification);
-    console.log(`Notification created with ID: ${docRef.id}`);
     
     return { status: 200, notificationId: docRef.id };
   } catch (error: any) {
@@ -269,7 +276,6 @@ export const getNotificationsForUser = async (userId: string) => {
       return dateB.getTime() - dateA.getTime(); // Más recientes primero
     });
     
-    console.log(`Found ${notifications.length} notifications for user ${userId}`);
     return { status: 200, data: notifications };
   } catch (error: any) {
     console.error("Error getting notifications:", error);

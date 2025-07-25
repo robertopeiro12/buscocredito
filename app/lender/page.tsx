@@ -8,6 +8,7 @@ import { LogOut } from "lucide-react";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { useEffect } from "react";
 import { auth } from "../firebase";
+import { useLenderGuard } from "@/hooks/useRoleGuard";
 import { LenderSidebar } from "@/components/features/dashboard/LenderSidebar";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
@@ -59,6 +60,8 @@ import type {
 } from "@/app/lender/types/loan.types";
 
 export default function LenderPage() {
+  // TODOS LOS HOOKS PRIMERO
+  const { isAuthorized, isLoading: isCheckingAuth } = useLenderGuard();
   const router = useRouter();
   const [user, setUser] = useState<string>("");
   const [activeTab, setActiveTab] = useState("marketplace");
@@ -88,7 +91,7 @@ export default function LenderPage() {
   } = useLoan({
     companyName: partnerData.company,
     status: "pending",
-    enableRealtime: true,
+    enableRealtime: partnerData.company ? true : false, // Solo realtime si hay company
   });
 
   const selectedRequest = selectedRequestId
@@ -154,6 +157,21 @@ export default function LenderPage() {
     Record<string, PublicUserData>
   >({});
 
+  // FUNCIONES ANTES DE LOS useEffect
+  const getPartnerData = async (uid: string) => {
+    const db = getFirestore();
+    const docRef = doc(db, "cuentas", uid);
+    const docSnap = await getDoc(docRef);
+
+    if (docSnap.exists()) {
+      setPartnerData({
+        name: docSnap.data().Nombre,
+        company: docSnap.data().Empresa,
+        company_id: docSnap.data().company_id,
+      });
+    }
+  };
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (userAuth) => {
       if (userAuth) {
@@ -173,6 +191,14 @@ export default function LenderPage() {
       refreshLoans();
     }
   }, [partnerData.company, refreshLoans]);
+
+  // Cargar las propuestas del lender cuando se activa la pestaña "myoffers"
+  useEffect(() => {
+    if (activeTab === "myoffers" && user) {
+      fetchLenderProposals();
+    }
+  }, [activeTab, user]);
+
   useEffect(() => {
     // Cargar datos de usuario para todas las solicitudes
     const loadAllUserData = async () => {
@@ -208,19 +234,23 @@ export default function LenderPage() {
     }
   }, [requests, loading]);
 
-  const getPartnerData = async (uid: string) => {
-    const db = getFirestore();
-    const docRef = doc(db, "cuentas", uid);
-    const docSnap = await getDoc(docRef);
+  // CONDICIONALES DESPUÉS DE TODOS LOS HOOKS
+  // Mostrar loading mientras verifica permisos
+  if (isCheckingAuth) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Verificando permisos de prestamista...</p>
+        </div>
+      </div>
+    );
+  }
 
-    if (docSnap.exists()) {
-      setPartnerData({
-        name: docSnap.data().Nombre,
-        company: docSnap.data().Empresa,
-        company_id: docSnap.data().company_id,
-      });
-    }
-  };
+  // Si no está autorizado, el hook ya manejó la redirección
+  if (!isAuthorized) {
+    return null;
+  }
 
   const getUserData = async (userId: string) => {
     try {
@@ -292,21 +322,27 @@ export default function LenderPage() {
   };
 
   const handleSignOut = () => {
+    // Limpiar estados antes del signout para evitar errores de permisos
+    setUser("");
+    setPartnerData({
+      name: "",
+      company: "",
+      company_id: "",
+    });
+    setSelectedRequestId(null);
+    setUserData(null);
+    setLenderProposals([]);
+    
     signOut(auth)
       .then(() => {
         router.push("/login");
       })
       .catch((error) => {
         console.error("Error signing out:", error);
+        // Aun con error, redirigir al login
+        router.push("/login");
       });
   };
-
-  // Cargar las propuestas del lender cuando se activa la pestaña "myoffers"
-  useEffect(() => {
-    if (activeTab === "myoffers" && user) {
-      fetchLenderProposals();
-    }
-  }, [activeTab, user]);
 
   const fetchLenderProposals = async () => {
     if (!user) return;
@@ -323,7 +359,6 @@ export default function LenderPage() {
 
       if (response.ok) {
         const data = await response.json();
-        console.log("Proposals received:", data.data); // Debug log
         setLenderProposals(data.data || []);
       } else {
         console.error("Error fetching proposals:", response.statusText);
@@ -778,7 +813,6 @@ export default function LenderPage() {
                       {/* Datos de contacto para propuestas aceptadas */}
                       {proposal.status === "accepted" && proposal.contactInfo && (
                         <div className="mt-4 pt-4 border-t border-gray-200">
-                          {console.log(`Rendering contact info for proposal ${proposal.id}:`, proposal.contactInfo)}
                           <h4 className="font-semibold text-green-700 mb-3 flex items-center">
                             <User className="h-4 w-4 mr-2" />
                             Datos de Contacto

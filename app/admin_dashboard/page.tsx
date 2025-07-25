@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { auth } from "../firebase";
 import { onAuthStateChanged, signOut } from "firebase/auth";
+import { useAdminGuard } from "@/hooks/useRoleGuard";
 import {
   getFirestore,
   collection,
@@ -107,6 +108,8 @@ type MetricsData = {
 };
 
 export default function AdminDashboard() {
+  // TODOS LOS HOOKS PRIMERO
+  const { isAuthorized, isLoading: isCheckingAuth } = useAdminGuard();
   const [subaccounts, setSubaccounts] = useState<Subaccount[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [isCreating, setIsCreating] = useState(false);
@@ -156,13 +159,54 @@ export default function AdminDashboard() {
   });
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("subaccounts");
+  const [isLoading, setIsLoading] = useState(true);
+  const router = useRouter();
+
+  // VARIABLES COMPUTADAS DESPUÉS DE TODOS LOS HOOKS
   const filteredSubaccounts = subaccounts.filter(
     (account) =>
       account.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       account.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
-  const [isLoading, setIsLoading] = useState(true);
-  const router = useRouter();
+
+  // Función fetchUsers usando API en lugar de consulta directa
+  const fetchUsers = async (userId: string) => {
+    setIsLoading(true);
+    try {
+      const response = await fetch('/api/getSubcuentas', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include', // Para incluir cookies de autenticación
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      const newSubaccounts: Subaccount[] = data.subcuentas.map((sub: any, index: number) => ({
+        id: index + 1,
+        name: sub.name,
+        email: sub.email,
+        password: "", // No enviamos contraseñas
+        userId: sub.userId,
+        Empresa: sub.Empresa,
+      }));
+
+      setSubaccounts(newSubaccounts);
+    } catch (error: any) {
+      console.error('fetchUsers: Error occurred:', error);
+      toast.error("Error al cargar las subcuentas. Verifica tu conexión.", {
+        icon: "🔄",
+        duration: 5000,
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
     onAuthStateChanged(auth, (user) => {
@@ -608,6 +652,24 @@ export default function AdminDashboard() {
     }
   }, [user, activeTab, selectedTimeRange, customDateRange]);
 
+  // CONDICIONALES DESPUÉS DE TODOS LOS HOOKS
+  // Mostrar loading mientras verifica permisos
+  if (isCheckingAuth) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Verificando permisos de administrador...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Si no está autorizado, el hook ya manejó la redirección
+  if (!isAuthorized) {
+    return null;
+  }
+
   // Función para calcular métricas a partir de propuestas
   const calculateMetrics = (proposals: any[]) => {
     const loanTypes: { [key: string]: number } = {};
@@ -922,42 +984,6 @@ export default function AdminDashboard() {
 
     setFormErrors(newErrors);
     return isValid;
-  };
-
-  const fetchUsers = async (userId: string) => {
-    setIsLoading(true);
-    try {
-      const db = getFirestore();
-      const solicitudesRef = collection(db, "cuentas");
-      const q = query(solicitudesRef, where("Empresa_id", "==", userId));
-      const querySnapshot = await getDocs(q);
-      const newSubaccounts: Subaccount[] = [];
-
-      querySnapshot.forEach((doc) => {
-        const data = doc.data();
-        const newSubaccountData = {
-          name: data["Nombre"],
-          email: data["email"],
-          password: "",
-          userId: doc.id,
-          Empresa: data["Empresa"] || "",
-        };
-
-        newSubaccounts.push({
-          ...newSubaccountData,
-          id: newSubaccounts.length + 1,
-        });
-      });
-
-      setSubaccounts(newSubaccounts);
-    } catch (error: any) {
-      toast.error("Error al cargar las subcuentas. Verifica tu conexión.", {
-        icon: "🔄",
-        duration: 5000,
-      });
-    } finally {
-      setIsLoading(false);
-    }
   };
 
   const formatDate = (timestamp: any) => {

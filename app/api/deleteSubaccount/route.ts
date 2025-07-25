@@ -2,9 +2,27 @@ import { type NextRequest, NextResponse } from "next/server";
 import { initAdmin } from "@/db/FirebaseAdmin";
 import { delete_subaccount_doc } from "@/db/FirestoreFunc";
 import { delete_subaccount } from "@/db/FireAuthFunc";
+import { verifyAuthentication, createUnauthorizedResponse } from '../utils/auth';
 
 export async function DELETE(req: NextRequest) {
   try {
+    // Verificar autenticación
+    const user = await verifyAuthentication(req);
+    if (!user) {
+      return createUnauthorizedResponse();
+    }
+
+    // Solo administradores pueden eliminar subcuentas
+    if (user.userType !== 'b_admin') {
+      return new Response(
+        JSON.stringify({ error: 'Acceso denegado - Solo administradores' }), 
+        { 
+          status: 403,
+          headers: { 'Content-Type': 'application/json' }
+        }
+      );
+    }
+
     const { userId } = await req.json();
 
     if (!userId) {
@@ -34,6 +52,8 @@ export async function DELETE(req: NextRequest) {
         { status: firestoreResult.status }
       );
     }
+
+    console.log(`Admin ${user.uid} deleted subcuenta ${userId}`);
 
     // If both operations were successful
     return NextResponse.json(

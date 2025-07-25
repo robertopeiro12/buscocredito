@@ -73,7 +73,6 @@ export default function NotificationCenter({ userId, compact = false }: Notifica
   // Cargar contador de no leídas
   const loadUnreadCount = async () => {
     if (!userId || userId.trim() === '') {
-      console.log("No userId available for unread count");
       return;
     }
     

@@ -35,9 +35,6 @@ export function SubaccountCard({ subaccount, onDelete }: SubaccountCardProps) {
     try {
       setIsDeleting(true);
 
-      // Agregar console.log para debug
-      console.log("Intentando eliminar usuario con ID:", subaccount.userId);
-
       const response = await fetch("/api/deleteSubaccount", {
         method: "DELETE",
         headers: {

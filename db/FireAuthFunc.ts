@@ -16,10 +16,9 @@ export const create_subaccount = async (
       displayName: name,
       disabled: false,
     })
-    console.log("Successfully created new user:", userRecord.uid)
     return { userId: userRecord.uid, status: 200 }
-  } catch (error) {
-    console.log("Error creating new user:", error)
+  } catch (error: any) {
+    console.error("Error creating new user:", error)
     return { error: error.message, status: 500 }
   }
 }
