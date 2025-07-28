@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../contexts/AuthContext";
-import type { User } from "../types/auth";
+import type { User } from "../types/entities/user.types";
 
 type UserType = 'b_admin' | 'b_sale' | 'user';
 

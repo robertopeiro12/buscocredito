@@ -8,7 +8,7 @@ import {
 } from "firebase/auth";
 import { doc, getDoc, getFirestore } from "firebase/firestore";
 import { useRouter } from "next/navigation";
-import type { User, AuthContextType } from "../types/auth";
+import type { User, AuthContextType } from "../types/entities/user.types";
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
