@@ -12,19 +12,7 @@ import {
   updateDoc
 } from 'firebase/firestore';
 import { auth } from '@/app/firebase';
-
-export interface LoanRequest {
-  id: string;
-  userId: string;
-  amount: number;
-  income: number;
-  term: string;
-  payment: 'mensual' | 'quincenal' | 'semanal';
-  status: 'pending' | 'approved' | 'rejected';
-  createdAt: Date;
-  purpose: string;
-  type: string;
-}
+import type { LoanRequest } from '@/types/entities/business.types';
 
 interface UseLoanOptions {
   companyName?: string;
