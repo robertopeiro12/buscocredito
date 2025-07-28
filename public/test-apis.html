@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pruebas de APIs Migradas - BuscoCredito</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 40px;
+        background: #f5f5f5;
+      }
+      .container {
+        max-width: 800px;
+        margin: 0 auto;
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+      .test-section {
+        margin: 20px 0;
+        padding: 15px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+      }
+      .test-button {
+        background: #007bff;
+        color: white;
+        border: none;
+        padding: 10px 15px;
+        margin: 5px;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      .test-button:hover {
+        background: #0056b3;
+      }
+      .result {
+        margin-top: 10px;
+        padding: 10px;
+        border-radius: 4px;
+        white-space: pre-wrap;
+        font-family: monospace;
+        font-size: 12px;
+      }
+      .success {
+        background: #d4edda;
+        border: 1px solid #c3e6cb;
+        color: #155724;
+      }
+      .error {
+        background: #f8d7da;
+        border: 1px solid #f5c6cb;
+        color: #721c24;
+      }
+      .info {
+        background: #d1ecf1;
+        border: 1px solid #bee5eb;
+        color: #0c5460;
+      }
+      h1 {
+        color: #333;
+        text-align: center;
+      }
+      h2 {
+        color: #666;
+        border-bottom: 2px solid #007bff;
+        padding-bottom: 5px;
+      }
+      .auth-note {
+        background: #fff3cd;
+        border: 1px solid #ffeaa7;
+        color: #856404;
+        padding: 10px;
+        border-radius: 4px;
+        margin-bottom: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>🧪 Pruebas de APIs Migradas</h1>
+
+      <div class="auth-note">
+        <strong>⚠️ Nota:</strong> Para probar estas APIs necesitas estar
+        autenticado. Inicia sesión en tu aplicación primero, luego vuelve a esta
+        página. <br /><br />
+
+        <!-- Diagnóstico de Autenticación -->
+        <div
+          style="
+            background: #e7f3ff;
+            border: 1px solid #b3d9ff;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+          "
+        >
+          <strong>🔍 Diagnóstico de Autenticación:</strong>
+          <div
+            id="authDiagnostic"
+            style="margin: 10px 0; font-family: monospace; font-size: 12px"
+          >
+            Haz clic en "Diagnosticar Auth" para revisar tu estado de
+            autenticación
+          </div>
+          <button
+            onclick="diagnoseAuth()"
+            style="
+              padding: 5px 10px;
+              background: #6f42c1;
+              color: white;
+              border: none;
+              border-radius: 3px;
+              margin: 5px;
+            "
+          >
+            🔍 Diagnosticar Auth
+          </button>
+          <button
+            onclick="testAuthAPIs()"
+            style="
+              padding: 5px 10px;
+              background: #fd7e14;
+              color: white;
+              border: none;
+              border-radius: 3px;
+              margin: 5px;
+            "
+          >
+            🧪 Probar APIs de Auth
+          </button>
+        </div>
+
+        <strong>🔑 Usuario ID:</strong>
+        <input
+          type="text"
+          id="userIdInput"
+          placeholder="Pega aquí tu usuario ID"
+          style="width: 300px; padding: 5px; margin: 5px"
+        />
+        <button
+          onclick="getCurrentUserId()"
+          style="
+            padding: 5px 10px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 3px;
+          "
+        >
+          Obtener mi ID automáticamente
+        </button>
+        <button
+          onclick="showStorageInfo()"
+          style="
+            padding: 5px 10px;
+            background: #17a2b8;
+            color: white;
+            border: none;
+            border-radius: 3px;
+          "
+        >
+          Ver datos del navegador
+        </button>
+      </div>
+
+      <!-- Pruebas de Dominio de Usuarios -->
+      <div class="test-section">
+        <h2>👤 Dominio de Usuarios</h2>
+
+        <button
+          class="test-button"
+          onclick="testAPI('/api/users/profile', 'POST', {userId: getUserId()})"
+        >
+          Probar /api/users/profile
+        </button>
+
+        <button
+          class="test-button"
+          onclick="testAPI('/api/users/offers', 'GET', {})"
+        >
+          Probar /api/users/offers
+        </button>
+
+        <button
+          class="test-button"
+          onclick="testAPI('/api/users/subaccounts', 'POST', {name: 'Test Subaccount', email: 'test@example.com', userType: 'b_sale'})"
+        >
+          Probar /api/users/subaccounts (Solo Admin)
+        </button>
+
+        <div id="users-result" class="result info">
+          Haz clic en los botones para probar las APIs del dominio de usuarios
+        </div>
+      </div>
+
+      <!-- Pruebas de Dominio de Préstamos -->
+      <div class="test-section">
+        <h2>💰 Dominio de Préstamos</h2>
+
+        <button
+          class="test-button"
+          onclick="testAPI('/api/loans', 'POST', {amount: 50000, term: 12, purpose: 'Mejoras del hogar', income: 80000, payment: 'Mensual', type: 'Personal'})"
+        >
+          Probar /api/loans (Crear Solicitud)
+        </button>
+
+        <button
+          class="test-button"
+          onclick="testAPI('/api/loans/offers', 'POST', {loanId: getTestLoanId()})"
+        >
+          Probar /api/loans/offers
+        </button>
+
+        <button
+          class="test-button"
+          onclick="testAPI('/api/loans/status', 'POST', {loanId: getTestLoanId()})"
+        >
+          Probar /api/loans/status
+        </button>
+
+        <button
+          class="test-button"
+          onclick="testAPI('/api/loans/proposals', 'POST', {solicitudId: getTestLoanId(), amount: 50000, interest_rate: 12.5, deadline: 12})"
+        >
+          Probar /api/loans/proposals (Solo Lenders)
+        </button>
+
+        <div id="loans-result" class="result info">
+          Haz clic en los botones para probar las APIs del dominio de préstamos
+        </div>
+      </div>
+
+      <!-- Pruebas de Dominio de Propuestas -->
+      <div class="test-section">
+        <h2>📋 Dominio de Propuestas</h2>
+
+        <button
+          class="test-button"
+          onclick="testAPI('/api/proposals/lender', 'POST', {lenderId: getUserId()})"
+        >
+          Probar /api/proposals/lender (Solo Lenders)
+        </button>
+
+        <button
+          class="test-button"
+          onclick="testAPI('/api/proposals/status', 'POST', {proposalId: 'test-proposal-id', loanId: 'test-loan-id', status: 'accepted'})"
+        >
+          Probar /api/proposals/status (Solo Usuarios)
+        </button>
+
+        <div id="proposals-result" class="result info">
+          Haz clic en los botones para probar las APIs del dominio de propuestas
+        </div>
+      </div>
+
+      <!-- Pruebas de Dominio de Notificaciones -->
+      <div class="test-section">
+        <h2>🔔 Dominio de Notificaciones</h2>
+
+        <button
+          class="test-button"
+          onclick="testAPI('/api/notifications', 'POST', {userId: getUserId()})"
+        >
+          Probar /api/notifications
+        </button>
+
+        <button
+          class="test-button"
+          onclick="testAPI('/api/notifications/clear', 'POST', {userId: getUserId()})"
+        >
+          Probar /api/notifications/clear
+        </button>
+
+        <button
+          class="test-button"
+          onclick="testAPI('/api/notifications/test', 'POST', {userId: getUserId()})"
+        >
+          Probar /api/notifications/test (Solo Admin)
+        </button>
+
+        <div id="notifications-result" class="result info">
+          Haz clic en los botones para probar las APIs del dominio de
+          notificaciones
+        </div>
+      </div>
+
+      <!-- Comparación de Rutas -->
+      <div class="test-section">
+        <h2>🔄 Comparación: Rutas Antiguas vs Nuevas</h2>
+        <p>
+          Prueba para verificar que las rutas nuevas funcionan correctamente:
+        </p>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px">
+          <div>
+            <h3>❌ Rutas Antiguas (deberían dar 404)</h3>
+            <button
+              class="test-button"
+              onclick="testAPI('/api/getUserOfferData', 'POST', {userId: 'test'})"
+            >
+              /api/getUserOfferData
+            </button>
+            <button
+              class="test-button"
+              onclick="testAPI('/api/fetch_loan_offer', 'POST', {loanId: 'test'})"
+            >
+              /api/fetch_loan_offer
+            </button>
+          </div>
+          <div>
+            <h3>✅ Rutas Nuevas (deberían funcionar)</h3>
+            <button
+              class="test-button"
+              onclick="testAPI('/api/users/profile', 'POST', {userId: 'test'})"
+            >
+              /api/users/profile
+            </button>
+            <button
+              class="test-button"
+              onclick="testAPI('/api/loans/offers', 'POST', {loanId: 'test'})"
+            >
+              /api/loans/offers
+            </button>
+          </div>
+        </div>
+
+        <div id="comparison-result" class="result info">
+          Compara las respuestas de rutas antiguas vs nuevas
+        </div>
+      </div>
+    </div>
+
+    <script>
+      async function testAPI(endpoint, method, body) {
+        const domain = endpoint.split("/")[2]; // users, loans, proposals, notifications
+        const resultId = domain + "-result";
+        const resultDiv =
+          document.getElementById(resultId) ||
+          document.getElementById("comparison-result");
+
+        resultDiv.textContent = `⏳ Probando ${endpoint}...`;
+        resultDiv.className = "result info";
+
+        try {
+          const requestOptions = {
+            method: method,
+            headers: {
+              "Content-Type": "application/json",
+            },
+            credentials: "include", // Para incluir cookies de autenticación
+          };
+
+          // Solo agregar body si no es GET o HEAD
+          if (
+            method !== "GET" &&
+            method !== "HEAD" &&
+            Object.keys(body).length > 0
+          ) {
+            requestOptions.body = JSON.stringify(body);
+          }
+
+          const response = await fetch(endpoint, requestOptions);
+
+          let data;
+          const contentType = response.headers.get("content-type");
+
+          // Intentar parsear como JSON solo si el content-type es correcto
+          if (contentType && contentType.includes("application/json")) {
+            try {
+              data = await response.json();
+            } catch (e) {
+              // Si falla el parsing de JSON, obtener como texto
+              const text = await response.text();
+              data = { error: "Invalid JSON response", rawResponse: text };
+            }
+          } else {
+            // Si no es JSON, obtener como texto
+            data = await response.text();
+          }
+
+          const result = {
+            status: response.status,
+            statusText: response.statusText,
+            headers: {
+              "content-type": contentType,
+            },
+            body: data,
+          };
+
+          if (response.ok) {
+            resultDiv.className = "result success";
+            resultDiv.textContent =
+              `✅ ${endpoint} - SUCCESS\n\n` + JSON.stringify(result, null, 2);
+          } else {
+            resultDiv.className = "result error";
+            resultDiv.textContent =
+              `❌ ${endpoint} - ERROR\n\n` + JSON.stringify(result, null, 2);
+          }
+        } catch (error) {
+          resultDiv.className = "result error";
+          resultDiv.textContent = `💥 ${endpoint} - NETWORK ERROR\n\n${error.message}`;
+        }
+      }
+
+      // Auto-test de conectividad al cargar la página
+      window.onload = function () {
+        console.log("🧪 Página de pruebas de APIs cargada");
+        console.log(
+          "📍 Servidor Next.js debe estar corriendo en localhost:3000 o localhost:3002"
+        );
+      };
+
+      // Función para obtener el ID del usuario desde el input
+      function getUserId() {
+        const userIdInput = document.getElementById("userIdInput");
+        return userIdInput.value || "test-user-id";
+      }
+
+      // Función para obtener un ID de préstamo de prueba
+      function getTestLoanId() {
+        // Intentar obtener un ID real de préstamo del localStorage
+        const realLoanId = extractUserIdFromAcceptedOffers();
+        return realLoanId || "test-loan-id";
+      }
+
+      // Función para obtener automáticamente el ID del usuario actual
+      async function getCurrentUserId() {
+        try {
+          // Método 1: Intentar obtener desde el endpoint de auth
+          try {
+            const response = await fetch("/api/auth/me", {
+              method: "GET",
+              credentials: "include",
+            });
+
+            if (response.ok) {
+              const data = await response.json();
+              const userIdInput = document.getElementById("userIdInput");
+              userIdInput.value = data.uid || data.userId || data.id;
+              alert(
+                "✅ ID de usuario obtenido desde API: " + userIdInput.value
+              );
+              return;
+            }
+          } catch (e) {
+            console.log("API auth/me no disponible, probando otros métodos...");
+          }
+
+          // Método 2: Buscar en localStorage y sessionStorage
+          let userId = null;
+
+          // Buscar en localStorage
+          for (let key in localStorage) {
+            const value = localStorage.getItem(key);
+            if (value) {
+              try {
+                const parsed = JSON.parse(value);
+                if (parsed.uid || parsed.userId || parsed.id) {
+                  userId = parsed.uid || parsed.userId || parsed.id;
+                  break;
+                }
+              } catch (e) {
+                // No es JSON válido, continuar
+              }
+            }
+          }
+
+          // Buscar en sessionStorage si no se encontró en localStorage
+          if (!userId) {
+            for (let key in sessionStorage) {
+              const value = sessionStorage.getItem(key);
+              if (value) {
+                try {
+                  const parsed = JSON.parse(value);
+                  if (parsed.uid || parsed.userId || parsed.id) {
+                    userId = parsed.uid || parsed.userId || parsed.id;
+                    break;
+                  }
+                } catch (e) {
+                  // No es JSON válido, continuar
+                }
+              }
+            }
+          }
+
+          // Método 3: Buscar en cookies
+          if (!userId) {
+            const cookies = document.cookie.split(";");
+            for (let cookie of cookies) {
+              const [name, value] = cookie.trim().split("=");
+              if (
+                name.includes("user") ||
+                name.includes("auth") ||
+                name.includes("id")
+              ) {
+                try {
+                  const decoded = decodeURIComponent(value);
+                  const parsed = JSON.parse(decoded);
+                  if (parsed.uid || parsed.userId || parsed.id) {
+                    userId = parsed.uid || parsed.userId || parsed.id;
+                    break;
+                  }
+                } catch (e) {
+                  // Podría ser un ID directo sin JSON
+                  if (value.length > 10 && value.length < 50) {
+                    userId = value;
+                    break;
+                  }
+                }
+              }
+            }
+          }
+
+          if (userId) {
+            const userIdInput = document.getElementById("userIdInput");
+            userIdInput.value = userId;
+            alert("✅ ID de usuario encontrado en el navegador: " + userId);
+          } else {
+            // Mostrar toda la información disponible para debug
+            console.log("=== DEBUG INFO ===");
+            console.log("localStorage:", localStorage);
+            console.log("sessionStorage:", sessionStorage);
+            console.log("cookies:", document.cookie);
+
+            alert(
+              "❌ No se pudo encontrar el ID automáticamente.\n\nRevisa la consola del navegador para ver toda la información disponible.\n\nPuedes:\n1. Inspeccionar las cookies en DevTools\n2. Buscar tu ID en localStorage/sessionStorage\n3. Pegarlo manualmente en el campo de texto"
+            );
+          }
+        } catch (error) {
+          console.error("Error al obtener ID:", error);
+          alert("❌ Error al obtener ID: " + error.message);
+        }
+      }
+
+      // Función para extraer ID real de las ofertas aceptadas (si existe)
+      function extractUserIdFromAcceptedOffers() {
+        try {
+          const acceptedOffers = localStorage.getItem("acceptedOffers");
+          if (acceptedOffers) {
+            const parsed = JSON.parse(acceptedOffers);
+            const loanIds = Object.keys(parsed);
+            if (loanIds.length > 0) {
+              // Usar el primer ID de préstamo como referencia
+              console.log("IDs de préstamos disponibles:", loanIds);
+              return loanIds[0]; // Devolver el primer loan ID
+            }
+          }
+        } catch (e) {
+          console.log("No se pudo extraer de acceptedOffers");
+        }
+        return null;
+      }
+
+      // Función para mostrar información del storage del navegador
+      function showStorageInfo() {
+        console.clear();
+        console.log("=== INFORMACIÓN DEL NAVEGADOR ===");
+        console.log("");
+        console.log("📁 localStorage:");
+        for (let key in localStorage) {
+          console.log(`  ${key}:`, localStorage.getItem(key));
+        }
+        console.log("");
+        console.log("📁 sessionStorage:");
+        for (let key in sessionStorage) {
+          console.log(`  ${key}:`, sessionStorage.getItem(key));
+        }
+        console.log("");
+        console.log("🍪 cookies:");
+        console.log(document.cookie);
+        console.log("");
+        console.log("💡 Busca campos que contengan tu ID de usuario");
+
+        alert(
+          "📊 Información mostrada en la consola del navegador.\n\nAbre DevTools (F12) > Console para ver todos los datos disponibles."
+        );
+      }
+
+      // Función de diagnóstico avanzado de autenticación
+      async function diagnoseAuth() {
+        const diagnosticDiv = document.getElementById("authDiagnostic");
+        diagnosticDiv.innerHTML = "🔍 Diagnosticando...";
+
+        let report = "=== DIAGNÓSTICO DE AUTENTICACIÓN ===\n\n";
+
+        // 1. Verificar cookies
+        report += "🍪 COOKIES:\n";
+        const cookies = document.cookie;
+        if (cookies) {
+          const cookieArray = cookies.split(";");
+          cookieArray.forEach((cookie) => {
+            const [name, value] = cookie.trim().split("=");
+            report += `  ${name}: ${
+              value
+                ? value.substring(0, 50) + (value.length > 50 ? "..." : "")
+                : "empty"
+            }\n`;
+          });
+        } else {
+          report += "  ❌ No hay cookies disponibles\n";
+        }
+
+        // 2. Verificar localStorage
+        report += "\n📁 LOCALSTORAGE:\n";
+        if (localStorage.length > 0) {
+          for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            const value = localStorage.getItem(key);
+            report += `  ${key}: ${
+              value
+                ? value.substring(0, 50) + (value.length > 50 ? "..." : "")
+                : "empty"
+            }\n`;
+          }
+        } else {
+          report += "  ❌ No hay datos en localStorage\n";
+        }
+
+        // 3. Verificar sessionStorage
+        report += "\n📂 SESSIONSTORAGE:\n";
+        if (sessionStorage.length > 0) {
+          for (let i = 0; i < sessionStorage.length; i++) {
+            const key = sessionStorage.key(i);
+            const value = sessionStorage.getItem(key);
+            report += `  ${key}: ${
+              value
+                ? value.substring(0, 50) + (value.length > 50 ? "..." : "")
+                : "empty"
+            }\n`;
+          }
+        } else {
+          report += "  ❌ No hay datos en sessionStorage\n";
+        }
+
+        // 4. Verificar estado de Firebase Auth
+        report += "\n🔥 FIREBASE AUTH STATE:\n";
+        try {
+          // Intentar acceder al objeto Firebase si está disponible
+          if (typeof firebase !== "undefined") {
+            report += "  ✅ Firebase SDK disponible\n";
+            if (firebase.auth && firebase.auth()) {
+              const user = firebase.auth().currentUser;
+              if (user) {
+                report += `  ✅ Usuario autenticado: ${user.uid}\n`;
+                report += `  📧 Email: ${user.email}\n`;
+              } else {
+                report += "  ❌ No hay usuario autenticado en Firebase\n";
+              }
+            }
+          } else {
+            report += "  ⚠️ Firebase SDK no disponible en esta página\n";
+          }
+        } catch (e) {
+          report += `  ❌ Error al verificar Firebase: ${e.message}\n`;
+        }
+
+        // Mostrar el reporte
+        diagnosticDiv.innerHTML = `<pre style="background: #f8f9fa; padding: 10px; border-radius: 4px; font-size: 11px; max-height: 300px; overflow-y: auto;">${report}</pre>`;
+
+        console.log(report);
+      }
+
+      // Función para probar diferentes APIs de autenticación
+      async function testAuthAPIs() {
+        const diagnosticDiv = document.getElementById("authDiagnostic");
+        diagnosticDiv.innerHTML = "🧪 Probando APIs de autenticación...";
+
+        let report = "=== PRUEBA DE APIs DE AUTENTICACIÓN ===\n\n";
+
+        // Probar diferentes endpoints de autenticación posibles
+        const authEndpoints = [
+          "/api/auth/me",
+          "/api/auth/user",
+          "/api/auth/current",
+          "/api/user/me",
+          "/api/me",
+          // También probar si podemos obtener el usuario desde algún API existente
+          "/api/users/profile",
+        ];
+
+        for (const endpoint of authEndpoints) {
+          try {
+            report += `🔗 Probando ${endpoint}:\n`;
+
+            const response = await fetch(endpoint, {
+              method: "GET",
+              credentials: "include",
+              headers: {
+                "Content-Type": "application/json",
+              },
+            });
+
+            report += `  Status: ${response.status} ${response.statusText}\n`;
+
+            if (response.ok) {
+              try {
+                const data = await response.json();
+                report += `  ✅ Respuesta: ${JSON.stringify(
+                  data,
+                  null,
+                  2
+                ).substring(0, 200)}...\n`;
+
+                // Intentar extraer el ID de usuario
+                const userId =
+                  data.uid ||
+                  data.userId ||
+                  data.id ||
+                  data.user?.uid ||
+                  data.user?.id;
+                if (userId) {
+                  report += `  🎯 USER ID ENCONTRADO: ${userId}\n`;
+                  // Automáticamente llenar el campo
+                  document.getElementById("userIdInput").value = userId;
+                }
+              } catch (e) {
+                const text = await response.text();
+                report += `  📄 Respuesta (texto): ${text.substring(
+                  0,
+                  100
+                )}...\n`;
+              }
+            } else {
+              report += `  ❌ Error: ${response.status}\n`;
+            }
+          } catch (error) {
+            report += `  💥 Error de red: ${error.message}\n`;
+          }
+          report += "\n";
+        }
+
+        // Probar con POST también para /api/users/profile
+        try {
+          report += "🔗 Probando /api/users/profile con POST (sin userId):\n";
+          const response = await fetch("/api/users/profile", {
+            method: "POST",
+            credentials: "include",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({}),
+          });
+
+          report += `  Status: ${response.status} ${response.statusText}\n`;
+          if (!response.ok) {
+            const errorData = await response.text();
+            report += `  Error response: ${errorData}\n`;
+          }
+        } catch (error) {
+          report += `  💥 Error: ${error.message}\n`;
+        }
+
+        diagnosticDiv.innerHTML = `<pre style="background: #f8f9fa; padding: 10px; border-radius: 4px; font-size: 11px; max-height: 300px; overflow-y: auto;">${report}</pre>`;
+        console.log(report);
+      }
+    </script>
+  </body>
+</html>

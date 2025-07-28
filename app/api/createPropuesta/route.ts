@@ -1,50 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { adminFirestore } from '@/app/firebase-admin';
-import { auth } from 'firebase-admin';
+import { verifyAuthentication, createUnauthorizedResponse, createForbiddenResponse } from '../utils/auth';
 
 export async function POST(request: NextRequest) {
   try {
-    // Verificar autenticación
-    const authHeader = request.headers.get('Authorization');
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return NextResponse.json(
-        { error: 'Token de autorización requerido' },
-        { status: 401 }
-      );
+    // Verificar autenticación (maneja tanto cookies como Bearer tokens)
+    const user = await verifyAuthentication(request);
+    if (!user) {
+      return createUnauthorizedResponse();
     }
 
-    const token = authHeader.split('Bearer ')[1];
-    let decodedToken;
-    
-    try {
-      decodedToken = await auth().verifyIdToken(token);
-    } catch (error) {
-      return NextResponse.json(
-        { error: 'Token de autorización inválido' },
-        { status: 401 }
-      );
-    }
-
-    // Verificar que el usuario sea lender
-    const userDoc = await adminFirestore
-      .collection('users')
-      .doc(decodedToken.uid)
-      .get();
-
-    if (!userDoc.exists || userDoc.data()?.role !== 'b_sale') {
-      return NextResponse.json(
-        { error: 'Solo los lenders pueden crear propuestas' },
-        { status: 403 }
-      );
+    // Solo lenders (b_sale) pueden crear propuestas
+    if (user.userType !== 'b_sale') {
+      return createForbiddenResponse('Solo los lenders pueden crear propuestas');
     }
 
     // Obtener datos del cuerpo de la petición
     const body = await request.json();
     
-    // Agregar lenderId del token autenticado
+    // Agregar lenderId del usuario autenticado
     const propuestaData = {
       ...body,
-      lenderId: decodedToken.uid,
+      lenderId: user.uid,
       fechaCreacion: new Date(),
     };
 

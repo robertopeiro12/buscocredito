@@ -997,7 +997,7 @@ export default function AdminDashboard() {
   };
   const createSubaccount = async (newSubaccount: Omit<Subaccount, "id">) => {
     try {
-      const response = await fetch("/api/createSubaccount", {
+      const response = await fetch("/api/users/subaccounts", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

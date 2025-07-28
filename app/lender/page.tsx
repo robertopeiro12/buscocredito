@@ -91,7 +91,7 @@ export default function LenderPage() {
   } = useLoan({
     companyName: partnerData.company,
     status: "pending",
-    enableRealtime: partnerData.company ? true : false, // Solo realtime si hay company
+    enableRealtime: partnerData.company ? true : false,
   });
 
   const selectedRequest = selectedRequestId
@@ -159,15 +159,25 @@ export default function LenderPage() {
 
   // FUNCIONES ANTES DE LOS useEffect
   const getPartnerData = async (uid: string) => {
-    const db = getFirestore();
-    const docRef = doc(db, "cuentas", uid);
-    const docSnap = await getDoc(docRef);
+    try {
+      const db = getFirestore();
+      const docRef = doc(db, "cuentas", uid);
+      const docSnap = await getDoc(docRef);
 
-    if (docSnap.exists()) {
+      if (docSnap.exists()) {
+        setPartnerData({
+          name: docSnap.data().Nombre || "",
+          company: docSnap.data().Empresa || "",
+          company_id: docSnap.data().company_id || "",
+        });
+      }
+    } catch (error) {
+      console.error("Error al obtener datos del partner:", error);
+      // Mantener valores por defecto
       setPartnerData({
-        name: docSnap.data().Nombre,
-        company: docSnap.data().Empresa,
-        company_id: docSnap.data().company_id,
+        name: "",
+        company: "",
+        company_id: "",
       });
     }
   };
@@ -176,7 +186,15 @@ export default function LenderPage() {
     const unsubscribe = onAuthStateChanged(auth, async (userAuth) => {
       if (userAuth) {
         setUser(userAuth.uid);
-        getPartnerData(userAuth.uid);
+        try {
+          await getPartnerData(userAuth.uid);
+        } catch (error) {
+          console.error("Error al cargar datos del partner:", error);
+          // Si hay error de permisos, intentar mantener funcionalidad básica
+          if (error.code !== 'permission-denied') {
+            toast.error("Error al cargar configuración de empresa");
+          }
+        }
       } else {
         router.push("/login");
       }
@@ -207,7 +225,7 @@ export default function LenderPage() {
 
       for (const userId of userIds) {
         try {
-          const response = await fetch("/api/getUserOfferData", {
+          const response = await fetch("/api/users/profile", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -218,7 +236,7 @@ export default function LenderPage() {
           if (response.ok) {
             const data = await response.json();
             if (data.data) {
-              dataMap[userId] = JSON.parse(data.data);
+              dataMap[userId] = data.data;
             }
           }
         } catch (error) {
@@ -254,7 +272,7 @@ export default function LenderPage() {
 
   const getUserData = async (userId: string) => {
     try {
-      const response = await fetch("/api/getUserOfferData", {
+      const response = await fetch("/api/users/profile", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -264,7 +282,7 @@ export default function LenderPage() {
 
       if (response.ok) {
         const data = await response.json();
-        setUserData(data.data ? JSON.parse(data.data) : null);
+        setUserData(data.data || null);
       }
     } catch (error) {
       console.error("Error getting data:", error);
@@ -281,7 +299,7 @@ export default function LenderPage() {
 
   const updateOffer = async (id: string) => {
     try {
-      const response = await fetch("/api/addOfferAcepted", {
+      const response = await fetch("/api/loans/accept", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -349,7 +367,7 @@ export default function LenderPage() {
 
     setLoadingProposals(true);
     try {
-      const response = await fetch("/api/getLenderProposals", {
+      const response = await fetch("/api/proposals/lender", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -359,14 +377,23 @@ export default function LenderPage() {
 
       if (response.ok) {
         const data = await response.json();
-        setLenderProposals(data.data || []);
+        
+        // Manejar la estructura de respuesta correcta: data.data.proposals o data.data
+        let proposals = [];
+        if (data.data) {
+          proposals = data.data.proposals || data.data || [];
+        } else {
+          proposals = data.proposals || [];
+        }
+        
+        setLenderProposals(Array.isArray(proposals) ? proposals : []);
       } else {
         console.error("Error fetching proposals:", response.statusText);
-        toast.error("Error al cargar tus propuestas");
+        setLenderProposals([]);
       }
     } catch (error) {
       console.error("Error fetching proposals:", error);
-      toast.error("Error al cargar tus propuestas");
+      setLenderProposals([]);
     } finally {
       setLoadingProposals(false);
     }
@@ -499,9 +526,24 @@ export default function LenderPage() {
             {/* Contenido Principal */}
             {!selectedRequestId ? (
               <>
-                {/* Grid de solicitudes */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {filteredRequests.map((request, index) => {
+                {loading ? (
+                  <div className="flex items-center justify-center h-64">
+                    <div className="w-16 h-16 border-4 border-green-200 border-t-green-600 rounded-full animate-spin"></div>
+                  </div>
+                ) : filteredRequests.length === 0 ? (
+                  <div className="text-center p-10 bg-white rounded-lg shadow">
+                    <div className="text-5xl text-gray-300 mb-4">📋</div>
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">
+                      No hay solicitudes disponibles
+                    </h3>
+                    <p className="text-gray-600 mb-6">
+                      No hay nuevas solicitudes de préstamo en este momento. Vuelve más tarde para ver nuevas oportunidades.
+                    </p>
+                  </div>
+                ) : (
+                  /* Grid de solicitudes */
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {filteredRequests.map((request, index) => {
                     // Obtener datos del usuario para esta solicitud
                     const userData = userDataMap[request.userId];
 
@@ -647,8 +689,9 @@ export default function LenderPage() {
                         </CardBody>
                       </Card>
                     );
-                  })}
-                </div>
+                    })}
+                  </div>
+                )}
               </>
             ) : (
               // Vista de detalles o formulario de propuesta
@@ -709,12 +752,11 @@ export default function LenderPage() {
 
             {loadingProposals ? (
               <div className="flex items-center justify-center h-64">
-                {/* <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"> */}
                 <div className="w-16 h-16 border-4 border-green-200 border-t-green-600 rounded-full animate-spin"></div>
               </div>
             ) : lenderProposals.length === 0 ? (
               <div className="text-center p-10 bg-white rounded-lg shadow">
-                <div className="text-5xl text-gray-300 mb-4">�</div>
+                <div className="text-5xl text-gray-300 mb-4">📝</div>
                 <h3 className="text-lg font-medium text-gray-900 mb-2">
                   No has enviado propuestas
                 </h3>

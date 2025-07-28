@@ -1,5 +1,12 @@
 import "server-only"
 import { getFirestore, FieldValue } from "firebase-admin/firestore"
+import { initAdmin } from './FirebaseAdmin'
+
+// Helper function to get Firebase Admin Firestore instance
+function getAdminFirestore() {
+  initAdmin(); // Asegurar que esté inicializado
+  return getFirestore(); // Obtener instancia sin async
+}
 
 export const create_subaccount_doc = async (
   name: string,
@@ -156,11 +163,11 @@ function calculateMonthlyPayment(amount: number, interestRate: number, term: num
 }
 
 export const getLenderProposals = async (lenderId: string) => {
-  const Firestore = getFirestore();
-  const propuestasRef = Firestore.collection("propuestas");
-  
   try {
-    // Primero intentamos buscar por "partner"
+    const Firestore = getAdminFirestore();
+    const propuestasRef = Firestore.collection("propuestas");
+    
+    // Buscar propuestas donde el partner sea el lenderId
     const allDocs = await propuestasRef
       .where("partner", "==", lenderId)
       .get();
@@ -168,7 +175,7 @@ export const getLenderProposals = async (lenderId: string) => {
     const proposals = await Promise.all(allDocs.docs.map(async (doc) => {
       const data = doc.data();
       let contactInfo = null;
-      
+
       // Si la propuesta fue aceptada, obtener datos de contacto del solicitante
       if (data.status === "accepted" && data.loanId) {
         try {
@@ -222,12 +229,10 @@ export const getLenderProposals = async (lenderId: string) => {
 
     return { status: 200, data: proposals };
   } catch (error: any) {
-    console.error("Error getting lender proposals: ", error);
+    console.error("Error getting lender proposals:", error);
     return { error: error.message, status: 500 };
   }
-};
-
-// Notification functions
+};// Notification functions
 export const createNotification = async (notificationData: {
   recipientId: string;
   type: string;
@@ -255,10 +260,10 @@ export const createNotification = async (notificationData: {
 };
 
 export const getNotificationsForUser = async (userId: string) => {
-  const Firestore = getFirestore();
-  const notificationsRef = Firestore.collection("notifications");
-  
   try {
+    const Firestore = getAdminFirestore();
+    const notificationsRef = Firestore.collection("notifications");
+    
     const snapshot = await notificationsRef
       .where("recipientId", "==", userId)
       .limit(50)

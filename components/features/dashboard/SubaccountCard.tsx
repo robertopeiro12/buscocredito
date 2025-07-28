@@ -35,7 +35,7 @@ export function SubaccountCard({ subaccount, onDelete }: SubaccountCardProps) {
     try {
       setIsDeleting(true);
 
-      const response = await fetch("/api/deleteSubaccount", {
+      const response = await fetch("/api/users/subaccounts/delete", {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",

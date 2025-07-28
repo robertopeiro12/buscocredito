@@ -49,7 +49,7 @@ export default function NotificationCenter({ userId, compact = false }: Notifica
     
     setLoading(true);
     try {
-      const response = await fetch("/api/getNotifications", {
+      const response = await fetch("/api/notifications", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -59,9 +59,27 @@ export default function NotificationCenter({ userId, compact = false }: Notifica
 
       if (response.ok) {
         const data = await response.json();
-        if (data.status === 200) {
-          setNotifications(data.data || []);
+        
+        // Manejar la estructura de respuesta correcta
+        let notifications = [];
+        if (data.success && data.data) {
+          // Nueva estructura: {success: true, data: {notifications: [...]}, message: "..."}
+          if (data.data.notifications) {
+            notifications = Array.isArray(data.data.notifications) ? data.data.notifications : [];
+          } else if (Array.isArray(data.data)) {
+            notifications = data.data;
+          }
+        } else if (data.status === 200) {
+          // Estructura antigua: {status: 200, data: [...]}
+          notifications = data.data || [];
+        } else if (Array.isArray(data)) {
+          // Respuesta directa como array
+          notifications = data;
         }
+        
+        setNotifications(notifications);
+      } else {
+        console.error("Error loading notifications:", response.statusText);
       }
     } catch (error) {
       console.error("Error loading notifications:", error);

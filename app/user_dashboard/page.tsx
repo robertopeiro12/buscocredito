@@ -280,7 +280,7 @@ export default function DashboardPage() {
 
   const fetchOfferCount = async (loanId: string) => {
     try {
-      const response = await fetch("/api/fetch_loan_offer", {
+      const response = await fetch("/api/loans/offers", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -291,7 +291,7 @@ export default function DashboardPage() {
 
       if (response.ok) {
         const data = await response.json();
-        const offers = data.data ? JSON.parse(data.data) : [];
+        const offers = data.data?.offers || [];
         setOfferCounts((prev) => ({ ...prev, [loanId]: offers.length }));
       }
     } catch (error) {
@@ -391,7 +391,7 @@ export default function DashboardPage() {
       }
 
       // Fetch offers as normal
-      const response = await fetch("/api/fetch_loan_offer", {
+      const response = await fetch("/api/loans/offers", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -404,7 +404,7 @@ export default function DashboardPage() {
       }
 
       const data = await response.json();
-      const offers: Offer[] = data.data ? JSON.parse(data.data) : [];
+      const offers: Offer[] = data.data?.offers || [];
 
       // Check if any offer is already accepted based on its status field
       const acceptedOffer = offers.find(
@@ -434,7 +434,7 @@ export default function DashboardPage() {
         // No accepted offer found, check if we need to look up additional information about acceptance
         try {
           // Additional fetch to check accepted status from server
-          const statusCheckResponse = await fetch("/api/checkOfferStatus", {
+          const statusCheckResponse = await fetch("/api/loans/status", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -585,6 +585,9 @@ export default function DashboardPage() {
         description:
           "No se pudieron cargar las ofertas. Por favor, intenta más tarde.",
       });
+    } finally {
+      // Always open the modal, even if there was an error loading offers
+      setShowBanksModal(true);
     }
   };
 
@@ -610,7 +613,7 @@ export default function DashboardPage() {
       }
 
       // Update the proposal status using our new endpoint
-      const response = await fetch("/api/updateProposalStatus", {
+      const response = await fetch("/api/proposals/status", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
