@@ -37,24 +37,29 @@ import {
   doc,
   getFirestore,
   getDoc,
+  updateDoc,
 } from "firebase/firestore";
+import { useNotification } from "@/components/common/ui/NotificationProvider";
 
 export default function DashboardPage() {
   // TODOS LOS HOOKS PRIMERO
   const { isAuthorized, isLoading: isCheckingAuth } = useUserGuard();
   const dashboardState = useDashboardState();
+  const { showNotification } = useNotification();
   
   // Local state for modals
   const [showForm, setShowForm] = useState(false);
   const [showAcceptConfirmation, setShowAcceptConfirmation] = useState(false);
   const [offerToAccept, setOfferToAccept] = useState<{ offer: any; index: number } | null>(null);
   
-  // Destructure dashboard state for easier access
+    // Destructure dashboard state for easier access
   const {
     activeTab,
     setActiveTab,
     isLoading,
+    setIsLoading,
     errors,
+    setErrors,
     userData,
     solicitudes,
     offerCounts,
@@ -71,7 +76,6 @@ export default function DashboardPage() {
     handleDeleteSolicitud,
     confirmDeleteSolicitud,
     refreshSolicitudes,
-    setErrors,
     resetErrors,
   } = dashboardState;
 
@@ -185,15 +189,91 @@ export default function DashboardPage() {
   };
 
   const handleAcceptOffer = async () => {
-    if (!offerToAccept || !selectedSolicitudId) return;
-    
+    if (!selectedSolicitudId || !offerToAccept) return;
+
+    const { offer, index } = offerToAccept;
+
     try {
-      // Lógica básica original - solo actualizar estado local
-      setAcceptedOfferId(offerToAccept.offer.id);
+      setIsLoading((prev) => ({ ...prev, offers: true }));
+
+      // Verificamos que la oferta seleccionada tenga un ID
+      if (!offer.id) {
+        console.error("Error: La oferta seleccionada no tiene ID");
+        throw new Error("La oferta seleccionada no tiene ID");
+      }
+
+      // Update the proposal status using our endpoint
+      const response = await fetch("/api/updateProposalStatus", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          proposalId: offer.id,
+          loanId: selectedSolicitudId,
+          status: "accepted",
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("Error en la respuesta:", errorData);
+        throw new Error("Error al aceptar la oferta");
+      }
+
+      showNotification({
+        message: "Oferta aceptada exitosamente",
+        description: `Has aceptado la oferta de ${
+          offer.lender_name
+        } por $${offer.amount.toLocaleString()}.`,
+        type: "success",
+      });
+
+      // Update the offer with the accepted status
+      const updatedOffer = {
+        ...offer,
+        status: "accepted",
+      };
+
+      setAcceptedOfferId(offer.id);
+      set_offer_Data([updatedOffer]);
+
+      // Also update the solicitud status
+      const db = getFirestore();
+      const solicitudRef = doc(db, "solicitudes", selectedSolicitudId);
+      await updateDoc(solicitudRef, {
+        status: "approved",
+        updatedAt: new Date().toISOString(),
+        acceptedOfferId: offer.id,
+      });
+
+      // Refresh solicitudes list
+      refreshSolicitudes();
+
+      // Close the modal
       setShowAcceptConfirmation(false);
       setOfferToAccept(null);
+
+      // Store in localStorage
+      try {
+        const acceptedOffers = JSON.parse(
+          localStorage.getItem("acceptedOffers") || "{}"
+        );
+        acceptedOffers[selectedSolicitudId] = offer.id;
+        localStorage.setItem("acceptedOffers", JSON.stringify(acceptedOffers));
+      } catch (err) {
+        console.error("Error saving to localStorage", err);
+      }
     } catch (error) {
       console.error("Error accepting offer:", error);
+      showNotification({
+        message: "Error al aceptar la oferta",
+        description:
+          "No se pudo aceptar la oferta. Por favor, intenta de nuevo.",
+        type: "error",
+      });
+    } finally {
+      setIsLoading((prev) => ({ ...prev, offers: false }));
     }
   };
 

@@ -240,7 +240,7 @@ export const createNotification = async (notificationData: {
   message: string;
   data?: any;
 }) => {
-  const Firestore = getFirestore();
+  const Firestore = getAdminFirestore();
   const notificationsRef = Firestore.collection("notifications");
   
   try {
@@ -250,7 +250,9 @@ export const createNotification = async (notificationData: {
       createdAt: new Date(),
     };
     
+    console.log("Creating notification:", newNotification);
     const docRef = await notificationsRef.add(newNotification);
+    console.log("Notification created with ID:", docRef.id);
     
     return { status: 200, notificationId: docRef.id };
   } catch (error: any) {
