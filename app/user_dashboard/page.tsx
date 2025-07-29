@@ -211,7 +211,7 @@ export default function DashboardPage() {
       }
 
       // Update the proposal status using our endpoint
-      const response = await fetch("/api/updateProposalStatus", {
+      const response = await fetch("/api/proposals/status", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

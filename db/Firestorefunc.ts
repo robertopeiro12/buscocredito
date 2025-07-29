@@ -276,13 +276,13 @@ export const createNotification = async (notificationData: {
       createdAt: new Date(),
     };
     
-    console.log("Creating notification:", newNotification);
+    console.log(`Creating notification for user ${notificationData.recipientId} of type ${notificationData.type}:`, newNotification);
     const docRef = await notificationsRef.add(newNotification);
-    console.log("Notification created with ID:", docRef.id);
+    console.log(`✅ Notification created successfully with ID: ${docRef.id} for recipient: ${notificationData.recipientId}`);
     
     return { status: 200, notificationId: docRef.id };
   } catch (error: any) {
-    console.error("Error creating notification:", error);
+    console.error(`❌ Error creating notification for recipient ${notificationData.recipientId}:`, error);
     return { error: error.message, status: 500 };
   }
 };
@@ -317,7 +317,7 @@ export const getNotificationsForUser = async (userId: string) => {
 };
 
 export const markNotificationAsRead = async (notificationId: string) => {
-  const Firestore = getFirestore();
+  const Firestore = getAdminFirestore();
   const notificationRef = Firestore.collection("notifications").doc(notificationId);
   
   try {
@@ -334,7 +334,7 @@ export const markNotificationAsRead = async (notificationId: string) => {
 };
 
 export const getUnreadNotificationCount = async (userId: string) => {
-  const Firestore = getFirestore();
+  const Firestore = getAdminFirestore();
   const notificationsRef = Firestore.collection("notifications");
   
   try {

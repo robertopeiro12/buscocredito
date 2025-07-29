@@ -90,9 +90,17 @@ export async function POST(request: NextRequest) {
     const winningProposalDoc = await db.collection('propuestas').doc(proposalId).get();
     const winningProposal = winningProposalDoc.data();
     
+    console.log("Winning proposal data:", { 
+      proposalId, 
+      partner: winningProposal?.partner,
+      amount: winningProposal?.amount,
+      interest_rate: winningProposal?.interest_rate 
+    });
+    
     if (winningProposal) {
       // Notificación para el ganador
-      await createNotification({
+      console.log("Sending notification to winner:", winningProposal.partner);
+      const winnerNotificationResult = await createNotification({
         recipientId: winningProposal.partner,
         type: "loan_accepted",
         title: "Propuesta Aceptada",
@@ -108,34 +116,41 @@ export async function POST(request: NextRequest) {
           medicalBalance: winningProposal.medical_balance
         }
       });
+      console.log("Winner notification result:", winnerNotificationResult);
       
       // Notificaciones para competidores
-      const competitorNotifications = otherProposalsSnapshot.docs
-        .filter(doc => doc.id !== proposalId)
-        .map(async (doc) => {
-          const competitorProposal = doc.data();
-          return createNotification({
-            recipientId: competitorProposal.partner,
-            type: "loan_assigned_other",
-            title: "El Usuario ha aceptado otra propuesta",
-            message: "La solicitud fue asignada a otra propuesta",
-            data: {
-              loanId: loanId,
-              winningOffer: {
-                amount: winningProposal.amount,
-                interestRate: winningProposal.interest_rate,
-                amortizationFrequency: winningProposal.amortization_frequency,
-                term: winningProposal.deadline,
-                comision: winningProposal.comision,
-                medicalBalance: winningProposal.medical_balance
-              }
+      const competitorProposals = otherProposalsSnapshot.docs.filter(doc => doc.id !== proposalId);
+      console.log(`Found ${competitorProposals.length} competitor proposals to notify`);
+      
+      const competitorNotifications = competitorProposals.map(async (doc) => {
+        const competitorProposal = doc.data();
+        console.log("Sending notification to competitor:", competitorProposal.partner);
+        
+        const result = await createNotification({
+          recipientId: competitorProposal.partner,
+          type: "loan_assigned_other",
+          title: "El Usuario ha aceptado otra propuesta",
+          message: "La solicitud fue asignada a otra propuesta",
+          data: {
+            loanId: loanId,
+            winningOffer: {
+              amount: winningProposal.amount,
+              interestRate: winningProposal.interest_rate,
+              amortizationFrequency: winningProposal.amortization_frequency,
+              term: winningProposal.deadline,
+              comision: winningProposal.comision,
+              medicalBalance: winningProposal.medical_balance
             }
-          });
+          }
         });
+        console.log(`Competitor notification result for ${competitorProposal.partner}:`, result);
+        return result;
+      });
       
       // Enviar todas las notificaciones de competidores
-      await Promise.all(competitorNotifications);
+      const competitorResults = await Promise.all(competitorNotifications);
       console.log(`Sent notifications to ${competitorNotifications.length} competitors`);
+      console.log("All competitor results:", competitorResults);
     }
     
     return createSuccessResponse({
