@@ -16,7 +16,13 @@ import {
   ChevronRight,
   CheckCircle2,
   CreditCard,
+} from "lu                                import {
+  PlusCircle,
+  ChevronRight,
+  CheckCircle2,
+  CreditCard,
 } from "lucide-react";
+import CreditForm from "@/components/features/loans/CreditForm";;
 import CreditForm from "@/components/features/loans/CreditForm";
 import { AnimatePresence } from "framer-motion";
 import ErrorNotification from "@/components/common/ui/ErrorNotification";
@@ -25,8 +31,6 @@ import { OfferCard } from "@/components/features/dashboard/OfferCard";
 import { LoanRequestCard } from "@/components/features/dashboard/LoanRequestCard";
 import { DashboardSidebar } from "@/components/features/dashboard/DashboardSidebar";
 import { DashboardHeader } from "@/components/features/dashboard/DashboardHeader";
-import { DashboardStats } from "@/components/features/dashboard/DashboardStats";
-import { Pagination } from "@/components/features/dashboard/Pagination";
 import { UserSettings } from "@/components/features/dashboard/UserSettings";
 import { HelpCenter } from "@/components/features/dashboard/HelpCenter";
 import { ErrorFallback } from "@/components/features/dashboard/ErrorFallback";
@@ -55,10 +59,6 @@ export default function DashboardPage() {
   const [showAcceptConfirmation, setShowAcceptConfirmation] = useState(false);
   const [offerToAccept, setOfferToAccept] = useState<{ offer: any; index: number } | null>(null);
   
-  // Pagination state
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 4; // 4 solicitudes por página
-  
     // Destructure dashboard state for easier access
   const {
     activeTab,
@@ -83,7 +83,6 @@ export default function DashboardPage() {
     handleDeleteSolicitud,
     confirmDeleteSolicitud,
     refreshSolicitudes,
-    createSolicitud,
     resetErrors,
   } = dashboardState;
 
@@ -130,7 +129,7 @@ export default function DashboardPage() {
       });
 
       if (!response.ok) {
-        throw new Error("Error al obtener las propuestas");
+        throw new Error("Error al obtener las ofertas");
       }
 
       const data = await response.json();
@@ -161,7 +160,7 @@ export default function DashboardPage() {
     } catch (error) {
       setErrors({
         ...errors,
-        offers: "Error al cargar las propuestas. Por favor, intenta de nuevo.",
+        offers: "Error al cargar las ofertas. Por favor, intenta de nuevo.",
       });
     }
   };
@@ -187,7 +186,7 @@ export default function DashboardPage() {
       await fetch_offer_data(solicitudId);
     } catch (error) {
       // Usar notificación simple en consola
-      console.error("Error al obtener propuestas:", error);
+      console.error("Error al obtener ofertas:", error);
     }
   };
 
@@ -206,8 +205,8 @@ export default function DashboardPage() {
 
       // Verificamos que la oferta seleccionada tenga un ID
       if (!offer.id) {
-        console.error("Error: La propuesta seleccionada no tiene ID");
-        throw new Error("La propuesta seleccionada no tiene ID");
+        console.error("Error: La oferta seleccionada no tiene ID");
+        throw new Error("La oferta seleccionada no tiene ID");
       }
 
       // Update the proposal status using our endpoint
@@ -226,12 +225,12 @@ export default function DashboardPage() {
       if (!response.ok) {
         const errorData = await response.json();
         console.error("Error en la respuesta:", errorData);
-        throw new Error("Error al aceptar la propuesta");
+        throw new Error("Error al aceptar la oferta");
       }
 
       showNotification({
-        message: "Propuesta aceptada exitosamente",
-        description: `Has aceptado la propuesta de ${
+        message: "Oferta aceptada exitosamente",
+        description: `Has aceptado la oferta de ${
           offer.lender_name
         } por $${offer.amount.toLocaleString()}.`,
         type: "success",
@@ -275,9 +274,9 @@ export default function DashboardPage() {
     } catch (error) {
       console.error("Error accepting offer:", error);
       showNotification({
-        message: "Error al aceptar la propuesta",
+        message: "Error al aceptar la oferta",
         description:
-          "No se pudo aceptar la propuesta. Por favor, intenta de nuevo.",
+          "No se pudo aceptar la oferta. Por favor, intenta de nuevo.",
         type: "error",
       });
     } finally {
@@ -287,18 +286,9 @@ export default function DashboardPage() {
 
   const handleSolicitudSubmit = async (data: any) => {
     try {
-      console.log("Creating solicitud with data:", data);
-      
-      // Use the createSolicitud function instead of just refreshing
-      const success = await createSolicitud(data);
-      
-      if (success) {
-        setShowForm(false);
-        // Switch to loans tab to show the new solicitation
-        setActiveTab("loans");
-        // Reset pagination to first page to see the new solicitation
-        setCurrentPage(1);
-      }
+      // Usar las funciones del hook original
+      await refreshSolicitudes();
+      setShowForm(false);
     } catch (error) {
       console.error("Error creating solicitud:", error);
     }
@@ -313,16 +303,6 @@ export default function DashboardPage() {
     }
   };
 
-  // Pagination logic
-  const totalPages = Math.ceil(solicitudes.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const currentSolicitudes = solicitudes.slice(startIndex, endIndex);
-
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
-  };
-
   return (
     <ErrorBoundary
       FallbackComponent={ErrorFallback}
@@ -330,7 +310,7 @@ export default function DashboardPage() {
         resetErrors();
       }}
     >
-      <div className="flex h-screen bg-gray-50 overflow-hidden">
+      <div className="flex min-h-screen bg-gray-50">
         <AnimatePresence>
           {errors.loans && (
             <ErrorNotification
@@ -359,21 +339,17 @@ export default function DashboardPage() {
           <InitialLoadingSkeleton />
         ) : (
           <>
-            {/* Sidebar - Fixed */}
+            {/* Sidebar */}
             <DashboardSidebar
               activeTab={activeTab}
               onTabChange={setActiveTab}
+              onSignOut={handleSignOut}
             />
 
-            {/* Main Content - Scrollable with left margin to account for fixed sidebar on desktop */}
-            <div className="flex-1 min-w-0 md:ml-64 overflow-auto">
-              <main className="p-4 md:p-6 lg:p-8 max-w-7xl mx-auto pt-0 md:pt-4">
-                <DashboardHeader 
-                  activeTab={activeTab} 
-                  onTabChange={setActiveTab}
-                  onSignOut={handleSignOut} 
-                />
-                
+            {/* Main Content */}
+            <div className="flex-1">
+              <main className="p-8">
+                <DashboardHeader activeTab={activeTab} />
                 {activeTab === "loans" && (
                   <>
                     <div className="space-y-8">
@@ -389,13 +365,13 @@ export default function DashboardPage() {
                                 <div>
                                   <h2 className="text-2xl font-bold text-gray-900">
                                     {acceptedOfferId
-                                      ? "Propuesta Aceptada"
-                                      : "Propuestas Disponibles"}
+                                      ? "Oferta Aceptada"
+                                      : "Ofertas Disponibles"}
                                   </h2>
                                   <p className="text-gray-600 mt-1">
                                     {acceptedOfferId 
-                                      ? "Has aceptado esta propuesta exitosamente"
-                                      : `${offer_data.length} propuestas disponibles para tu solicitud`
+                                      ? "Has aceptado esta oferta exitosamente"
+                                      : `${offer_data.length} ofertas disponibles para tu solicitud`
                                     }
                                   </p>
                                 </div>
@@ -413,7 +389,7 @@ export default function DashboardPage() {
                                   Volver a Préstamos
                                 </Button>
                               </div>
-                              <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+                              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                                 {offer_data.map((offer, idx) => (
                                   <OfferCard
                                     key={`offer-${offer.id || idx}`}
@@ -437,81 +413,50 @@ export default function DashboardPage() {
                             </div>
                           ) : (
                             <div>
-                              {/* Dashboard Stats */}
-                              <DashboardStats 
-                                solicitudes={solicitudes}
-                                offerCounts={offerCounts}
-                              />
+                              {/* Header */}
+                              <div className="mb-8">
+                                <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                                  Tus Solicitudes de Préstamo
+                                </h2>
+                                <p className="text-gray-600">
+                                  Gestiona tus solicitudes y revisa las ofertas recibidas
+                                </p>
+                              </div>
 
                               {/* Loans Grid */}
                               {solicitudes.length > 0 ? (
-                                <>
-                                  <div className="grid gap-8 lg:grid-cols-2">
-                                    {currentSolicitudes.map((solicitud) => (
-                                      <LoanRequestCard
-                                        key={solicitud.id}
-                                        solicitud={solicitud}
-                                        offerCount={offerCounts[solicitud.id] || 0}
-                                        onViewOffers={openBanksModal}
-                                        onDelete={handleDeleteSolicitud}
-                                      />
-                                    ))}
-                                  </div>
-                                  
-                                  {/* Pagination */}
-                                  <Pagination
-                                    currentPage={currentPage}
-                                    totalPages={totalPages}
-                                    onPageChange={handlePageChange}
-                                  />
-                                </>
+                                <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+                                  {solicitudes.map((solicitud) => (
+                                    <LoanRequestCard
+                                      key={solicitud.id}
+                                      solicitud={solicitud}
+                                      offerCount={offerCounts[solicitud.id] || 0}
+                                      onViewOffers={openBanksModal}
+                                      onDelete={handleDeleteSolicitud}
+                                    />
+                                  ))}
+                                </div>
                               ) : (
                                 // Empty State
-                                <div className="text-center py-24">
-                                  <div className="w-32 h-32 mx-auto mb-8 rounded-full bg-gradient-to-br from-green-100 to-green-200 flex items-center justify-center">
-                                    <CreditCard className="w-16 h-16 text-green-600" />
+                                <div className="text-center py-16">
+                                  <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-gray-100 flex items-center justify-center">
+                                    <CreditCard className="w-12 h-12 text-gray-400" />
                                   </div>
-                                  <h3 className="text-3xl font-semibold text-gray-900 mb-4">
-                                    ¡Comienza tu primera solicitud!
+                                  <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                                    No tienes solicitudes de préstamo
                                   </h3>
-                                  <p className="text-gray-600 mb-12 max-w-lg mx-auto text-lg leading-relaxed">
-                                    Solicita un préstamo y recibe múltiples propuestas de prestamistas verificados. 
-                                    Es rápido, seguro y sin compromisos iniciales.
+                                  <p className="text-gray-600 mb-8 max-w-md mx-auto">
+                                    Comienza creando tu primera solicitud de préstamo y recibe ofertas de prestamistas verificados
                                   </p>
                                   <Button
                                     color="primary"
                                     size="lg"
-                                    startContent={<PlusCircle className="w-6 h-6" />}
+                                    startContent={<PlusCircle className="w-5 h-5" />}
                                     onPress={() => setShowForm(true)}
-                                    className="bg-green-600 hover:bg-green-700 text-white font-semibold px-10 py-5 text-xl h-auto shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
+                                    className="bg-green-600 hover:bg-green-700"
                                   >
                                     Solicitar Mi Primer Préstamo
                                   </Button>
-                                  
-                                  {/* Benefits */}
-                                  <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
-                                    <div className="text-center">
-                                      <div className="w-16 h-16 bg-blue-100 rounded-xl flex items-center justify-center mx-auto mb-4">
-                                        <CheckCircle2 className="w-8 h-8 text-blue-600" />
-                                      </div>
-                                      <h4 className="text-lg font-semibold text-gray-900 mb-3">Múltiples Ofertas</h4>
-                                      <p className="text-gray-600">Compara propuestas de diferentes prestamistas verificados</p>
-                                    </div>
-                                    <div className="text-center">
-                                      <div className="w-16 h-16 bg-green-100 rounded-xl flex items-center justify-center mx-auto mb-4">
-                                        <CreditCard className="w-8 h-8 text-green-600" />
-                                      </div>
-                                      <h4 className="text-lg font-semibold text-gray-900 mb-3">Proceso Rápido</h4>
-                                      <p className="text-gray-600">Obtén respuestas en minutos, no en días o semanas</p>
-                                    </div>
-                                    <div className="text-center">
-                                      <div className="w-16 h-16 bg-purple-100 rounded-xl flex items-center justify-center mx-auto mb-4">
-                                        <CheckCircle2 className="w-8 h-8 text-purple-600" />
-                                      </div>
-                                      <h4 className="text-lg font-semibold text-gray-900 mb-3">100% Seguro</h4>
-                                      <p className="text-gray-600">Prestamistas verificados y plataforma confiable</p>
-                                    </div>
-                                  </div>
                                 </div>
                               )}
                             </div>
@@ -609,13 +554,13 @@ export default function DashboardPage() {
             {(onClose) => (
               <>
                 <ModalHeader className="flex flex-col gap-1">
-                  ¿Aceptar esta propuesta?
+                  ¿Aceptar esta oferta?
                 </ModalHeader>
                 <ModalBody>
                   {offerToAccept && (
                     <div className="space-y-4">
                       <p>
-                        Estás a punto de aceptar la propuesta de{" "}
+                        Estás a punto de aceptar la oferta de{" "}
                         <span className="font-semibold">
                           {offerToAccept.offer.lender_name}
                         </span>{" "}
@@ -630,11 +575,11 @@ export default function DashboardPage() {
                         </p>
                         <ul className="text-sm text-amber-700 list-disc pl-5 mt-2 space-y-1">
                           <li>
-                            Al aceptar esta propuesta, las demás propuestas para esta
+                            Al aceptar esta oferta, las demás ofertas para esta
                             solicitud se marcarán como rechazadas.
                           </li>
                           <li>
-                            Solo el prestamista de la propuesta aceptada podrá ver
+                            Solo el prestamista de la oferta aceptada podrá ver
                             tu solicitud.
                           </li>
                           <li>

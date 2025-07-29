@@ -1,5 +1,5 @@
-import { Button, Card, CardBody } from "@nextui-org/react";
-import { CheckCircle2 } from "lucide-react";
+import { Button, Card, CardBody, Chip } from "@nextui-org/react";
+import { CheckCircle2, Building } from "lucide-react";
 import { Offer } from "@/types/dashboard";
 
 interface OfferCardProps {
@@ -18,157 +18,141 @@ export const OfferCard = ({
   const isAccepted = acceptedOfferId === offer.id;
 
   return (
-    <Card
-      className={`w-full ${
-        isAccepted ? "border-2 border-green-500" : ""
-      }`}
-    >
+    <Card className={`w-full bg-white border ${isAccepted ? "border-green-500 bg-green-50" : "border-gray-200"}`}>
       <CardBody className="p-6">
         <div className="space-y-6">
-          {/* Header Section */}
+          {/* Header */}
           <div className="flex justify-between items-start">
-            <div className="flex-col gap-2">
-              <div className="flex items-center gap-2">
-                <h4 className="text-xl font-medium text-gray-900">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center">
+                <Building className="w-6 h-6 text-gray-600" />
+              </div>
+              <div>
+                <h4 className="text-xl font-bold text-gray-900">
                   {offer.lender_name}
                 </h4>
-                {isAccepted && (
-                  <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full font-medium">
-                    Aceptada
-                  </span>
-                )}
+                <p className="text-sm text-gray-600">Prestamista</p>
               </div>
-              <div className="flex gap-2 font-bold text-lg">
-                <span className="text-black">Pago mensual:</span>
-                <span className="font-bold">
-                  ${offer.monthly_payment?.toLocaleString()}
+            </div>
+            {isAccepted && (
+              <Chip color="success" variant="solid" size="sm">
+                Propuesta Aceptada
+              </Chip>
+            )}
+          </div>
+
+          {/* Información de la Propuesta */}
+          <div>
+            <h5 className="text-lg font-semibold text-gray-900 mb-4">
+              Información de la Propuesta
+            </h5>
+            
+            <div className="space-y-3">
+              <div className="flex justify-between">
+                <span className="text-gray-600">Cantidad que te prestan:</span>
+                <span className="font-semibold text-gray-900">
+                  ${offer.amount?.toLocaleString()}
                 </span>
               </div>
-            </div>
-            <div className="text-right">
-              <p className="text-2xl font-bold text-green-600">
-                ${offer.amount?.toLocaleString()}
-              </p>
-              <p className="text-sm text-gray-500">
-                {offer.interest_rate}% interés
-              </p>
-            </div>
-          </div>
-
-          {/* Main Info Grid */}
-          <div className="grid grid-cols-1 gap-6 pt-4 border-t">
-            <div className="space-y-4">
-              <h5 className="font-medium text-gray-900">
-                Información del Préstamo
-              </h5>
-              <div className="space-y-3">
-                {offer.comision !== undefined && (
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-500">Comisión:</span>
-                    <span className="font-medium">
-                      ${offer.comision?.toLocaleString()}
-                    </span>
-                  </div>
-                )}
-                {offer.medical_balance !== undefined && (
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-500">Seguro de Vida:</span>
-                    <span className="font-medium">
-                      ${offer.medical_balance?.toLocaleString()}
-                    </span>
-                  </div>
-                )}
-                {offer.deadline !== undefined && (
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-500">Plazo del prestamo:</span>
-                    <span className="font-medium">
-                      {offer.deadline?.toLocaleString()} meses
-                    </span>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Amortization Table */}
-            {offer.amortization &&
-              Array.isArray(offer.amortization) &&
-              offer.amortization.length > 0 && (
-                <div className="space-y-4">
-                  <h5 className="font-medium text-gray-900">
-                    Tabla de Amortización
-                  </h5>
-                  <div className="max-h-48 overflow-y-auto">
-                    <table className="min-w-full divide-y divide-gray-200">
-                      <thead className="bg-gray-50">
-                        <tr>
-                          <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">
-                            Mes
-                          </th>
-                          <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">
-                            Pago
-                          </th>
-                          <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">
-                            Capital
-                          </th>
-                          <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">
-                            Interés
-                          </th>
-                          <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">
-                            Saldo
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
-                        {offer.amortization.map((row, rowIndex) => (
-                          <tr key={`${offer.id || index}-amortization-${rowIndex}`}>
-                            <td className="px-3 py-2 text-xs text-gray-900">
-                              {rowIndex + 1}
-                            </td>
-                            <td className="px-3 py-2 text-xs text-gray-900">
-                              ${row.payment?.toLocaleString() ?? 0}
-                            </td>
-                            <td className="px-3 py-2 text-xs text-gray-900">
-                              ${row.principal?.toLocaleString() ?? 0}
-                            </td>
-                            <td className="px-3 py-2 text-xs text-gray-900">
-                              ${row.interest?.toLocaleString() ?? 0}
-                            </td>
-                            <td className="px-3 py-2 text-xs text-gray-900">
-                              ${row.balance?.toLocaleString() ?? 0}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+              
+              {offer.comision !== undefined && (
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Comisión:</span>
+                  <span className="font-semibold text-gray-900">
+                    ${offer.comision?.toLocaleString()}
+                  </span>
                 </div>
               )}
-          </div>
-
-          {/* Accept Button or Status */}
-          <div className="pt-4 border-t">
-            <div className="space-y-3">
-              {acceptedOfferId ? (
-                isAccepted ? (
-                  <div className="bg-green-50 border border-green-100 rounded-lg p-3 text-center">
-                    <CheckCircle2 className="w-5 h-5 text-green-600 mx-auto mb-2" />
-                    <p className="text-sm text-green-700 font-medium">
-                      Esta oferta ha sido aceptada. El prestamista se pondrá en
-                      contacto contigo.
-                    </p>
-                  </div>
-                ) : null
-              ) : (
-                <Button
-                  color="success"
-                  className="w-full bg-green-600 hover:bg-green-700 text-white font-medium shadow-md"
-                  onPress={() => onAcceptOffer(offer, index)}
-                  startContent={<CheckCircle2 className="w-4 h-4" />}
-                >
-                  Aceptar Oferta
-                </Button>
+              
+              <div className="flex justify-between">
+                <span className="text-gray-600">Compañía:</span>
+                <span className="font-semibold text-gray-900">
+                  {offer.lender_name}
+                </span>
+              </div>
+              
+              <div className="flex justify-between">
+                <span className="text-gray-600">Tasa de interés:</span>
+                <span className="font-semibold text-gray-900">
+                  {offer.interest_rate}% anual
+                </span>
+              </div>
+              
+              <div className="flex justify-between">
+                <span className="text-gray-600">Plazo:</span>
+                <span className="font-semibold text-gray-900">
+                  {offer.deadline} meses
+                </span>
+              </div>
+              
+              <div className="flex justify-between">
+                <span className="text-gray-600">Frecuencia de pago:</span>
+                <span className="font-semibold text-gray-900 capitalize">
+                  {offer.amortization_frequency}
+                </span>
+              </div>
+              
+              {offer.medical_balance !== undefined && offer.medical_balance > 0 && (
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Seguro médico:</span>
+                  <span className="font-semibold text-gray-900">
+                    ${offer.medical_balance?.toLocaleString()}
+                  </span>
+                </div>
+              )}
+              
+              {offer.requestInfo?.type && (
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Tipo de préstamo:</span>
+                  <span className="font-semibold text-gray-900">
+                    {offer.requestInfo.type}
+                  </span>
+                </div>
+              )}
+              
+              {offer.requestInfo?.purpose && (
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Propósito:</span>
+                  <span className="font-semibold text-gray-900">
+                    {offer.requestInfo.purpose}
+                  </span>
+                </div>
               )}
             </div>
+          </div>
+
+          {/* Información de pago */}
+          <div className="bg-gray-50 rounded-lg p-4">
+            <p className="text-gray-900 font-medium">
+              Pagarás <span className="font-bold text-green-600">
+                ${offer.monthly_payment?.toLocaleString()}
+              </span> de forma <span className="font-bold capitalize">
+                {offer.amortization_frequency}
+              </span> durante{" "}
+              <span className="font-bold">{offer.deadline} meses</span>
+            </p>
+          </div>
+
+          {/* Botón de acción */}
+          <div>
+            {isAccepted ? (
+              <div className="bg-green-100 border border-green-200 rounded-lg p-4 text-center">
+                <CheckCircle2 className="w-6 h-6 text-green-600 mx-auto mb-2" />
+                <p className="text-green-700 font-medium">
+                  Has aceptado esta propuesta. El prestamista se pondrá en contacto contigo.
+                </p>
+              </div>
+            ) : (
+              <Button
+                color="success"
+                size="lg"
+                className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold"
+                onPress={() => onAcceptOffer(offer, index)}
+                startContent={<CheckCircle2 className="w-5 h-5" />}
+              >
+                Aceptar Propuesta
+              </Button>
+            )}
           </div>
         </div>
       </CardBody>

@@ -7,6 +7,7 @@ import { useNotification } from "@/components/common/ui/NotificationProvider";
 import { 
   UserData, 
   SolicitudData, 
+  NewSolicitudData,
   Offer, 
   LoadingState, 
   ErrorState, 
@@ -172,6 +173,47 @@ export const useDashboardState = () => {
     }
   };
 
+  const createSolicitud = async (solicitudData: NewSolicitudData) => {
+    if (!user?.uid) {
+      showNotification({
+        type: "error",
+        message: "Error de autenticación",
+        description: "Usuario no autenticado.",
+      });
+      return;
+    }
+
+    try {
+      // Add userId and timestamps to the solicitud data
+      const newSolicitudData: NewSolicitudData = {
+        ...solicitudData,
+        userId: user.uid,
+        status: "pending" as const,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+
+      await createSolicitudService(newSolicitudData);
+      await refreshSolicitudes();
+      
+      showNotification({
+        type: "success",
+        message: "Solicitud creada",
+        description: "Tu solicitud de préstamo ha sido creada exitosamente.",
+      });
+      
+      return true;
+    } catch (error) {
+      console.error("Error creating solicitud:", error);
+      showNotification({
+        type: "error",
+        message: "Error al crear la solicitud",
+        description: "Por favor, intenta nuevamente más tarde.",
+      });
+      return false;
+    }
+  };
+
   // Utility functions
   const handleSignOut = () => {
     signOut(auth)
@@ -241,6 +283,7 @@ export const useDashboardState = () => {
 
     // Action functions
     refreshSolicitudes,
+    createSolicitud,
     handleDeleteSolicitud,
     confirmDeleteSolicitud,
     fetchOfferCountForSolicitud,

@@ -40,21 +40,25 @@ export type NewSolicitudData = Omit<SolicitudData, "id">;
 
 export interface Offer {
   id: string;
-  lender_name: string;
-  amount: number;
-  interest_rate: number;
-  term: string;
-  monthly_payment: number;
-  amortization?: {
-    payment: number;
-    principal: number;
-    interest: number;
-    balance: number;
-  }[];
-  medical_balance?: number;
-  comision?: number;
+  lender_name: string; // company de Firebase
+  amount: number; // amount de Firebase
+  interest_rate: number; // interest_rate de Firebase
+  term: number; // deadline de Firebase (en meses)
+  monthly_payment: number; // calculado basado en amortization_frequency
+  amortization_frequency: string; // "quincenal", "semanal", "mensual"
+  amortization?: number; // amortization de Firebase
+  medical_balance?: number; // medical_balance de Firebase
+  comision?: number; // comision de Firebase
+  deadline?: number; // deadline de Firebase (en meses)
+  partner?: string; // partner de Firebase
   status?: "accepted" | "rejected" | "pending";
-  deadline?: Date | string | number;
+  requestInfo?: {
+    originalAmount: number;
+    originalPayment: string;
+    originalTerm: string;
+    purpose: string; // Solo esto de la solicitud original
+    type: string; // Solo esto de la solicitud original
+  };
 }
 
 export interface CreditFormProps {

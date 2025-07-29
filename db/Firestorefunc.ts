@@ -131,18 +131,44 @@ export const getLoanOffers = async (loanId: string) => {
     
     const offers = snapshot.docs.map(doc => {
       const data = doc.data();
+      
+      // Calcular el pago basado en la frecuencia de amortización
+      const calculatePaymentAmount = () => {
+        const principal = data.amount || 0;
+        const rate = (data.interest_rate || 0) / 100;
+        const term = data.deadline || 12;
+        
+        // Calcular pago mensual básico
+        const monthlyPayment = principal / term;
+        
+        // Ajustar según frecuencia
+        switch(data.amortization_frequency?.toLowerCase()) {
+          case 'quincenal':
+            return (monthlyPayment / 2); // Pago quincenal
+          case 'semanal':
+            return (monthlyPayment / 4); // Pago semanal
+          case 'mensual':
+          default:
+            return monthlyPayment; // Pago mensual
+        }
+      };
+      
       return {
         id: doc.id,
-        
-        lender_name: data.company,
-        amount: data.amount,
-        interest_rate: data.interest_rate,
-        term: data.deadline,
-        monthly_payment: data.amortization_frequency,
-        amortization: data.amortization,
-        medical_balance: data.medical_balance,
-        comision: data.comision,
-        deadline: data.deadline
+        lender_name: data.company, // company de Firebase
+        amount: data.amount, // amount de Firebase
+        interest_rate: data.interest_rate, // interest_rate de Firebase
+        term: data.deadline, // deadline de Firebase (en meses)
+        monthly_payment: calculatePaymentAmount(),
+        amortization_frequency: data.amortization_frequency, // "quincenal", "semanal", "mensual"
+        amortization: data.amortization, // amortization de Firebase
+        medical_balance: data.medical_balance, // medical_balance de Firebase
+        comision: data.comision, // comision de Firebase
+        deadline: data.deadline, // deadline de Firebase (en meses)
+        partner: data.partner, // partner de Firebase
+        status: data.status,
+        // Solo type y purpose de la solicitud original
+        requestInfo: data.requestInfo
       };
     });
 
