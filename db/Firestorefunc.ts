@@ -78,8 +78,8 @@ export const getUserOfferData = async (id: string) => {
       city: userData.address?.city || 'No disponible',
       purpose: userData.purpose || 'No especificado'
     }
-    const json_data = JSON.stringify(filteredData)
-    return { status: 200, data: json_data }
+    
+    return { status: 200, data: filteredData }
   } catch (error: any) {
     console.error("Error getting offer: ", error)
     return { error: error.message, status: 500 }

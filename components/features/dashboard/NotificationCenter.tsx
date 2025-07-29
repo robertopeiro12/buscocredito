@@ -227,7 +227,7 @@ export default function NotificationCenter({ userId, compact = false }: Notifica
 
       {/* Panel de notificaciones */}
       {isOpen && (
-        <div className={`absolute ${compact ? "left-10 top-0" : "right-0 top-12"} w-96 bg-white rounded-lg shadow-lg border border-gray-200 z-50 max-h-96 overflow-hidden`}>
+        <div className={`absolute ${compact ? "right-0 top-10" : "right-0 top-12"} w-96 bg-white rounded-lg shadow-lg border border-gray-200 z-50 max-h-96 overflow-hidden`}>
           {/* Header */}
           <div className="p-4 border-b border-gray-100 bg-gray-50">
             <div className="flex justify-between items-center">

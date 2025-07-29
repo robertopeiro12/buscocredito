@@ -1,11 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from "framer-motion";
 import { Card, Button } from "@nextui-org/react";
-import { CreditCard } from "lucide-react";
+import { CreditCard, ChevronRight, Store } from "lucide-react";
 import LenderFilters from './LenderFilters';
 import LoanRequestCard from './LoanRequestCard';
 import LoanRequestDetails from "@/components/features/loans/LoanRequestDetails";
 import { ProposalForm } from "@/components/features/loans/ProposalForm";
+import { LenderStats } from "@/components/features/dashboard/LenderStats";
+import { MarketplacePagination } from "@/components/features/dashboard/MarketplacePagination";
+import { LenderLoadingSkeletons } from "@/components/features/dashboard/LenderLoadingSkeletons";
 import type { 
   LoanRequest, 
   PublicUserData, 
@@ -46,6 +49,9 @@ interface MarketplaceViewProps {
     company_id: string;
   };
   user: string;
+  
+  // Datos adicionales para stats
+  lenderProposals?: any[];
 }
 
 const MarketplaceView = ({
@@ -69,70 +75,88 @@ const MarketplaceView = ({
   updateProposal,
   partnerData,
   user,
+  lenderProposals = [],
 }: MarketplaceViewProps) => {
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6; // 6 solicitudes por página
+  
+  // Pagination logic
+  const totalPages = Math.ceil(filteredRequests.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentRequests = filteredRequests.slice(startIndex, endIndex);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
   return (
-    <div className="p-8">
-      {/* Barra de Filtros y Contador de solicitudes - Solo mostrar cuando no se está creando una oferta */}
-      {!isCreatingOffer && (
-        <>
-          {/* Barra de Filtros */}
-          <LenderFilters
-            filters={filters}
-            onFilterChange={onFilterChange}
-            onClearFilters={onClearFilters}
-          />
+    <div className="space-y-6">
+      {/* Filters */}
+      <LenderFilters
+        filters={filters}
+        onFilterChange={onFilterChange}
+        onClearFilters={onClearFilters}
+      />
 
-          {/* Contador de solicitudes */}
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-semibold text-gray-700 flex items-center">
-              <CreditCard className="w-5 h-5 mr-2 text-gray-500" />
-              Solicitudes de Préstamo
-            </h2>
-            <div className="flex items-center bg-gray-50 px-3 py-1.5 rounded-full border border-gray-100">
-              <span className="text-sm text-gray-600">
-                {filteredRequests.length} de {allRequests.length} disponibles
-              </span>
-            </div>
+      {loading ? (
+        <LenderLoadingSkeletons.MarketplaceGrid />
+      ) : filteredRequests.length === 0 ? (
+        <div className="text-center py-16">
+          <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center">
+            <Store className="w-12 h-12 text-blue-600" />
           </div>
-        </>
-      )}
-
-      {/* Contenido Principal */}
-      {!selectedRequest ? (
+          <h3 className="text-2xl font-semibold text-gray-900 mb-3">
+            {allRequests.length === 0 ? "No hay solicitudes disponibles" : "No se encontraron solicitudes"}
+          </h3>
+          <p className="text-gray-600 mb-8 max-w-md mx-auto">
+            {allRequests.length === 0 
+              ? "Aún no hay solicitudes de préstamo disponibles. Las nuevas solicitudes aparecerán aquí."
+              : "Intenta ajustar los filtros para encontrar solicitudes que coincidan con tus criterios."}
+          </p>
+          {allRequests.length > 0 && (
+            <Button
+              color="primary"
+              size="md"
+              onClick={onClearFilters}
+              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2"
+            >
+              Limpiar Filtros
+            </Button>
+          )}
+        </div>
+      ) : (
         <>
-          {loading ? (
-            <div className="flex items-center justify-center h-64">
-              <div className="w-16 h-16 border-4 border-green-200 border-t-green-600 rounded-full animate-spin"></div>
-            </div>
-          ) : filteredRequests.length === 0 ? (
-            <div className="text-center p-10 bg-white rounded-lg shadow">
-              <div className="text-5xl text-gray-300 mb-4">📋</div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
-                No hay solicitudes disponibles
-              </h3>
-              <p className="text-gray-600 mb-6">
-                No hay nuevas solicitudes de préstamo en este momento. Vuelve más tarde para ver nuevas oportunidades.
-              </p>
-            </div>
-          ) : (
-            /* Grid de solicitudes */
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {filteredRequests.map((request, index) => (
-                <LoanRequestCard
-                  key={request.id}
-                  request={request}
-                  userData={userDataMap[request.userId]}
-                  index={index}
-                  onMakeOffer={onMakeOffer}
-                />
-              ))}
+          <div className="grid gap-8 lg:grid-cols-2 xl:grid-cols-3">
+            {currentRequests.map((request, index) => (
+              <LoanRequestCard
+                key={request.id}
+                request={request}
+                index={index}
+                userData={userDataMap[request.userId]}
+                onMakeOffer={() => onMakeOffer(request.id)}
+              />
+            ))}
+          </div>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="mt-6">
+              <MarketplacePagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={handlePageChange}
+              />
             </div>
           )}
         </>
-      ) : (
-        // Vista de detalles o formulario de propuesta
-        <motion.div layout className="max-w-4xl mx-auto">
-          {isCreatingOffer ? (
+      )}
+
+      {/* Offer Modal */}
+      {isCreatingOffer && selectedRequest && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <ProposalForm
               proposal={proposalData}
               loading={submitting}
@@ -141,35 +165,8 @@ const MarketplaceView = ({
               onSubmit={onSubmitOffer}
               onCancel={onCancelOffer}
             />
-          ) : (
-            <Card className="p-6">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-xl font-semibold">
-                  Detalles de la Solicitud
-                </h2>
-                <Button
-                  variant="light"
-                  onClick={onBackToMarket}
-                >
-                  Volver al mercado
-                </Button>
-              </div>
-              <LoanRequestDetails
-                request={selectedRequest}
-                userData={userData}
-                onMakeOffer={() => {
-                  updateProposal({
-                    company: partnerData.company,
-                    partner: user,
-                    amount: selectedRequest?.amount || 0,
-                    amortization_frequency: selectedRequest?.payment || "mensual",
-                  });
-                  onMakeOffer(selectedRequest.id);
-                }}
-              />
-            </Card>
-          )}
-        </motion.div>
+          </div>
+        </div>
       )}
     </div>
   );

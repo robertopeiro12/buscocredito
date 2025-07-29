@@ -11,7 +11,7 @@ import type { PublicUserData } from '@/types/entities/business.types';
 
 // Tipos específicos del lender
 export interface LenderState {
-  activeTab: 'marketplace' | 'myoffers' | 'settings' | 'help';
+  activeTab: 'marketplace' | 'myoffers' | 'metrics' | 'notifications' | 'settings' | 'help';
   selectedRequestId: string | null;
   isCreatingOffer: boolean;
   userData: PublicUserData | null;

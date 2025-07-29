@@ -137,7 +137,7 @@ export const useLenderDashboard = () => {
 
   const getUserData = async (userId: string) => {
     try {
-      const response = await fetch("/api/users/profile", {
+      const response = await fetch("/api/users/public-profile", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -333,7 +333,7 @@ export const useLenderDashboard = () => {
 
       for (const userId of userIds) {
         try {
-          const response = await fetch("/api/users/profile", {
+          const response = await fetch("/api/users/public-profile", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",

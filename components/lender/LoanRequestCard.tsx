@@ -37,14 +37,6 @@ const LoanRequestCard = ({
             <h3 className="text-lg font-semibold text-gray-700">
               Solicitud #{index + 1}
             </h3>
-            <Chip
-              color="default"
-              variant="flat"
-              size="sm"
-              className="bg-gray-100 text-gray-600"
-            >
-              Nueva
-            </Chip>
           </div>
           <p className="text-3xl font-bold mt-2 text-green-600">
             ${request.amount.toLocaleString()}
