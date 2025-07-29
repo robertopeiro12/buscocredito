@@ -1,5 +1,6 @@
-import { MetricsCard } from "../MetricsCard";
+import { Percent } from "lucide-react";
 import { Bar } from "react-chartjs-2";
+import { ProfessionalMetricsCard } from "./ProfessionalMetricsCard";
 
 interface MetricsData {
   averageInterestRate: number;
@@ -31,102 +32,112 @@ export const InterestRateCard = ({
   metricsData,
   getMonthName,
 }: InterestRateCardProps) => {
+  const chartData = {
+    labels: Object.entries(metricsData.monthlyData)
+      .sort((a, b) => {
+        const [month1, year1] = a[0].split("-").map(Number);
+        const [month2, year2] = b[0].split("-").map(Number);
+        return year1 * 12 + month1 - (year2 * 12 + month2);
+      })
+      .map(([key]) => {
+        const [month, year] = key.split("-").map(Number);
+        return getMonthName(month, year);
+      }),
+    datasets: [
+      {
+        label: "Tasa Promedio (%)",
+        data: Object.entries(metricsData.monthlyData)
+          .sort((a, b) => {
+            const [month1, year1] = a[0].split("-").map(Number);
+            const [month2, year2] = b[0].split("-").map(Number);
+            return year1 * 12 + month1 - (year2 * 12 + month2);
+          })
+          .map(([_, data]) => {
+            if (data.proposals > 0) {
+              return metricsData.averageInterestRate;
+            }
+            return 0;
+          }),
+        backgroundColor: "rgba(99, 102, 241, 0.8)",
+        borderColor: "rgb(67, 56, 202)",
+        borderWidth: 1,
+        borderRadius: 6,
+      },
+    ],
+  };
+
+  const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        display: false,
+      },
+      tooltip: {
+        backgroundColor: "rgba(255, 255, 255, 0.95)",
+        titleColor: "#1f2937",
+        bodyColor: "#4b5563",
+        borderColor: "#e5e7eb",
+        borderWidth: 1,
+        cornerRadius: 8,
+        callbacks: {
+          label: (context: any) => `Tasa: ${context.raw.toFixed(2)}%`,
+        },
+      },
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        suggestedMax: Math.max(metricsData.averageInterestRate * 1.5, 5),
+        grid: {
+          color: "rgba(226, 232, 240, 0.5)",
+          borderDash: [2, 4],
+        },
+        ticks: {
+          callback: (value: any) => value.toFixed(1) + "%",
+          color: "#64748b",
+          font: {
+            size: 10,
+            weight: "normal" as const,
+          },
+        },
+      },
+      x: {
+        grid: {
+          display: false,
+        },
+        ticks: {
+          color: "#64748b",
+          font: {
+            size: 10,
+            weight: "normal" as const,
+          },
+        },
+      },
+    },
+  } as any;
+
+  const chart = Object.keys(metricsData.monthlyData).length > 0 ? (
+    <Bar data={chartData} options={chartOptions} />
+  ) : (
+    <div className="flex items-center justify-center h-full text-gray-400">
+      <span className="text-sm">No hay datos disponibles</span>
+    </div>
+  );
+
   return (
-    <MetricsCard
+    <ProfessionalMetricsCard
       title="Tasa de Interés Promedio"
-      gradientFrom="from-teal-50"
-      gradientTo="to-lime-50"
-      textColor="text-teal-800"
-    >
-      <div className="text-4xl font-bold text-teal-600 text-center mb-2">
-        {metricsData.averageInterestRate.toFixed(2)}%
-      </div>
-      <div className="text-sm text-center mb-4">
-        <span
-          className={`font-medium ${
-            metricsData.percentageChanges.averageInterestRate > 0
-              ? "text-red-500"
-              : "text-green-500"
-          }`}
-        >
-          {metricsData.percentageChanges.averageInterestRate > 0 ? "+" : ""}
-          {metricsData.percentageChanges.averageInterestRate.toFixed(1)}%
-        </span>
-        <span className="text-gray-500"> respecto al período anterior</span>
-      </div>
-      <div className="flex-1 w-full">
-        <Bar
-          data={{
-            labels: Object.entries(metricsData.monthlyData)
-              .sort((a, b) => {
-                const [month1, year1] = a[0].split("-").map(Number);
-                const [month2, year2] = b[0].split("-").map(Number);
-                return year1 * 12 + month1 - (year2 * 12 + month2);
-              })
-              .map(([key]) => {
-                const [month, year] = key.split("-").map(Number);
-                return getMonthName(month, year);
-              }),
-            datasets: [
-              {
-                label: "Tasa Promedio (%)",
-                data: Object.entries(metricsData.monthlyData)
-                  .sort((a, b) => {
-                    const [month1, year1] = a[0].split("-").map(Number);
-                    const [month2, year2] = b[0].split("-").map(Number);
-                    return year1 * 12 + month1 - (year2 * 12 + month2);
-                  })
-                  .map(([_, data]) => {
-                    if (data.proposals > 0) {
-                      // Usar el valor exacto del promedio en vez de uno aleatorio
-                      return metricsData.averageInterestRate;
-                    }
-                    return 0;
-                  }),
-                backgroundColor: "rgba(14, 165, 233, 0.8)",
-                borderColor: "rgb(3, 105, 161)",
-                borderWidth: 1,
-                borderRadius: 6,
-              },
-            ],
-          }}
-          options={{
-            ...metricsData.chartOptions?.bar,
-            scales: {
-              y: {
-                beginAtZero: true,
-                suggestedMax: Math.max(metricsData.averageInterestRate * 1.5, 5),
-                ticks: {
-                  callback: (value: any) => {
-                    return value.toFixed(2) + "%";
-                  },
-                  font: {
-                    size: 12,
-                    weight: "500",
-                    family: "'Inter', sans-serif",
-                  },
-                  color: "#64748b",
-                },
-                grid: {
-                  color: "rgba(226, 232, 240, 0.7)",
-                  borderDash: [3, 3],
-                },
-              },
-              x: metricsData.chartOptions?.bar?.scales?.x,
-            },
-            plugins: {
-              ...metricsData.chartOptions?.bar?.plugins,
-              tooltip: {
-                callbacks: {
-                  label: (context: any) => {
-                    return `Tasa: ${context.raw.toFixed(2)}%`;
-                  },
-                },
-              },
-            },
-          }}
-        />
-      </div>
-    </MetricsCard>
+      subtitle="Porcentaje anual"
+      value={`${metricsData.averageInterestRate.toFixed(1)}%`}
+      icon={Percent}
+      variant="info"
+      trend={{
+        value: Math.abs(metricsData.percentageChanges.averageInterestRate),
+        label: "vs período anterior",
+        isPositive: metricsData.percentageChanges.averageInterestRate <= 0 // Menor tasa es mejor
+      }}
+      chart={chart}
+    />
   );
 };

@@ -12,7 +12,7 @@ import {
   ModalFooter,
   Spinner,
 } from "@nextui-org/react";
-import { Search, PlusCircle, User, Store } from "lucide-react";
+import { Search, PlusCircle, User } from "lucide-react";
 import { AdminSidebarUpdated } from "@/components/features/dashboard/AdminSidebarUpdated";
 import { AdminHeader } from "@/components/features/dashboard/AdminHeader";
 import { AdminLoadingSkeletons } from "@/components/features/dashboard/AdminLoadingSkeletons";
@@ -162,7 +162,7 @@ export default function AdminDashboard() {
                   </div>
 
                   {isLoading ? (
-                    <AdminLoadingSkeletons.SubaccountsGrid />
+                    <AdminLoadingSkeletons.SubaccountCards />
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                       {filteredSubaccounts.map((subaccount, index) => (
@@ -190,8 +190,8 @@ export default function AdminDashboard() {
               <div className="max-w-7xl mx-auto">
                 <MetricsHeader
                   selectedTimeRange={selectedTimeRange}
-                  setSelectedTimeRange={setSelectedTimeRange}
-                  handleOpenDateRangeModal={handleOpenDateRangeModal}
+                  onTimeRangeChange={setSelectedTimeRange}
+                  onOpenDateRangeModal={handleOpenDateRangeModal}
                 />
 
                 {isLoadingMetrics ? (
@@ -210,6 +210,9 @@ export default function AdminDashboard() {
                       {/* Distribución por tipo de préstamo */}
                       <DistributionPieCard
                         title="Distribución por Tipo de Préstamo"
+                        gradientFrom="from-blue-50"
+                        gradientTo="to-indigo-50"
+                        textColor="text-blue-800"
                         data={metricsData.loanTypeDistribution}
                         colors={{
                           backgroundColor: [
@@ -229,12 +232,14 @@ export default function AdminDashboard() {
                         }}
                         chartOptions={metricsData.chartOptions?.pie}
                         getTopDistributionItems={getTopDistributionItems}
-                        variant="primary"
                       />
 
                       {/* Distribución por propósito */}
                       <DistributionPieCard
                         title="Distribución por Propósito"
+                        gradientFrom="from-purple-50"
+                        gradientTo="to-pink-50"
+                        textColor="text-purple-800"
                         data={metricsData.purposeDistribution}
                         colors={{
                           backgroundColor: [
@@ -254,12 +259,14 @@ export default function AdminDashboard() {
                         }}
                         chartOptions={metricsData.chartOptions?.pie}
                         getTopDistributionItems={getTopDistributionItems}
-                        variant="secondary"
                       />
 
                       {/* Distribución por frecuencia de pago */}
                       <DistributionPieCard
                         title="Distribución por Frecuencia de Pago"
+                        gradientFrom="from-yellow-50"
+                        gradientTo="to-orange-50"
+                        textColor="text-yellow-800"
                         data={metricsData.paymentFrequencyDistribution}
                         colors={{
                           backgroundColor: [
@@ -279,7 +286,6 @@ export default function AdminDashboard() {
                         }}
                         chartOptions={metricsData.chartOptions?.pie}
                         getTopDistributionItems={getTopDistributionItems}
-                        variant="info"
                       />
 
                       {/* Tasa de interés promedio */}
@@ -296,21 +302,13 @@ export default function AdminDashboard() {
                     </div>
 
                     {/* Separador y título para métricas del marketplace */}
-                    <div className="mt-12 mb-8">
-                      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-                        <div className="flex items-center gap-4">
-                          <div className="p-3 bg-gradient-to-br from-green-500 to-green-600 rounded-xl shadow-sm">
-                            <Store className="w-6 h-6 text-white" />
-                          </div>
-                          <div className="flex-1">
-                            <h3 className="text-xl font-bold text-gray-900">
-                              Métricas del Marketplace
-                            </h3>
-                            <p className="text-sm text-gray-500 mt-1">
-                              Estadísticas del mercado de préstamos
-                            </p>
-                          </div>
-                        </div>
+                    <div className="mt-8 mb-6">
+                      <div className="flex items-center gap-4">
+                        <div className="flex-1 h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent"></div>
+                        <h3 className="text-lg font-semibold text-gray-700 px-4 py-2 bg-gray-50 rounded-full border border-gray-200">
+                          📊 Métricas del Marketplace
+                        </h3>
+                        <div className="flex-1 h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent"></div>
                       </div>
                     </div>
 

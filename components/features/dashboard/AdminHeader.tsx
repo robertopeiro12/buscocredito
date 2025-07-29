@@ -1,5 +1,5 @@
 import { Button } from "@nextui-org/react";
-import { LogOut, Users, BarChart, Settings, HelpCircle } from "lucide-react";
+import { LogOut, Users, BarChart, Settings, HelpCircle, Store } from "lucide-react";
 
 interface AdminHeaderProps {
   activeTab: string;
@@ -20,6 +20,8 @@ export const AdminHeader = ({
         return "Gestionar Subcuentas";
       case "metrics":
         return "Dashboard de Métricas";
+      case "marketplace":
+        return "Mercado de Préstamos";
       case "settings":
         return "Configuración de Administrador";
       case "help":
@@ -35,6 +37,8 @@ export const AdminHeader = ({
         return "Administra las cuentas de vendedores y su acceso al sistema";
       case "metrics":
         return "Analiza el rendimiento y estadísticas de la plataforma";
+      case "marketplace":
+        return "Monitorea las solicitudes de préstamos y actividad del mercado";
       case "settings":
         return "Configura tu perfil y preferencias de administrador";
       case "help":
@@ -54,6 +58,11 @@ export const AdminHeader = ({
       tab: "metrics",
       icon: BarChart,
       label: "Métricas"
+    },
+    {
+      tab: "marketplace",
+      icon: Store,
+      label: "Mercado"
     },
     {
       tab: "settings",

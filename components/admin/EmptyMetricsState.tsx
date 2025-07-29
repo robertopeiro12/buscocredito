@@ -1,30 +1,47 @@
+import { BarChart3, Calendar, TrendingUp } from "lucide-react";
+
 export const EmptyMetricsState = () => {
   return (
-    <div className="flex flex-col justify-center items-center h-64 text-center">
-      <div className="mb-4 text-gray-400">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="h-16 w-16"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={1.5}
-            d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
-          />
-        </svg>
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-12">
+      <div className="flex flex-col justify-center items-center text-center max-w-md mx-auto">
+        {/* Icon Stack */}
+        <div className="relative mb-8">
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-full animate-pulse"></div>
+          <div className="relative p-4 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full shadow-lg">
+            <BarChart3 className="h-12 w-12 text-white" />
+          </div>
+          {/* Floating elements */}
+          <div className="absolute -top-2 -right-2 p-2 bg-green-500 rounded-full shadow-md animate-bounce">
+            <TrendingUp className="h-4 w-4 text-white" />
+          </div>
+          <div className="absolute -bottom-2 -left-2 p-2 bg-purple-500 rounded-full shadow-md animate-bounce" style={{ animationDelay: '0.5s' }}>
+            <Calendar className="h-4 w-4 text-white" />
+          </div>
+        </div>
+
+        {/* Content */}
+        <div className="space-y-4">
+          <h3 className="text-2xl font-bold text-gray-900">
+            No hay datos disponibles
+          </h3>
+          <p className="text-gray-500 leading-relaxed">
+            No se encontraron propuestas en el período seleccionado.
+            Las métricas se mostrarán cuando haya datos disponibles.
+          </p>
+          
+          {/* Suggestions */}
+          <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+            <h4 className="text-sm font-semibold text-blue-900 mb-2">
+              Sugerencias:
+            </h4>
+            <ul className="text-sm text-blue-700 space-y-1 text-left">
+              <li>• Cambia el rango de fechas</li>
+              <li>• Verifica que tus trabajadores hayan creado propuestas</li>
+              <li>• Revisa la configuración de filtros</li>
+            </ul>
+          </div>
+        </div>
       </div>
-      <h3 className="text-xl font-medium text-gray-700 mb-2">
-        No hay datos disponibles
-      </h3>
-      <p className="text-gray-500 max-w-lg">
-        No se encontraron propuestas en el período seleccionado.
-        Intenta cambiar el rango de fechas o verifica que tus
-        trabajadores hayan creado propuestas.
-      </p>
     </div>
   );
 };

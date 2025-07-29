@@ -1,5 +1,5 @@
 import { Button } from "@nextui-org/react";
-import { Users, Settings, HelpCircle, BarChart, CreditCard } from "lucide-react";
+import { Users, Settings, HelpCircle, BarChart, CreditCard, Store } from "lucide-react";
 
 type AdminSidebarProps = {
   activeTab: string;
@@ -31,6 +31,12 @@ export function AdminSidebarUpdated({
       label: "Métricas",
       id: "metrics",
       description: "Análisis y estadísticas"
+    },
+    {
+      icon: Store,
+      label: "Mercado",
+      id: "marketplace",
+      description: "Monitorea solicitudes"
     },
     {
       icon: Settings,
