@@ -118,6 +118,15 @@ export const OfferCard = ({
                   </span>
                 </div>
               )}
+              
+              {offer.amortization !== undefined && offer.amortization > 0 && (
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Amortización:</span>
+                  <span className="font-semibold text-gray-900">
+                    ${offer.amortization?.toLocaleString()}
+                  </span>
+                </div>
+              )}
             </div>
           </div>
 
@@ -125,7 +134,7 @@ export const OfferCard = ({
           <div className="bg-gray-50 rounded-lg p-4">
             <p className="text-gray-900 font-medium">
               Pagarás <span className="font-bold text-green-600">
-                ${offer.monthly_payment?.toLocaleString()}
+                ${offer.amortization?.toLocaleString()}
               </span> de forma <span className="font-bold capitalize">
                 {offer.amortization_frequency}
               </span> durante{" "}
