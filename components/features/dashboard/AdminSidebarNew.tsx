@@ -8,7 +8,7 @@ type AdminSidebarProps = {
   companyName?: string;
 };
 
-export function AdminSidebar({
+export function AdminSidebarNew({
   activeTab,
   setActiveTab,
   handleSignOut,
@@ -106,30 +106,6 @@ export function AdminSidebar({
             </p>
           </div>
         </div>
-      </div>
-    </div>
-  );
-}
-              key={item.id}
-              startContent={<item.icon className="w-5 h-5" />}
-              className={`w-full justify-start h-12 px-4 mb-2 transition-all duration-200 ease-in-out ${
-                activeTab === item.id
-                  ? "bg-green-50 text-green-700 hover:bg-green-100"
-                  : "bg-transparent text-gray-600 hover:bg-gray-50"
-              }`}
-              onPress={() => setActiveTab(item.id)}
-            >
-              {item.label}
-            </Button>
-          ))}
-          <Button
-            startContent={<LogOut className="w-5 h-5" />}
-            className="w-full justify-start h-12 text-gray-600 hover:text-red-600 hover:bg-red-50 transition-all duration-200 ease-in-out mt-2"
-            onPress={handleSignOut}
-          >
-            Cerrar Sesión
-          </Button>
-        </nav>
       </div>
     </div>
   );

@@ -1,17 +1,15 @@
 import { Button } from "@nextui-org/react";
-import { Users, Settings, HelpCircle, LogOut, BarChart, CreditCard } from "lucide-react";
+import { Users, Settings, HelpCircle, BarChart, CreditCard } from "lucide-react";
 
 type AdminSidebarProps = {
   activeTab: string;
   setActiveTab: (tab: string) => void;
-  handleSignOut: () => void;
   companyName?: string;
 };
 
-export function AdminSidebar({
+export function AdminSidebarUpdated({
   activeTab,
   setActiveTab,
-  handleSignOut,
   companyName,
 }: AdminSidebarProps) {
   const getButtonClass = (tab: string) => 
@@ -90,46 +88,12 @@ export function AdminSidebar({
         
         {/* Footer Section */}
         <div className="p-4 border-t border-gray-100">
-          <Button
-            className="w-full mb-4"
-            color="danger"
-            variant="light"
-            startContent={<LogOut className="w-4 h-4" />}
-            onPress={handleSignOut}
-          >
-            Cerrar Sesión
-          </Button>
-          
           <div className="px-4 py-2 bg-gray-50 rounded-lg">
             <p className="text-xs text-gray-500 text-center">
               BuscoCredito Admin v2.0
             </p>
           </div>
         </div>
-      </div>
-    </div>
-  );
-}
-              key={item.id}
-              startContent={<item.icon className="w-5 h-5" />}
-              className={`w-full justify-start h-12 px-4 mb-2 transition-all duration-200 ease-in-out ${
-                activeTab === item.id
-                  ? "bg-green-50 text-green-700 hover:bg-green-100"
-                  : "bg-transparent text-gray-600 hover:bg-gray-50"
-              }`}
-              onPress={() => setActiveTab(item.id)}
-            >
-              {item.label}
-            </Button>
-          ))}
-          <Button
-            startContent={<LogOut className="w-5 h-5" />}
-            className="w-full justify-start h-12 text-gray-600 hover:text-red-600 hover:bg-red-50 transition-all duration-200 ease-in-out mt-2"
-            onPress={handleSignOut}
-          >
-            Cerrar Sesión
-          </Button>
-        </nav>
       </div>
     </div>
   );
