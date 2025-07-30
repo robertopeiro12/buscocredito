@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Bell, X, Check, Clock } from "lucide-react";
 import { Button, Card } from "@nextui-org/react";
 
@@ -44,7 +44,7 @@ export default function NotificationCenter({ userId, compact = false }: Notifica
   const [unreadCount, setUnreadCount] = useState(0);
 
   // Cargar notificaciones
-  const loadNotifications = async () => {
+  const loadNotifications = useCallback(async () => {
     if (!userId) return;
     
     setLoading(true);
@@ -86,10 +86,10 @@ export default function NotificationCenter({ userId, compact = false }: Notifica
     } finally {
       setLoading(false);
     }
-  };
+  }, [userId]);
 
   // Cargar contador de no leídas
-  const loadUnreadCount = async () => {
+  const loadUnreadCount = useCallback(async () => {
     if (!userId || userId.trim() === '') {
       return;
     }
@@ -114,7 +114,7 @@ export default function NotificationCenter({ userId, compact = false }: Notifica
     } catch (error) {
       console.error("Error loading unread count:", error);
     }
-  };
+  }, [userId]);
 
   // Marcar como leída
   const markAsRead = async (notificationId: string) => {
@@ -155,14 +155,14 @@ export default function NotificationCenter({ userId, compact = false }: Notifica
 
       return () => clearInterval(interval);
     }
-  }, [userId]);
+  }, [userId, loadNotifications, loadUnreadCount]);
 
   // Recargar notificaciones cuando se abre el panel
   useEffect(() => {
     if (isOpen && userId) {
       loadNotifications();
     }
-  }, [isOpen, userId]);
+  }, [isOpen, userId, loadNotifications]);
 
   const getNotificationIcon = (type: string) => {
     switch (type) {

@@ -18,8 +18,8 @@ export const HelpCenter = () => {
                   ¿Cómo solicito un préstamo?
                 </h4>
                 <p className="text-gray-600">
-                  Para solicitar un préstamo, dirígete a la sección de "Préstamos"
-                  y haz clic en el botón "Solicitar Préstamo". Completa el formulario
+                  Para solicitar un préstamo, dirígete a la sección de &quot;Préstamos&quot;
+                  y haz clic en el botón &quot;Solicitar Préstamo&quot;. Completa el formulario
                   con la información requerida y envía tu solicitud.
                 </p>
               </div>
@@ -30,7 +30,7 @@ export const HelpCenter = () => {
                 <p className="text-gray-600">
                   Una vez enviada tu solicitud, nuestros prestamistas la revisarán
                   y te enviarán ofertas si están interesados. Podrás ver todas las
-                  ofertas recibidas en la sección de "Préstamos".
+                  ofertas recibidas en la sección de &quot;Préstamos&quot;.
                 </p>
               </div>
             </div>

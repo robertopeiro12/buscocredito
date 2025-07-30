@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { doc, getFirestore, getDoc } from 'firebase/firestore';
@@ -223,7 +223,7 @@ export const useLenderDashboard = () => {
       });
   };
 
-  const fetchLenderProposals = async () => {
+  const fetchLenderProposals = useCallback(async () => {
     if (!user) return;
 
     setLoadingProposals(true);
@@ -258,7 +258,7 @@ export const useLenderDashboard = () => {
     } finally {
       setLoadingProposals(false);
     }
-  };
+  }, [user]);
 
   const clearFilters = () => {
     setFilters(initialFilters);
@@ -323,7 +323,7 @@ export const useLenderDashboard = () => {
     if (activeTab === "myoffers" && user) {
       fetchLenderProposals();
     }
-  }, [activeTab, user]);
+  }, [activeTab, user, fetchLenderProposals]);
 
   useEffect(() => {
     // Cargar datos de usuario para todas las solicitudes

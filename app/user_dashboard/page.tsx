@@ -18,7 +18,7 @@ import {
   CreditCard,
 } from "lucide-react";
 import CreditForm from "@/components/features/loans/CreditForm";
-import { AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import ErrorNotification from "@/components/common/ui/ErrorNotification";
 import { ErrorBoundary } from "react-error-boundary";
 import { OfferCard } from "@/components/features/dashboard/OfferCard";
@@ -105,7 +105,7 @@ export default function DashboardPage() {
       });
 
       // Also check if the solicitud is marked as approved in Firestore
-      let firestoreAcceptedOfferId = null;
+      let firestoreAcceptedOfferId: string | null = null;
       try {
         const db = getFirestore();
         const solicitudDoc = await getDoc(doc(db, "solicitudes", loanId));
@@ -331,7 +331,7 @@ export default function DashboardPage() {
       }}
     >
       <div className="flex h-screen bg-gray-50 overflow-hidden">
-        <AnimatePresence>
+        <>
           {errors.loans && (
             <ErrorNotification
               key="error-loans"
@@ -353,7 +353,7 @@ export default function DashboardPage() {
               onClose={() => handleErrorClose("offers")}
             />
           )}
-        </AnimatePresence>
+        </>
 
         {isLoading.initial ? (
           <InitialLoadingSkeleton />
@@ -556,14 +556,14 @@ export default function DashboardPage() {
           </>
         )}
 
-        <AnimatePresence>
+        <>
           {showForm && (
             <CreditForm
               addSolicitud={handleSolicitudSubmit}
               resetForm={() => setShowForm(false)}
             />
           )}
-        </AnimatePresence>
+        </>
 
         <Modal
           isOpen={showDeleteConfirmation}

@@ -97,7 +97,7 @@ export function useAdminDashboard() {
 
   // Authentication effect
   useEffect(() => {
-    onAuthStateChanged(auth, (user) => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
         setUser(user.uid);
         setUserEmail(user.email || "");
@@ -107,6 +107,9 @@ export function useAdminDashboard() {
         router.push("/login");
       }
     });
+
+    // Cleanup function to unsubscribe when component unmounts
+    return () => unsubscribe();
   }, [router]);
 
   // Fetch admin data

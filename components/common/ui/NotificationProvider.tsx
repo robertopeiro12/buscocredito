@@ -76,7 +76,7 @@ export function NotificationProvider({
     <NotificationContext.Provider value={{ showNotification, clearAll }}>
       {children}
       <div className="fixed top-4 right-4 z-50 space-y-4">
-        <AnimatePresence>
+        <>
           {notifications.map((notification) => (
             <Notification
               key={notification.id}
@@ -84,7 +84,7 @@ export function NotificationProvider({
               onClose={removeNotification}
             />
           ))}
-        </AnimatePresence>
+        </>
       </div>
     </NotificationContext.Provider>
   );

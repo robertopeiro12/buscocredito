@@ -733,7 +733,7 @@ export const useAdminMetrics = ({
         clearTimeout(timeoutId);
       };
     }
-  }, [user, activeTab, selectedTimeRange, customDateRange]);
+  }, [user, activeTab, selectedTimeRange, customDateRange.startDate, customDateRange.endDate]);
 
   // Función para convertir datos de distribución en array ordenado para visualización
   const getTopDistributionItems = (

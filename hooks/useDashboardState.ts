@@ -97,13 +97,12 @@ export const useDashboardState = () => {
           setUserData(userData);
         } catch (error) {
           console.error('Error in useEffect:', error);
-          if (error instanceof Error) {
-            setErrors((prev) => ({
-              ...prev,
-              loans: `Error al cargar los préstamos: ${error.message}`,
-              settings: `Error al cargar la configuración: ${error.message}`,
-            }));
-          }
+          const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
+          setErrors((prev) => ({
+            ...prev,
+            loans: `Error al cargar los préstamos: ${errorMessage}`,
+            settings: `Error al cargar la configuración: ${errorMessage}`,
+          }));
         } finally {
           setIsLoading((prev) => ({
             ...prev,
