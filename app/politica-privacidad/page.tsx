@@ -17,8 +17,8 @@ const PoliticaPrivacidad = () => {
               1. Introducción
             </h2>
             <p className="text-gray-600">
-              BuscoCredito S.A. de C.V. ("BuscoCredito", "nosotros" o
-              "nuestro"), está comprometido con la protección de sus datos
+              BuscoCredito S.A. de C.V. (&quot;BuscoCredito&quot;, &quot;nosotros&quot; o
+              &quot;nuestro&quot;), está comprometido con la protección de sus datos
               personales. Esta Política de Privacidad describe cómo recopilamos,
               utilizamos, compartimos y protegemos su información personal de
               conformidad con la Ley Federal de Protección de Datos Personales
@@ -260,7 +260,7 @@ const PoliticaPrivacidad = () => {
               <p className="text-gray-600 mt-4">
                 <strong>Importante:</strong> La consulta al Buró de Crédito solo
                 se realiza con su autorización expresa y se registra como una
-                consulta de tipo "suave" que no afecta su historial crediticio.
+                consulta de tipo &quot;suave&quot; que no afecta su historial crediticio.
               </p>
             </div>
           </section>

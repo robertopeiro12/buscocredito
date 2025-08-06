@@ -1,7 +1,7 @@
 "use client";
 
-import Introduction from "@/components/shared/Introduction";
-import Acerca from "@/components/shared/Acerca";
+import Introduction from "@/components/features/landing/Introduction";
+import Acerca from "@/components/features/landing/Acerca";
 import Footer from "@/components/common/layout/Footer";
 import React, { useState, useEffect } from "react";
 

@@ -1,275 +1,111 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { auth } from "../firebase";
-import { onAuthStateChanged, signOut, User } from "firebase/auth";
+import { useState } from "react";
+import { useUserGuard } from "@/hooks/useRoleGuard";
+import { useDashboardState } from "@/hooks/useDashboardState";
 import {
   Button,
-  Card,
-  CardBody,
-  CardFooter,
   Modal,
   ModalContent,
   ModalHeader,
   ModalBody,
   ModalFooter,
-  Input,
-  Progress,
 } from "@nextui-org/react";
 import {
-  CreditCard,
-  HelpCircle,
-  Settings,
-  LogOut,
   PlusCircle,
   ChevronRight,
-  User as UserIcon,
-  RefreshCw,
   CheckCircle2,
+  CreditCard,
 } from "lucide-react";
 import CreditForm from "@/components/features/loans/CreditForm";
-import { AnimatePresence, motion } from "framer-motion";
+import { motion } from "framer-motion";
+import ErrorNotification from "@/components/common/ui/ErrorNotification";
+import { ErrorBoundary } from "react-error-boundary";
+import { OfferCard } from "@/components/features/dashboard/OfferCard";
+import { LoanRequestCard } from "@/components/features/dashboard/LoanRequestCard";
+import { DashboardSidebar } from "@/components/features/dashboard/DashboardSidebar";
+import { DashboardHeader } from "@/components/features/dashboard/DashboardHeader";
+import { DashboardStats } from "@/components/features/dashboard/DashboardStats";
+import { Pagination } from "@/components/features/dashboard/Pagination";
+import { UserSettings } from "@/components/features/dashboard/UserSettings";
+import { HelpCenter } from "@/components/features/dashboard/HelpCenter";
+import { ErrorFallback } from "@/components/features/dashboard/ErrorFallback";
+import { 
+  AuthLoadingSkeleton, 
+  InitialLoadingSkeleton, 
+  LoanCardsSkeleton, 
+  SettingsLoadingSkeleton 
+} from "@/components/features/dashboard/LoadingSkeletons";
 import {
   doc,
   getFirestore,
-  collection,
-  query,
-  where,
-  getDocs,
-  deleteDoc,
-  addDoc,
   getDoc,
-  Timestamp,
   updateDoc,
 } from "firebase/firestore";
-import { useRetry } from "@/hooks/useRetry";
-import ErrorNotification from "@/components/common/ui/ErrorNotification";
-import { ErrorBoundary, FallbackProps } from "react-error-boundary";
 import { useNotification } from "@/components/common/ui/NotificationProvider";
 
-interface Address {
-  street: string;
-  number: string;
-  colony: string;
-  city: string;
-  state: string;
-  country: string;
-  zipCode: string;
-}
-
-interface UserData {
-  name: string;
-  last_name: string;
-  second_last_name: string;
-  email: string;
-  rfc: string;
-  birthday: any; // You might want to make this more specific
-  phone: string;
-  address: Address;
-}
-
-interface SolicitudData {
-  id: string;
-  userId: string;
-  purpose: string;
-  type: string;
-  amount: number;
-  term: string;
-  payment: string;
-  income: number;
-  status: "pending" | "approved" | "rejected";
-  createdAt: string;
-  updatedAt?: string;
-  comision?: number;
-}
-
-type NewSolicitudData = Omit<SolicitudData, "id">;
-
-interface Offer {
-  id: string;
-  lender_name: string;
-  amount: number;
-  interest_rate: number;
-  term: string;
-  monthly_payment: number;
-  amortization?: {
-    payment: number;
-    principal: number;
-    interest: number;
-    balance: number;
-  }[];
-  medical_balance?: number;
-  comision?: number;
-  status?: "accepted" | "rejected" | "pending";
-}
-
-interface CreditFormProps {
-  addSolicitud: (data: CreditFormData) => void;
-  resetForm: () => void;
-}
-
-interface CreditFormData {
-  purpose: string;
-  type: string;
-  amount: number;
-  term: string;
-  payment: string;
-  income: string;
-}
-
-const formatDate = (timestamp: Timestamp | null) => {
-  if (!timestamp) return "";
-  const date = timestamp.toDate();
-  return new Intl.DateTimeFormat("es-MX", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  }).format(date);
-};
-
-const ErrorFallback = ({ error, resetErrorBoundary }: FallbackProps) => {
-  return (
-    <div className="min-h-[calc(100vh-64px)] bg-gray-50 flex items-center justify-center p-4">
-      <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-6 text-center">
-        <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-          <RefreshCw className="w-8 h-8 text-red-600" />
-        </div>
-        <h2 className="text-xl font-semibold text-gray-900 mb-2">
-          Algo salió mal
-        </h2>
-        <p className="text-gray-600 mb-6">
-          {error.message ||
-            "Ha ocurrido un error inesperado. Por favor, intenta recargar la página."}
-        </p>
-        <div className="space-y-3">
-          <Button
-            color="primary"
-            className="w-full"
-            onPress={resetErrorBoundary}
-          >
-            Intentar de nuevo
-          </Button>
-          <Button
-            variant="light"
-            className="w-full"
-            onPress={() => window.location.reload()}
-          >
-            Recargar página
-          </Button>
-        </div>
-      </div>
-    </div>
-  );
-};
-
 export default function DashboardPage() {
-  const [user, setUser] = useState<User | null>(null);
-  const [activeTab, setActiveTab] = useState("loans");
-  const [showBanksModal, setShowBanksModal] = useState(false);
-  const [selectedSolicitudId, setSelectedSolicitudId] = useState<string | null>(
-    null
-  );
-  const [banksData, setBanksData] = useState([]);
-  const [showForm, setShowForm] = useState(false);
-  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
-  const [showAcceptConfirmation, setShowAcceptConfirmation] = useState(false);
-  const [offerToAccept, setOfferToAccept] = useState<{
-    offer: Offer;
-    index: number;
-  } | null>(null);
-  const [solicitudes, setSolicitudes] = useState<SolicitudData[]>([]);
-  const [selectedSolicitud, setSelectedSolicitud] =
-    useState<SolicitudData | null>(null);
-  const [offer_data, set_offer_Data] = useState<Offer[]>([]);
-  const [acceptedOfferId, setAcceptedOfferId] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState({
-    initial: true,
-    loans: false,
-    settings: false,
-    offers: false,
-  });
-  const [userData, setUserData] = useState<UserData>({
-    name: "",
-    last_name: "",
-    second_last_name: "",
-    email: "",
-    rfc: "",
-    birthday: null,
-    phone: "",
-    address: {
-      street: "",
-      number: "",
-      colony: "",
-      city: "",
-      state: "",
-      country: "",
-      zipCode: "",
-    },
-  });
-  const [offerCounts, setOfferCounts] = useState<{ [key: string]: number }>({});
-  const router = useRouter();
-  const [errors, setErrors] = useState<{
-    loans: string | null;
-    settings: string | null;
-    offers: string | null;
-  }>({
-    loans: null,
-    settings: null,
-    offers: null,
-  });
+  // TODOS LOS HOOKS PRIMERO
+  const { isAuthorized, isLoading: isCheckingAuth } = useUserGuard();
+  const dashboardState = useDashboardState();
   const { showNotification } = useNotification();
+  
+  // Local state for modals
+  const [showForm, setShowForm] = useState(false);
+  const [showAcceptConfirmation, setShowAcceptConfirmation] = useState(false);
+  const [offerToAccept, setOfferToAccept] = useState<{ offer: any; index: number } | null>(null);
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 4; // 4 solicitudes por página
+  
+    // Destructure dashboard state for easier access
+  const {
+    activeTab,
+    setActiveTab,
+    isLoading,
+    setIsLoading,
+    errors,
+    setErrors,
+    userData,
+    solicitudes,
+    offerCounts,
+    offer_data,
+    acceptedOfferId,
+    selectedSolicitudId,
+    setSelectedSolicitudId,
+    set_offer_Data,
+    setAcceptedOfferId,
+    showDeleteConfirmation,
+    setShowDeleteConfirmation,
+    handleSignOut,
+    handleErrorClose,
+    handleDeleteSolicitud,
+    confirmDeleteSolicitud,
+    refreshSolicitudes,
+    createSolicitud,
+    resetErrors,
+  } = dashboardState;
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        setUser(user);
-        try {
-          setIsLoading((prev) => ({ ...prev, loans: true }));
-          await fetchSolicitudes(user.uid);
-          setIsLoading((prev) => ({ ...prev, settings: true }));
-          await fetchUserData(user.uid);
-        } catch (error) {
-          if (error instanceof Error) {
-            setErrors((prev) => ({
-              ...prev,
-              loans:
-                "Error al cargar los préstamos. Por favor, intenta de nuevo.",
-              settings:
-                "Error al cargar la configuración. Por favor, intenta de nuevo.",
-            }));
-          }
-        } finally {
-          setIsLoading((prev) => ({
-            ...prev,
-            loans: false,
-            settings: false,
-            initial: false,
-          }));
-        }
-      } else {
-        router.push("/login");
-      }
-    });
+  // CONDICIONALES DESPUÉS DE TODOS LOS HOOKS
+  if (isCheckingAuth) {
+    return <AuthLoadingSkeleton />;
+  }
 
-    return () => unsubscribe();
-  }, [router]);
+  if (!isAuthorized) {
+    return null; // El guard ya maneja la redirección
+  }
 
+  // Helper functions - lógica original exacta
   const fetch_offer_data = async (loanId: string) => {
     try {
-      setIsLoading((prev) => ({ ...prev, offers: true }));
-
-      // Check if we already know about an accepted offer from localStorage
-      let storedAcceptedOfferId = null;
-      // try {
-      //   const acceptedOffers = JSON.parse(localStorage.getItem('acceptedOffers') || '{}');
-      //   storedAcceptedOfferId = acceptedOffers[loanId] || null;
-      // } catch (err) {
-      //   console.error('Error reading from localStorage', err);
-      // }
+      setErrors({
+        ...errors,
+        offers: null
+      });
 
       // Also check if the solicitud is marked as approved in Firestore
-      let firestoreAcceptedOfferId = null;
+      let firestoreAcceptedOfferId: string | null = null;
       try {
         const db = getFirestore();
         const solicitudDoc = await getDoc(doc(db, "solicitudes", loanId));
@@ -284,14 +120,8 @@ export default function DashboardPage() {
         console.error("Error checking solicitud status", err);
       }
 
-      // If we know about an accepted offer from either source, set it
-      if (storedAcceptedOfferId || firestoreAcceptedOfferId) {
-        const acceptedId = storedAcceptedOfferId || firestoreAcceptedOfferId;
-        setAcceptedOfferId(acceptedId);
-      }
-
       // Fetch offers as normal
-      const response = await fetch("/api/fetch_loan_offer", {
+      const response = await fetch("/api/loans/offers", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -300,201 +130,45 @@ export default function DashboardPage() {
       });
 
       if (!response.ok) {
-        throw new Error("Error al obtener las ofertas");
+        throw new Error("Error al obtener las propuestas");
       }
 
       const data = await response.json();
-      const offers: Offer[] = data.data ? JSON.parse(data.data) : [];
+      const offers = data.data?.offers || [];
 
-      // Check if any offer is already accepted based on its status field
+      // Check if any offer is already accepted based on its status field OR firestoreAcceptedOfferId
       const acceptedOffer = offers.find(
-        (offer: Offer) => offer.status === "accepted"
+        (offer: any) => offer.status === "accepted" || offer.id === firestoreAcceptedOfferId
       );
 
-      // If we've already identified an accepted offer ID, try to find that offer
-      const knownAcceptedId = storedAcceptedOfferId || firestoreAcceptedOfferId;
-      const knownAcceptedOffer = knownAcceptedId
-        ? offers.find((offer: Offer) => offer.id === knownAcceptedId)
-        : null;
-
-      if (acceptedOffer) {
-        // If an offer is explicitly marked as accepted, use that
-        setAcceptedOfferId(acceptedOffer.id);
-        set_offer_Data([acceptedOffer]);
-      } else if (knownAcceptedOffer) {
-        // If we've identified an accepted offer from storage/Firestore, use that
-        // But add the accepted status to it
-        const updatedOffer = {
-          ...knownAcceptedOffer,
-          status: "accepted",
-        };
-        setAcceptedOfferId(knownAcceptedOffer.id);
-        set_offer_Data([updatedOffer]);
-      } else {
-        // No accepted offer found, check if we need to look up additional information about acceptance
-        try {
-          // Additional fetch to check accepted status from server
-          const statusCheckResponse = await fetch("/api/checkOfferStatus", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ loanId }),
-          });
-
-          if (statusCheckResponse.ok) {
-            const statusData = await statusCheckResponse.json();
-            if (statusData.acceptedOfferId) {
-              // Find the accepted offer in our current offers
-              const foundOffer = offers.find(
-                (o: Offer) => o.id === statusData.acceptedOfferId
-              );
-              if (foundOffer) {
-                const updatedOffer = {
-                  ...foundOffer,
-                  status: "accepted",
-                };
-                setAcceptedOfferId(foundOffer.id);
-                set_offer_Data([updatedOffer]);
-
-                // Also update local storage
-                try {
-                  const acceptedOffers = JSON.parse(
-                    localStorage.getItem("acceptedOffers") || "{}"
-                  );
-                  acceptedOffers[loanId] = foundOffer.id;
-                  localStorage.setItem(
-                    "acceptedOffers",
-                    JSON.stringify(acceptedOffers)
-                  );
-                } catch (err) {
-                  console.error("Error saving to localStorage", err);
-                }
-                return;
-              }
-            }
-          }
-        } catch (statusCheckError) {
-          console.error("Error checking offer status:", statusCheckError);
-          // Continue with all offers if there's an error
+      if (acceptedOffer || firestoreAcceptedOfferId) {
+        // Si hay una oferta aceptada, establecer el ID y mostrar SOLO esa oferta
+        const acceptedId = acceptedOffer?.id || firestoreAcceptedOfferId;
+        setAcceptedOfferId(acceptedId);
+        
+        if (acceptedOffer) {
+          set_offer_Data([acceptedOffer]); // Solo mostrar la oferta aceptada
+        } else {
+          // Si tenemos el ID pero no encontramos la oferta en la lista, filtrar por ID
+          const filteredOffer = offers.filter((offer: any) => offer.id === firestoreAcceptedOfferId);
+          set_offer_Data(filteredOffer);
         }
-
-        // If we get here, no accepted offer was found
-        console.log("offers test");
-        console.log(offers);
+      } else {
+        // Si no hay ofertas aceptadas, mostrar todas
+        setAcceptedOfferId(null);
         set_offer_Data(offers);
       }
     } catch (error) {
-      setErrors((prev) => ({
-        ...prev,
-        offers: "Error al cargar las ofertas. Por favor, intenta de nuevo.",
-      }));
-    } finally {
-      setIsLoading((prev) => ({ ...prev, offers: false }));
-    }
-  };
-
-  const fetchUserData = async (userId: string) => {
-    const db = getFirestore();
-    const userDoc = await getDoc(doc(db, "cuentas", userId));
-    if (userDoc.exists()) {
-      setUserData(userDoc.data() as UserData);
-    }
-  };
-
-  const fetchOfferCount = async (loanId: string) => {
-    try {
-      const response = await fetch("/api/fetch_loan_offer", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ loanId }),
+      setErrors({
+        ...errors,
+        offers: "Error al cargar las propuestas. Por favor, intenta de nuevo.",
       });
-
-      if (response.ok) {
-        const data = await response.json();
-        const offers = data.data ? JSON.parse(data.data) : [];
-        setOfferCounts((prev) => ({ ...prev, [loanId]: offers.length }));
-      }
-    } catch (error) {
-      console.error("Error getting offer count:", error);
     }
-  };
-
-  const fetchSolicitudes = async (userId: string) => {
-    const db = getFirestore();
-    const solicitudesRef = collection(db, "solicitudes");
-    const q = query(solicitudesRef, where("userId", "==", userId));
-    const querySnapshot = await getDocs(q);
-
-    const fetchedSolicitudes: SolicitudData[] = [];
-    querySnapshot.forEach((doc) => {
-      const data = doc.data();
-      fetchedSolicitudes.push({
-        id: doc.id,
-        userId: data.userId,
-        purpose: data.purpose,
-        type: data.type,
-        amount: data.amount,
-        term: data.term,
-        payment: data.payment,
-        income: data.income,
-        status: data.status,
-        createdAt: data.createdAt,
-        updatedAt: data.updatedAt,
-        comision: data.comision,
-      });
-    });
-    fetchedSolicitudes.forEach((solicitud) => {
-      fetchOfferCount(solicitud.id);
-    });
-
-    setSolicitudes(fetchedSolicitudes);
-
-    // Fetch offer counts for each solicitud
-  };
-
-  const deleteSolicitud = async (solicitudId: string) => {
-    const db = getFirestore();
-    await deleteDoc(doc(db, "solicitudes", solicitudId));
-    fetchSolicitudes(user?.uid || "");
-    setShowDeleteConfirmation(false);
-  };
-
-  const addSolicitud = async (data: CreditFormData) => {
-    const solicitudData: NewSolicitudData = {
-      ...data,
-      userId: user?.uid || "",
-      income: Number(data.income),
-      status: "pending",
-      createdAt: new Date().toISOString(),
-    };
-
-    const db = getFirestore();
-    await addDoc(collection(db, "solicitudes"), solicitudData);
-    fetchSolicitudes(user?.uid || "");
-    setShowForm(false);
   };
 
   const openBanksModal = async (solicitudId: string) => {
-    console.log("Opening banks modal for solicitud ID:", solicitudId);
     setSelectedSolicitudId(solicitudId);
 
-    // First check if we have a record of this solicitud having an accepted offer in localStorage
-    // try {
-    //   const acceptedOffers = JSON.parse(localStorage.getItem('acceptedOffers') || '{}');
-    //   if (acceptedOffers[solicitudId]) {
-    //     console.log("Found accepted offer ID in localStorage:", acceptedOffers);
-    //     setAcceptedOfferId(acceptedOffers[solicitudId]);
-    //   } else {
-    //     setAcceptedOfferId(null);
-    //   }
-    // } catch (err) {
-    //   console.error('Error reading from localStorage', err);
-    // }
-
-    // Also check if this solicitud is already marked as approved in Firestore
     try {
       const db = getFirestore();
       const solicitudDoc = await getDoc(doc(db, "solicitudes", solicitudId));
@@ -511,47 +185,17 @@ export default function DashboardPage() {
 
     try {
       await fetch_offer_data(solicitudId);
-
-      // if (offer_data && offer_data.length > 0) {
-      //   // Check if we found an accepted offer
-      //   if (acceptedOfferId) {
-      //     showNotification({
-      //       type: "success",
-      //       message: "Oferta aceptada",
-      //       description: "Estás viendo la oferta que has aceptado para esta solicitud.",
-      //     });
-      //   } else {
-      //     showNotification({
-      //       type: "info",
-      //       message: "Ofertas disponibles",
-      //       description: "Se han encontrado ofertas para tu solicitud.",
-      //     });
-      //   }
-      // } else {
-      //   showNotification({
-      //     type: "warning",
-      //     message: "Sin ofertas disponibles",
-      //     description:
-      //       "No se encontraron ofertas para tu solicitud en este momento.",
-      //   });
-      // }
     } catch (error) {
-      showNotification({
-        type: "error",
-        message: "Error al obtener ofertas",
-        description:
-          "No se pudieron cargar las ofertas. Por favor, intenta más tarde.",
-      });
+      // Usar notificación simple en consola
+      console.error("Error al obtener propuestas:", error);
     }
   };
 
-  // Function to open the confirmation modal for accepting an offer
-  const confirmAcceptOffer = (offer: Offer, index: number) => {
+  const confirmAcceptOffer = (offer: any, index: number) => {
     setOfferToAccept({ offer, index });
     setShowAcceptConfirmation(true);
   };
 
-  // Function to handle accepting an offer
   const handleAcceptOffer = async () => {
     if (!selectedSolicitudId || !offerToAccept) return;
 
@@ -562,21 +206,18 @@ export default function DashboardPage() {
 
       // Verificamos que la oferta seleccionada tenga un ID
       if (!offer.id) {
-        console.error("Error: La oferta seleccionada no tiene ID");
-        throw new Error("La oferta seleccionada no tiene ID");
+        console.error("Error: La propuesta seleccionada no tiene ID");
+        throw new Error("La propuesta seleccionada no tiene ID");
       }
 
-      console.log("Aceptando oferta con ID:", offer.id);
-      console.log("ID de solicitud:", selectedSolicitudId);
-
-      // Update the proposal status using our new endpoint
-      const response = await fetch("/api/updateProposalStatus", {
+      // Update the proposal status using our endpoint
+      const response = await fetch("/api/proposals/status", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          proposalId: offer.id, // Enviamos solo el ID de la propuesta seleccionada
+          proposalId: offer.id,
           loanId: selectedSolicitudId,
           status: "accepted",
         }),
@@ -585,15 +226,12 @@ export default function DashboardPage() {
       if (!response.ok) {
         const errorData = await response.json();
         console.error("Error en la respuesta:", errorData);
-        throw new Error("Error al aceptar la oferta");
+        throw new Error("Error al aceptar la propuesta");
       }
 
-      const successData = await response.json();
-      console.log("Respuesta exitosa:", successData);
-
       showNotification({
-        message: "Oferta aceptada exitosamente",
-        description: `Has aceptado la oferta de ${
+        message: "Propuesta aceptada exitosamente",
+        description: `Has aceptado la propuesta de ${
           offer.lender_name
         } por $${offer.amount.toLocaleString()}.`,
         type: "success",
@@ -605,13 +243,10 @@ export default function DashboardPage() {
         status: "accepted",
       };
 
-      // Set the accepted offer ID
       setAcceptedOfferId(offer.id);
-
-      // Filter offers to show only the accepted one with updated status
       set_offer_Data([updatedOffer]);
 
-      // Also update the solicitud status to show that it has an accepted offer
+      // Also update the solicitud status
       const db = getFirestore();
       const solicitudRef = doc(db, "solicitudes", selectedSolicitudId);
       await updateDoc(solicitudRef, {
@@ -620,14 +255,14 @@ export default function DashboardPage() {
         acceptedOfferId: offer.id,
       });
 
-      // Refresh solicitudes list in the background
-      fetchSolicitudes(user?.uid || "");
+      // Refresh solicitudes list
+      refreshSolicitudes();
 
       // Close the modal
       setShowAcceptConfirmation(false);
       setOfferToAccept(null);
 
-      // Store the accepted status in local storage to maintain state between reloads
+      // Store in localStorage
       try {
         const acceptedOffers = JSON.parse(
           localStorage.getItem("acceptedOffers") || "{}"
@@ -640,9 +275,9 @@ export default function DashboardPage() {
     } catch (error) {
       console.error("Error accepting offer:", error);
       showNotification({
-        message: "Error al aceptar la oferta",
+        message: "Error al aceptar la propuesta",
         description:
-          "No se pudo aceptar la oferta. Por favor, intenta de nuevo.",
+          "No se pudo aceptar la propuesta. Por favor, intenta de nuevo.",
         type: "error",
       });
     } finally {
@@ -650,243 +285,120 @@ export default function DashboardPage() {
     }
   };
 
-  const handleSignOut = () => {
-    signOut(auth)
-      .then(() => {
-        setUser(null);
-        router.push("/login");
-      })
-      .catch((error) => {
-        console.error("Error signing out:", error);
-      });
-  };
-
-  const handleErrorClose = (key: keyof typeof errors) => {
-    setErrors((prev) => ({ ...prev, [key]: null }));
-  };
-
-  const handleSolicitudSubmit = async (formData: CreditFormData) => {
+  const handleSolicitudSubmit = async (data: any) => {
     try {
-      await addSolicitud(formData);
-      showNotification({
-        type: "success",
-        message: "Solicitud creada con éxito",
-        description: "Tu solicitud de préstamo ha sido enviada correctamente.",
-      });
-      setShowForm(false);
+      console.log("Creating solicitud with data:", data);
+      
+      // Use the createSolicitud function instead of just refreshing
+      const success = await createSolicitud(data);
+      
+      if (success) {
+        setShowForm(false);
+        // Switch to loans tab to show the new solicitation
+        setActiveTab("loans");
+        // Reset pagination to first page to see the new solicitation
+        setCurrentPage(1);
+      }
     } catch (error) {
-      showNotification({
-        type: "error",
-        message: "Error al crear la solicitud",
-        description: "Por favor, intenta nuevamente más tarde.",
-      });
-    }
-  };
-
-  const handleDeleteSolicitud = async (id: string) => {
-    try {
-      await deleteSolicitud(id);
-      showNotification({
-        type: "success",
-        message: "Solicitud eliminada",
-        description: "La solicitud ha sido eliminada correctamente.",
-      });
-    } catch (error) {
-      showNotification({
-        type: "error",
-        message: "Error al eliminar la solicitud",
-        description: "Por favor, intenta nuevamente más tarde.",
-      });
+      console.error("Error creating solicitud:", error);
     }
   };
 
   const handleUpdateUserData = async (data: any) => {
     try {
-      await fetchUserData(user?.uid || "");
-      showNotification({
-        type: "success",
-        message: "Datos actualizados",
-        description: "Tus datos han sido actualizados correctamente.",
-      });
+      // Placeholder para actualización de datos
+      console.log("Update user data:", data);
     } catch (error) {
-      showNotification({
-        type: "error",
-        message: "Error al actualizar datos",
-        description: "Por favor, verifica la información e intenta nuevamente.",
-      });
+      console.error("Error updating user data:", error);
     }
+  };
+
+  // Pagination logic
+  const totalPages = Math.ceil(solicitudes.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentSolicitudes = solicitudes.slice(startIndex, endIndex);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
   };
 
   return (
     <ErrorBoundary
       FallbackComponent={ErrorFallback}
       onReset={() => {
-        // Reset the state here
-        setErrors({
-          loans: null,
-          settings: null,
-          offers: null,
-        });
+        resetErrors();
       }}
     >
-      <div className="flex min-h-[calc(100vh-64px)] bg-gray-50">
-        <AnimatePresence>
+      <div className="flex h-screen bg-gray-50 overflow-hidden">
+        <>
           {errors.loans && (
             <ErrorNotification
+              key="error-loans"
               message={errors.loans}
               onClose={() => handleErrorClose("loans")}
             />
           )}
           {errors.settings && (
             <ErrorNotification
+              key="error-settings"
               message={errors.settings}
               onClose={() => handleErrorClose("settings")}
             />
           )}
           {errors.offers && (
             <ErrorNotification
+              key="error-offers"
               message={errors.offers}
               onClose={() => handleErrorClose("offers")}
             />
           )}
-        </AnimatePresence>
+        </>
 
         {isLoading.initial ? (
-          <div className="flex-1 flex items-center justify-center">
-            <div className="space-y-4 w-full max-w-md p-4">
-              <div className="h-8 bg-gray-200 rounded-md animate-pulse w-3/4 mx-auto" />
-              <div className="space-y-3">
-                {[1, 2, 3].map((i) => (
-                  <div
-                    key={i}
-                    className="bg-white rounded-lg shadow-md p-6 animate-pulse"
-                  >
-                    <div className="space-y-3">
-                      <div className="h-4 bg-gray-200 rounded w-3/4" />
-                      <div className="h-4 bg-gray-200 rounded w-1/2" />
-                      <div className="h-4 bg-gray-200 rounded w-2/3" />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
+          <InitialLoadingSkeleton />
         ) : (
           <>
-            {/* Sidebar */}
-            <div className="w-64 bg-white border-r border-gray-200">
-              <div className="flex flex-col h-full">
-                <div className="p-6">
-                  <h1 className="text-xl font-semibold text-gray-900">
-                    Panel de Usuario
-                  </h1>
-                </div>
-                <nav className="flex-1 px-3 space-y-1">
-                  <Button
-                    startContent={<CreditCard className="w-4 h-4" />}
-                    className={`w-full justify-start h-11 px-4 ${
-                      activeTab === "loans"
-                        ? "bg-green-50 text-green-700 hover:bg-green-100"
-                        : "bg-transparent text-gray-600 hover:bg-gray-50"
-                    }`}
-                    variant="light"
-                    onPress={() => setActiveTab("loans")}
-                  >
-                    <span className="font-medium">Préstamos</span>
-                  </Button>
-                  <Button
-                    startContent={<Settings className="w-4 h-4" />}
-                    className={`w-full justify-start h-11 px-4 ${
-                      activeTab === "settings"
-                        ? "bg-green-50 text-green-700 hover:bg-green-100"
-                        : "bg-transparent text-gray-600 hover:bg-gray-50"
-                    }`}
-                    variant="light"
-                    onPress={() => setActiveTab("settings")}
-                  >
-                    <span className="font-medium">Configuración</span>
-                  </Button>
-                  <Button
-                    startContent={<HelpCircle className="w-4 h-4" />}
-                    className={`w-full justify-start h-11 px-4 ${
-                      activeTab === "help"
-                        ? "bg-green-50 text-green-700 hover:bg-green-100"
-                        : "bg-transparent text-gray-600 hover:bg-gray-50"
-                    }`}
-                    variant="light"
-                    onPress={() => setActiveTab("help")}
-                  >
-                    <span className="font-medium">Ayuda</span>
-                  </Button>
-                  <Button
-                    startContent={<LogOut className="w-4 h-4" />}
-                    className="w-full justify-start h-11 px-4 text-gray-600 hover:text-red-600 hover:bg-red-50"
-                    variant="light"
-                    onPress={handleSignOut}
-                  >
-                    <span className="font-medium">Cerrar sesión</span>
-                  </Button>
-                </nav>
-                <div className="flex-grow"></div>
-              </div>
-            </div>
+            {/* Sidebar - Fixed */}
+            <DashboardSidebar
+              activeTab={activeTab}
+              onTabChange={setActiveTab}
+            />
 
-            {/* Main Content */}
-            <div className="flex-1">
-              <header className="py-8 mb-4 flex justify-center">
-                <div className="relative inline-block">
-                  <div className="absolute inset-0 bg-gradient-to-r from-green-100 to-green-50 rounded-lg shadow-md transform rotate-1"></div>
-                  <div className="absolute inset-0 bg-white rounded-lg shadow-sm"></div>
-                  <h1 className="relative px-8 py-3 text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-green-600 to-green-800">
-                    {activeTab === "loans" && "Préstamos"}
-                    {activeTab === "settings" && "Configuración"}
-                    {activeTab === "help" && "Centro de Ayuda"}
-                  </h1>
-                </div>
-              </header>
-
-              <main className="p-8 relative">
+            {/* Main Content - Scrollable with left margin to account for fixed sidebar on desktop */}
+            <div className="flex-1 min-w-0 md:ml-64 overflow-auto">
+              <main className="p-4 md:p-6 lg:p-8 max-w-7xl mx-auto pt-0 md:pt-4">
+                <DashboardHeader 
+                  activeTab={activeTab} 
+                  onTabChange={setActiveTab}
+                  onSignOut={handleSignOut} 
+                />
+                
                 {activeTab === "loans" && (
                   <>
-                    <div className="space-y-6">
+                    <div className="space-y-8">
                       {isLoading.loans ? (
-                        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                          {[1, 2, 3].map((i) => (
-                            <Card key={i} className="bg-white">
-                              <CardBody className="p-6">
-                                <div className="space-y-4 animate-pulse">
-                                  <div className="flex justify-between items-start">
-                                    <div className="space-y-2">
-                                      <div className="h-5 bg-gray-200 rounded w-32" />
-                                      <div className="h-4 bg-gray-200 rounded w-24" />
-                                    </div>
-                                    <div className="h-6 bg-gray-200 rounded w-20" />
-                                  </div>
-                                  <div className="space-y-3">
-                                    <div className="h-4 bg-gray-200 rounded w-full" />
-                                    <div className="h-4 bg-gray-200 rounded w-full" />
-                                    <div className="h-4 bg-gray-200 rounded w-full" />
-                                  </div>
-                                  <div className="pt-4">
-                                    <div className="h-2 bg-gray-200 rounded w-full" />
-                                  </div>
-                                </div>
-                              </CardBody>
-                            </Card>
-                          ))}
-                        </div>
+                        <LoanCardsSkeleton />
                       ) : (
                         <div className="space-y-8">
                           {selectedSolicitudId &&
                           offer_data &&
                           offer_data.length > 0 ? (
-                            <div className="space-y-4">
-                              <div className="flex justify-between items-center">
-                                <h2 className="text-xl font-semibold text-gray-900">
-                                  {acceptedOfferId
-                                    ? "Oferta Aceptada"
-                                    : "Ofertas Disponibles"}
-                                </h2>
+                            <div className="space-y-6">
+                              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+                                <div>
+                                  <h2 className="text-2xl font-bold text-gray-900">
+                                    {acceptedOfferId
+                                      ? "Propuesta Aceptada"
+                                      : "Propuestas Disponibles"}
+                                  </h2>
+                                  <p className="text-gray-600 mt-1">
+                                    {acceptedOfferId 
+                                      ? "Has aceptado esta propuesta exitosamente"
+                                      : `${offer_data.length} propuestas disponibles para tu solicitud`
+                                    }
+                                  </p>
+                                </div>
                                 <Button
                                   variant="light"
                                   onPress={() => {
@@ -895,546 +407,163 @@ export default function DashboardPage() {
                                     set_offer_Data([]);
                                   }}
                                   size="sm"
-                                  endContent={
-                                    <ChevronRight className="w-4 h-4 rotate-180" />
-                                  }
+                                  startContent={<ChevronRight className="w-4 h-4 rotate-180" />}
+                                  className="text-gray-600 hover:text-gray-900"
                                 >
                                   Volver a Préstamos
                                 </Button>
                               </div>
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                              <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
                                 {offer_data.map((offer, idx) => (
-                                  <Card
-                                    key={idx}
-                                    className={`w-full ${
-                                      acceptedOfferId === offer.id
-                                        ? "border-2 border-green-500"
-                                        : ""
-                                    }`}
-                                  >
-                                    <CardBody className="p-6">
-                                      <div className="space-y-6">
-                                        {/* Header Section */}
-                                        <div className="flex justify-between items-start">
-                                          <div className="flex-col gap-2">
-                                            <div className="flex items-center gap-2">
-                                              <h4 className="text-xl font-medium text-gray-900">
-                                                {offer.lender_name}
-                                              </h4>
-
-                                              {acceptedOfferId === offer.id && (
-                                                <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full font-medium">
-                                                  Aceptada
-                                                </span>
-                                              )}
-                                            </div>
-                                            <div className="flex gap-2 font-bold text-lg">
-                                              <span className="text-black">
-                                                Pago{" "}
-                                                {offer.monthly_payment?.toLocaleString()}
-                                                :
-                                              </span>
-                                              <span className="font-bold">
-                                                $
-                                                {offer.amortization?.toLocaleString()}
-                                              </span>
-                                            </div>
-                                          </div>
-                                          <div className="text-right">
-                                            <p className="text-2xl font-bold text-green-600">
-                                              ${offer.amount?.toLocaleString()}
-                                            </p>
-                                            <p className="text-sm text-gray-500">
-                                              {offer.interest_rate}% interés
-                                            </p>
-                                          </div>
-                                        </div>
-
-                                        {/* Main Info Grid */}
-                                        <div className="grid grid-cols-1 gap-6 pt-4 border-t">
-                                          <div className="space-y-4">
-                                            <h5 className="font-medium text-gray-900">
-                                              Información del Préstamo
-                                            </h5>
-                                            <div className="space-y-3">
-                                              {offer.comision !== undefined && (
-                                                <div className="flex justify-between text-sm">
-                                                  <span className="text-gray-500">
-                                                    Comisión:
-                                                  </span>
-                                                  <span className="font-medium">
-                                                    $
-                                                    {offer.comision?.toLocaleString()}
-                                                  </span>
-                                                </div>
-                                              )}
-                                              {offer.medical_balance !==
-                                                undefined && (
-                                                <div className="flex justify-between text-sm">
-                                                  <span className="text-gray-500">
-                                                    Seguro de Vida:
-                                                  </span>
-                                                  <span className="font-medium">
-                                                    $
-                                                    {offer.medical_balance?.toLocaleString()}
-                                                  </span>
-                                                </div>
-                                              )}
-                                              {offer.deadline !== undefined && (
-                                                <div className="flex justify-between text-sm">
-                                                  <span className="text-gray-500">
-                                                    Plazo del prestamo:
-                                                  </span>
-                                                  <span className="font-medium">
-                                                    {offer.deadline?.toLocaleString()}{" "}
-                                                    meses
-                                                  </span>
-                                                </div>
-                                              )}
-                                            </div>
-                                          </div>
-
-                                          {offer.amortization &&
-                                            Array.isArray(offer.amortization) &&
-                                            offer.amortization.length > 0 && (
-                                              <div className="space-y-4">
-                                                <h5 className="font-medium text-gray-900">
-                                                  Tabla de Amortización
-                                                </h5>
-                                                <div className="max-h-48 overflow-y-auto">
-                                                  <table className="min-w-full divide-y divide-gray-200">
-                                                    <thead className="bg-gray-50">
-                                                      <tr>
-                                                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">
-                                                          Mes
-                                                        </th>
-                                                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">
-                                                          Pago
-                                                        </th>
-                                                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">
-                                                          Capital
-                                                        </th>
-                                                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">
-                                                          Interés
-                                                        </th>
-                                                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">
-                                                          Saldo
-                                                        </th>
-                                                      </tr>
-                                                    </thead>
-                                                    <tbody className="bg-white divide-y divide-gray-200">
-                                                      {offer.amortization.map(
-                                                        (row, index) => (
-                                                          <tr key={index}>
-                                                            <td className="px-3 py-2 text-xs text-gray-900">
-                                                              {index + 1}
-                                                            </td>
-                                                            <td className="px-3 py-2 text-xs text-gray-900">
-                                                              $
-                                                              {row.payment?.toLocaleString() ??
-                                                                0}
-                                                            </td>
-                                                            <td className="px-3 py-2 text-xs text-gray-900">
-                                                              $
-                                                              {row.principal?.toLocaleString() ??
-                                                                0}
-                                                            </td>
-                                                            <td className="px-3 py-2 text-xs text-gray-900">
-                                                              $
-                                                              {row.interest?.toLocaleString() ??
-                                                                0}
-                                                            </td>
-                                                            <td className="px-3 py-2 text-xs text-gray-900">
-                                                              $
-                                                              {row.balance?.toLocaleString() ??
-                                                                0}
-                                                            </td>
-                                                          </tr>
-                                                        )
-                                                      )}
-                                                    </tbody>
-                                                  </table>
-                                                </div>
-                                              </div>
-                                            )}
-                                        </div>
-
-                                        {/* Accept Button or Status */}
-                                        <div className="pt-4 border-t">
-                                          <div className="space-y-3">
-                                            {acceptedOfferId ? (
-                                              acceptedOfferId === offer.id ? (
-                                                <div className="bg-green-50 border border-green-100 rounded-lg p-3 text-center">
-                                                  <CheckCircle2 className="w-5 h-5 text-green-600 mx-auto mb-2" />
-                                                  <p className="text-sm text-green-700 font-medium">
-                                                    Esta oferta ha sido
-                                                    aceptada. El prestamista se
-                                                    pondrá en contacto contigo.
-                                                  </p>
-                                                </div>
-                                              ) : null
-                                            ) : (
-                                              <Button
-                                                color="success"
-                                                className="w-full bg-green-600 hover:bg-green-700 text-white font-medium shadow-md"
-                                                onPress={() =>
-                                                  confirmAcceptOffer(offer, idx)
-                                                }
-                                                startContent={
-                                                  <CheckCircle2 className="w-4 h-4" />
-                                                }
-                                              >
-                                                Aceptar Oferta
-                                              </Button>
-                                            )}
-                                          </div>
-                                        </div>
-                                      </div>
-                                    </CardBody>
-                                  </Card>
+                                  <OfferCard
+                                    key={`offer-${offer.id || idx}`}
+                                    offer={offer}
+                                    index={idx}
+                                    acceptedOfferId={acceptedOfferId}
+                                    onAcceptOffer={confirmAcceptOffer}
+                                  />
                                 ))}
                               </div>
                               {acceptedOfferId && (
-                                <div className="mt-8 flex justify-center">
-                                  <p className="text-sm text-gray-500 mb-4 text-center max-w-md">
-                                    Has aceptado esta oferta. El prestamista se
-                                    pondrá en contacto contigo para los
-                                    siguientes pasos.
-                                  </p>
+                                <div className="mt-8 text-center">
+                                  <div className="inline-flex items-center gap-2 px-4 py-2 bg-green-50 border border-green-200 rounded-lg">
+                                    <CheckCircle2 className="w-5 h-5 text-green-600" />
+                                    <p className="text-sm text-green-700 font-medium">
+                                      El prestamista se pondrá en contacto contigo para los siguientes pasos
+                                    </p>
+                                  </div>
                                 </div>
                               )}
                             </div>
                           ) : (
-                            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                              {solicitudes.map((solicitud) => (
-                                <Card key={solicitud.id} className="bg-white">
-                                  <CardBody className="p-6">
-                                    <div className="space-y-4">
-                                      <div className="flex justify-between items-start">
-                                        <div>
-                                          <h3 className="text-lg font-semibold text-gray-900">
-                                            {solicitud.purpose}
-                                          </h3>
-                                          <p className="text-sm text-gray-500">
-                                            {solicitud.type}
-                                          </p>
-                                        </div>
-                                        <span className="text-lg font-semibold text-green-600">
-                                          ${solicitud.amount.toLocaleString()}
-                                        </span>
+                            <div>
+                              {/* Dashboard Stats */}
+                              <DashboardStats 
+                                solicitudes={solicitudes}
+                                offerCounts={offerCounts}
+                              />
+
+                              {/* Loans Grid */}
+                              {solicitudes.length > 0 ? (
+                                <>
+                                  <div className="grid gap-8 lg:grid-cols-2">
+                                    {currentSolicitudes.map((solicitud) => (
+                                      <LoanRequestCard
+                                        key={solicitud.id}
+                                        solicitud={solicitud}
+                                        offerCount={offerCounts[solicitud.id] || 0}
+                                        onViewOffers={openBanksModal}
+                                        onDelete={handleDeleteSolicitud}
+                                      />
+                                    ))}
+                                  </div>
+                                  
+                                  {/* Pagination */}
+                                  <Pagination
+                                    currentPage={currentPage}
+                                    totalPages={totalPages}
+                                    onPageChange={handlePageChange}
+                                  />
+                                </>
+                              ) : (
+                                // Empty State
+                                <div className="text-center py-24">
+                                  <div className="w-32 h-32 mx-auto mb-8 rounded-full bg-gradient-to-br from-green-100 to-green-200 flex items-center justify-center">
+                                    <CreditCard className="w-16 h-16 text-green-600" />
+                                  </div>
+                                  <h3 className="text-3xl font-semibold text-gray-900 mb-4">
+                                    ¡Comienza tu primera solicitud!
+                                  </h3>
+                                  <p className="text-gray-600 mb-12 max-w-lg mx-auto text-lg leading-relaxed">
+                                    Solicita un préstamo y recibe múltiples propuestas de prestamistas verificados. 
+                                    Es rápido, seguro y sin compromisos iniciales.
+                                  </p>
+                                  <Button
+                                    color="primary"
+                                    size="lg"
+                                    startContent={<PlusCircle className="w-6 h-6" />}
+                                    onPress={() => setShowForm(true)}
+                                    className="bg-green-600 hover:bg-green-700 text-white font-semibold px-10 py-5 text-xl h-auto shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
+                                  >
+                                    Solicitar Mi Primer Préstamo
+                                  </Button>
+                                  
+                                  {/* Benefits */}
+                                  <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+                                    <div className="text-center">
+                                      <div className="w-16 h-16 bg-blue-100 rounded-xl flex items-center justify-center mx-auto mb-4">
+                                        <CheckCircle2 className="w-8 h-8 text-blue-600" />
                                       </div>
-                                      <div className="space-y-2">
-                                        <div className="flex justify-between text-sm">
-                                          <span className="text-gray-500">
-                                            Plazo
-                                          </span>
-                                          <span className="text-gray-900">
-                                            {solicitud.term}
-                                          </span>
-                                        </div>
-                                        <div className="flex justify-between text-sm">
-                                          <span className="text-gray-500">
-                                            Forma de Pago
-                                          </span>
-                                          <span className="text-gray-900">
-                                            {solicitud.payment}
-                                          </span>
-                                        </div>
-                                        <div className="flex justify-between text-sm">
-                                          <span className="text-gray-500">
-                                            Ingresos Anuales Comprobables
-                                          </span>
-                                          <span className="text-gray-900">
-                                            ${solicitud.income.toLocaleString()}
-                                          </span>
-                                        </div>
-                                      </div>
-                                      <div className="pt-4">
-                                        <div className="flex justify-between items-center mb-2">
-                                          <span className="text-sm font-medium text-gray-700">
-                                            Ofertas disponibles
-                                          </span>
-                                          <span className="text-sm text-gray-500">
-                                            {offerCounts[solicitud.id] || 0}{" "}
-                                            ofertas
-                                          </span>
-                                        </div>
-                                        <Progress
-                                          value={
-                                            offerCounts[solicitud.id]
-                                              ? offerCounts[solicitud.id] * 20
-                                              : 0
-                                          }
-                                          className="h-2"
-                                          color="success"
-                                        />
-                                      </div>
+                                      <h4 className="text-lg font-semibold text-gray-900 mb-3">Múltiples Ofertas</h4>
+                                      <p className="text-gray-600">Compara propuestas de diferentes prestamistas verificados</p>
                                     </div>
-                                  </CardBody>
-                                  <CardFooter className="px-6 py-4 bg-gray-50 border-t border-gray-100">
-                                    <div className="flex justify-between w-full">
-                                      <Button
-                                        color="danger"
-                                        variant="light"
-                                        onPress={() => {
-                                          setSelectedSolicitud(solicitud);
-                                          setShowDeleteConfirmation(true);
-                                        }}
-                                      >
-                                        Eliminar
-                                      </Button>
-                                      <Button
-                                        color="primary"
-                                        variant="flat"
-                                        endContent={
-                                          <ChevronRight className="w-4 h-4" />
-                                        }
-                                        onPress={() =>
-                                          openBanksModal(solicitud.id)
-                                        }
-                                      >
-                                        Ver Ofertas
-                                      </Button>
+                                    <div className="text-center">
+                                      <div className="w-16 h-16 bg-green-100 rounded-xl flex items-center justify-center mx-auto mb-4">
+                                        <CreditCard className="w-8 h-8 text-green-600" />
+                                      </div>
+                                      <h4 className="text-lg font-semibold text-gray-900 mb-3">Proceso Rápido</h4>
+                                      <p className="text-gray-600">Obtén respuestas en minutos, no en días o semanas</p>
                                     </div>
-                                  </CardFooter>
-                                </Card>
-                              ))}
+                                    <div className="text-center">
+                                      <div className="w-16 h-16 bg-purple-100 rounded-xl flex items-center justify-center mx-auto mb-4">
+                                        <CheckCircle2 className="w-8 h-8 text-purple-600" />
+                                      </div>
+                                      <h4 className="text-lg font-semibold text-gray-900 mb-3">100% Seguro</h4>
+                                      <p className="text-gray-600">Prestamistas verificados y plataforma confiable</p>
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
                             </div>
                           )}
                         </div>
                       )}
                     </div>
-                    <Button
-                      color="primary"
-                      endContent={<PlusCircle className="w-4 h-4" />}
-                      className="fixed bottom-8 right-8 bg-green-600 hover:bg-green-700 shadow-lg z-50"
-                      onPress={() => setShowForm(true)}
-                    >
-                      Solicitar Préstamo
-                    </Button>
+
+                    {/* Floating Action Button */}
+                    {solicitudes.length > 0 && !selectedSolicitudId && (
+                      <div className="fixed bottom-8 right-8 z-50">
+                        <Button
+                          color="primary"
+                          size="lg"
+                          isIconOnly
+                          onPress={() => setShowForm(true)}
+                          className="w-14 h-14 bg-green-600 hover:bg-green-700 shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-200"
+                        >
+                          <PlusCircle className="w-6 h-6" />
+                        </Button>
+                      </div>
+                    )}
                   </>
                 )}
 
                 {activeTab === "settings" && (
                   <>
                     {isLoading.settings ? (
-                      <Card className="bg-white max-w-4xl mx-auto">
-                        <CardBody className="p-6">
-                          <div className="flex items-center gap-6 mb-6">
-                            <div className="w-24 h-24 rounded-full bg-gray-200 animate-pulse" />
-                            <div className="space-y-3 flex-1">
-                              <div className="h-8 bg-gray-200 rounded w-3/4 animate-pulse" />
-                              <div className="h-4 bg-gray-200 rounded w-1/2 animate-pulse" />
-                            </div>
-                          </div>
-                          <div className="space-y-8">
-                            <div>
-                              <div className="h-6 bg-gray-200 rounded w-1/4 mb-4" />
-                              <div className="grid grid-cols-2 gap-4">
-                                {[1, 2, 3, 4].map((i) => (
-                                  <div key={i} className="space-y-2">
-                                    <div className="h-4 bg-gray-200 rounded w-1/2 animate-pulse" />
-                                    <div className="h-4 bg-gray-200 rounded w-3/4 animate-pulse" />
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          </div>
-                        </CardBody>
-                      </Card>
+                      <SettingsLoadingSkeleton />
                     ) : (
-                      <Card className="bg-white max-w-4xl mx-auto">
-                        <CardBody className="p-6">
-                          <div className="flex items-center gap-6 mb-6">
-                            <div className="relative">
-                              <div className="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center">
-                                <UserIcon className="w-12 h-12 text-gray-400" />
-                              </div>
-                            </div>
-                            <div>
-                              <h2 className="text-2xl font-semibold text-gray-900">
-                                {`${userData.name} ${userData.last_name} ${userData.second_last_name}`}
-                              </h2>
-                            </div>
-                          </div>
-
-                          <div className="space-y-8">
-                            {/* Datos Personales */}
-                            <div>
-                              <h3 className="text-lg font-semibold text-gray-900 mb-4 border-b pb-2">
-                                DATOS PERSONALES
-                              </h3>
-                              <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                  <p className="text-sm text-gray-500">
-                                    correo electrónico
-                                  </p>
-                                  <p className="text-gray-900">
-                                    {userData.email}
-                                  </p>
-                                </div>
-                                <div>
-                                  <p className="text-sm text-gray-500">
-                                    fecha nacimiento
-                                  </p>
-                                  <p className="text-gray-900">
-                                    {formatDate(userData.birthday)}
-                                  </p>
-                                </div>
-                                <div>
-                                  <p className="text-sm text-gray-500">
-                                    contraseña
-                                  </p>
-                                  <p className="text-gray-900">••••••••••••</p>
-                                </div>
-                                <div>
-                                  <p className="text-sm text-gray-500">RFC</p>
-                                  <p className="text-gray-900">
-                                    {userData.rfc}
-                                  </p>
-                                </div>
-                              </div>
-                            </div>
-
-                            {/* Domicilio */}
-                            <div>
-                              <h3 className="text-lg font-semibold text-gray-900 mb-4 border-b pb-2">
-                                DOMICILIO
-                              </h3>
-                              <div className="grid grid-cols-2 gap-6">
-                                <div>
-                                  <p className="text-sm text-gray-500">
-                                    Colonia
-                                  </p>
-                                  <p className="text-gray-900">
-                                    {userData.address.colony}
-                                  </p>
-                                </div>
-                                <div>
-                                  <p className="text-sm text-gray-500">
-                                    Calle y Número
-                                  </p>
-                                  <p className="text-gray-900">{`${userData.address.street} #${userData.address.number}`}</p>
-                                </div>
-                                <div>
-                                  <p className="text-sm text-gray-500">
-                                    Código Postal
-                                  </p>
-                                  <p className="text-gray-900">
-                                    {userData.address.zipCode}
-                                  </p>
-                                </div>
-                                <div>
-                                  <p className="text-sm text-gray-500">
-                                    Ciudad
-                                  </p>
-                                  <p className="text-gray-900">
-                                    {userData.address.city}
-                                  </p>
-                                </div>
-                                <div>
-                                  <p className="text-sm text-gray-500">
-                                    Municipio
-                                  </p>
-                                  <p className="text-gray-900">
-                                    {userData.address.state}
-                                  </p>
-                                </div>
-                                <div>
-                                  <p className="text-sm text-gray-500">
-                                    Estado
-                                  </p>
-                                  <p className="text-gray-900">
-                                    {userData.address.state}
-                                  </p>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-
-                          <div className="mt-8 flex justify-between">
-                            <Button color="primary" variant="flat">
-                              Inhabilitar
-                            </Button>
-                            <Button color="primary">Modificar</Button>
-                          </div>
-                        </CardBody>
-                      </Card>
+                      <UserSettings
+                        userData={userData}
+                        onUpdate={handleUpdateUserData}
+                      />
                     )}
                   </>
                 )}
 
-                {activeTab === "help" && (
-                  <Card className="bg-white max-w-2xl mx-auto">
-                    <CardBody className="p-6">
-                      <h2 className="text-xl font-semibold text-gray-900 mb-6">
-                        Centro de Ayuda
-                      </h2>
-                      <div className="space-y-6">
-                        <div>
-                          <h3 className="text-lg font-medium text-gray-900 mb-2">
-                            Preguntas Frecuentes
-                          </h3>
-                          <div className="space-y-4">
-                            <div className="p-4 bg-gray-50 rounded-lg">
-                              <h4 className="font-medium text-gray-900 mb-2">
-                                ¿Cómo solicito un préstamo?
-                              </h4>
-                              <p className="text-gray-600">
-                                Para solicitar un préstamo, dirígete a la
-                                sección de "Préstamos" y haz clic en el botón
-                                "Solicitar Préstamo". Completa el formulario con
-                                la información requerida y envía tu solicitud.
-                              </p>
-                            </div>
-                            <div className="p-4 bg-gray-50 rounded-lg">
-                              <h4 className="font-medium text-gray-900 mb-2">
-                                ¿Cómo funciona el proceso?
-                              </h4>
-                              <p className="text-gray-600">
-                                Una vez enviada tu solicitud, nuestros
-                                prestamistas la revisarán y te enviarán ofertas
-                                si están interesados. Podrás ver todas las
-                                ofertas recibidas en la sección de "Préstamos".
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                        <div>
-                          <h3 className="text-lg font-medium text-gray-900 mb-2">
-                            Contacto
-                          </h3>
-                          <div className="bg-gray-50 p-4 rounded-lg">
-                            <p className="text-gray-600 mb-2">
-                              Si necesitas asistencia adicional, no dudes en
-                              contactarnos:
-                            </p>
-                            <ul className="space-y-2 text-gray-600">
-                              <li>Email: soporte@buscocredito.com</li>
-                              <li>Teléfono: +1 (555) 123-4567</li>
-                              <li>
-                                Horario: Lunes a Viernes, 9:00 AM - 6:00 PM
-                              </li>
-                            </ul>
-                          </div>
-                        </div>
-                      </div>
-                    </CardBody>
-                  </Card>
-                )}
+                {activeTab === "help" && <HelpCenter />}
               </main>
             </div>
           </>
         )}
 
-        <AnimatePresence>
+        <>
           {showForm && (
             <CreditForm
               addSolicitud={handleSolicitudSubmit}
               resetForm={() => setShowForm(false)}
             />
           )}
-        </AnimatePresence>
+        </>
 
         <Modal
           isOpen={showDeleteConfirmation}
@@ -1455,10 +584,7 @@ export default function DashboardPage() {
             <ModalFooter className="border-t">
               <Button
                 color="danger"
-                onPress={() =>
-                  selectedSolicitud &&
-                  handleDeleteSolicitud(selectedSolicitud.id)
-                }
+                onPress={confirmDeleteSolicitud}
               >
                 Eliminar
               </Button>
@@ -1483,13 +609,13 @@ export default function DashboardPage() {
             {(onClose) => (
               <>
                 <ModalHeader className="flex flex-col gap-1">
-                  ¿Aceptar esta oferta?
+                  ¿Aceptar esta propuesta?
                 </ModalHeader>
                 <ModalBody>
                   {offerToAccept && (
                     <div className="space-y-4">
                       <p>
-                        Estás a punto de aceptar la oferta de{" "}
+                        Estás a punto de aceptar la propuesta de{" "}
                         <span className="font-semibold">
                           {offerToAccept.offer.lender_name}
                         </span>{" "}
@@ -1504,11 +630,11 @@ export default function DashboardPage() {
                         </p>
                         <ul className="text-sm text-amber-700 list-disc pl-5 mt-2 space-y-1">
                           <li>
-                            Al aceptar esta oferta, las demás ofertas para esta
+                            Al aceptar esta propuesta, las demás propuestas para esta
                             solicitud se marcarán como rechazadas.
                           </li>
                           <li>
-                            Solo el prestamista de la oferta aceptada podrá ver
+                            Solo el prestamista de la propuesta aceptada podrá ver
                             tu solicitud.
                           </li>
                           <li>
@@ -1548,5 +674,3 @@ export default function DashboardPage() {
     </ErrorBoundary>
   );
 }
-
-// FIxear ofertas no disponibles

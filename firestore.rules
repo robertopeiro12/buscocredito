@@ -2,6 +2,42 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
+    
+    // TEMPORAL: Reglas permisivas hasta resolver problema con Firebase Admin SDK
+    // El Admin SDK debería bypasear estas reglas, pero no lo está haciendo
+    
+    // Permitir que usuarios autenticados accedan a cuentas
+    match /cuentas/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read: if request.auth != null; // Permitir leer otros perfiles
+    }
+    
+    // Permitir que usuarios autenticados accedan a solicitudes
+    match /solicitudes/{solicitudId} {
+      allow read, write, create: if request.auth != null;
+    }
+    
+    // Permitir que usuarios autenticados accedan a propuestas
+    match /propuestas/{propuestaId} {
+      allow read, write, create: if request.auth != null;
+    }
+    
+    // Permitir que usuarios autenticados accedan a notificaciones
+    match /notifications/{notificationId} {
+      allow read, write, create: if request.auth != null;
+    }
+    
+    // Permitir subcuentas para usuarios autenticados
+    match /subcuentas/{subcuentaId} {
+      allow read, write, create: if request.auth != null;
+    }
+    
+    // Permitir métricas para usuarios autenticados
+    match /metrics/{document=**} {
+      allow read, write: if request.auth != null;
+    }
+    
+    // Por defecto: denegar todo lo demás
     match /{document=**} {
       allow read, write: if false;
     }

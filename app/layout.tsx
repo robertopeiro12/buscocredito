@@ -4,7 +4,7 @@ import { siteConfig } from "@/config/site";
 import { fontSans } from "@/config/fonts";
 import { Providers } from "./providers";
 import clsx from "clsx";
-import NavBar from "@/components/common/layout/navbar";
+import { ConditionalNavBar } from "@/components/common/layout/ConditionalNavBar";
 import { NotificationProvider } from "@/components/common/ui/NotificationProvider";
 
 export const metadata: Metadata = {
@@ -58,11 +58,11 @@ export default function RootLayout({
               Saltar al contenido principal
             </a>
 
-            {/* Navigation */}
-            <NavBar />
+            {/* Navigation - Condicional */}
+            <ConditionalNavBar />
 
             {/* Main content */}
-            <main id="main-content" className="flex-grow pt-16 relative z-0">
+            <main id="main-content" className="flex-grow relative z-0">
               {children}
             </main>
 
