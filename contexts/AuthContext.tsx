@@ -168,13 +168,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       setLoading(true);
       setError(null);
-      await sendPasswordResetEmail(auth, email);
+
+      // Configuración personalizada para el email
+      const actionCodeSettings = {
+        url: `${window.location.origin}/login?message=password-reset`,
+        handleCodeInApp: false,
+      };
+
+      await sendPasswordResetEmail(auth, email, actionCodeSettings);
     } catch (error: any) {
       console.error("Password reset error:", error);
       if (error.code === "auth/user-not-found") {
         setError("No existe una cuenta con este correo electrónico");
       } else if (error.code === "auth/invalid-email") {
         setError("El correo electrónico no es válido");
+      } else if (error.code === "auth/too-many-requests") {
+        setError("Demasiadas solicitudes. Intenta más tarde");
       } else {
         setError("Ocurrió un error al enviar el correo de recuperación");
       }

@@ -4,6 +4,7 @@ import { Input, Button } from "@nextui-org/react";
 import { useAuth } from "../../contexts/AuthContext";
 import { useForm } from "../../hooks/useForm";
 import { useState, useEffect, useRef } from "react";
+import { useSearchParams } from "next/navigation";
 
 // Reglas de validación
 const validationRules = {
@@ -27,6 +28,8 @@ const validationRules = {
 
 export default function LoginPage() {
   const { signIn, loading, error: authError } = useAuth();
+  const searchParams = useSearchParams();
+  const resetMessage = searchParams?.get("message");
 
   // Rate limiting state
   const [attemptCount, setAttemptCount] = useState(0);
@@ -128,6 +131,31 @@ export default function LoginPage() {
       <h1 className="text-2xl font-bold text-center text-gray-800 mb-8">
         Iniciar Sesión
       </h1>
+
+      {/* Mensaje de password reset exitoso */}
+      {resetMessage === "password-reset" && (
+        <div className="mb-6 p-3 bg-green-50 border border-green-200 rounded-lg">
+          <div className="flex items-center">
+            <svg
+              className="w-4 h-4 text-green-600 mr-2"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M5 13l4 4L19 7"
+              />
+            </svg>
+            <p className="text-sm text-green-700">
+              Si has restablecido tu contraseña exitosamente, ya puedes iniciar
+              sesión con tu nueva contraseña.
+            </p>
+          </div>
+        </div>
+      )}
 
       <div className="flex flex-col gap-6">
         <Input
