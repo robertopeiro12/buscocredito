@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { CheckCircle, AlertCircle } from 'lucide-react';
-import { InputFieldProps } from '@/types/signup';
+import React, { useState, useEffect } from "react";
+import { CheckCircle, AlertCircle } from "lucide-react";
+import { InputFieldProps } from "@/types/signup";
 
 const InputField = ({
   id,

@@ -1,9 +1,9 @@
-import React from 'react';
-import { CheckCircle, AlertCircle } from 'lucide-react';
+import React from "react";
+import { CheckCircle, AlertCircle } from "lucide-react";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
-import InputField from './InputField';
-import { SignupFormData, SignupErrors } from '@/types/signup';
+import InputField from "./InputField";
+import { SignupFormData, SignupErrors } from "@/types/signup";
 
 interface StepContentProps {
   step: number;
