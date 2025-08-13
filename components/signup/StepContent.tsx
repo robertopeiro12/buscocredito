@@ -53,6 +53,7 @@ const StepContent = ({
                 onChange={handleInputChange}
                 error={errors.secondLastName}
                 placeholder="García"
+                optional={true}
               />
             </div>
           </div>

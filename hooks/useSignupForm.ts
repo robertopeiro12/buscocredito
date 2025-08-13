@@ -156,7 +156,9 @@ export const useSignupForm = () => {
         created_at: Timestamp.now(),
       });
 
-      router.push("/login");
+      // El AuthContext detectará al usuario y redirigirá automáticamente
+      // No necesitamos redirigir manualmente aquí
+      
     } catch (err) {
       console.error("Error al registrarse:", err);
       setErrors((prev) => ({
