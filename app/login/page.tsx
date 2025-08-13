@@ -3,25 +3,45 @@
 import { Input, Button } from "@nextui-org/react";
 import { useAuth } from "../../contexts/AuthContext";
 import { useForm } from "../../hooks/useForm";
+import { useState, useEffect, useRef } from "react";
 
 // Reglas de validación
 const validationRules = {
   email: (value: string) => {
     if (!value) return "El email es requerido";
+    if (value.length > 254) return "Email demasiado largo";
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
       return "Email inválido";
     }
   },
   password: (value: string) => {
     if (!value) return "La contraseña es requerida";
-    if (value.length < 6) {
-      return "La contraseña debe tener al menos 6 caracteres";
+    if (value.length < 8) {
+      return "La contraseña debe tener al menos 8 caracteres";
+    }
+    if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(value)) {
+      return "Incluye mayúsculas, minúsculas y números";
     }
   },
 };
 
 export default function LoginPage() {
   const { signIn, loading, error: authError } = useAuth();
+
+  // Rate limiting state
+  const [attemptCount, setAttemptCount] = useState(0);
+  const [isBlocked, setIsBlocked] = useState(false);
+  const [blockTimeLeft, setBlockTimeLeft] = useState(0);
+
+  // Remember me state
+  const [rememberMe, setRememberMe] = useState(false);
+
+  // Show/hide password state
+  const [showPassword, setShowPassword] = useState(false);
+
+  // Ref para focus automático
+  const emailInputRef = useRef<HTMLInputElement>(null);
+
   const {
     values: formData,
     errors,
@@ -32,10 +52,75 @@ export default function LoginPage() {
     handleSubmit,
   } = useForm({ email: "", password: "" }, validationRules);
 
+  // Timer para el bloqueo
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (blockTimeLeft > 0) {
+      timer = setTimeout(() => {
+        setBlockTimeLeft((prev) => prev - 1);
+      }, 1000);
+    } else if (isBlocked && blockTimeLeft === 0) {
+      setIsBlocked(false);
+      setAttemptCount(0);
+    }
+    return () => clearTimeout(timer);
+  }, [blockTimeLeft, isBlocked]);
+
+  // Manejo de tecla Enter
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      if (e.key === "Enter" && !loading && !isSubmitting && !isBlocked) {
+        handleSignIn();
+      }
+    };
+
+    document.addEventListener("keypress", handleKeyPress);
+    return () => document.removeEventListener("keypress", handleKeyPress);
+  }, [loading, isSubmitting, isBlocked]);
+
+  // Focus automático en el email input al cargar
+  useEffect(() => {
+    if (emailInputRef.current) {
+      emailInputRef.current.focus();
+    }
+  }, []);
+
   const handleSignIn = async () => {
-    await handleSubmit(async (values) => {
-      await signIn(values.email, values.password);
-    });
+    // Verificar si está bloqueado
+    if (isBlocked) {
+      return;
+    }
+
+    // Rate limiting: máximo 5 intentos
+    if (attemptCount >= 5) {
+      setIsBlocked(true);
+      setBlockTimeLeft(300); // 5 minutos
+      return;
+    }
+
+    try {
+      await handleSubmit(async (values) => {
+        await signIn(values.email, values.password, rememberMe);
+        // Reset contador si login es exitoso
+        setAttemptCount(0);
+      });
+    } catch (error) {
+      // Incrementar contador solo si hay error de autenticación
+      setAttemptCount((prev) => prev + 1);
+    }
+  };
+
+  // Función para obtener el texto del botón dinámico
+  const getButtonText = () => {
+    if (isBlocked)
+      return `Bloqueado (${Math.floor(blockTimeLeft / 60)}:${(
+        blockTimeLeft % 60
+      )
+        .toString()
+        .padStart(2, "0")})`;
+    if (loading && !isSubmitting) return "Verificando credenciales...";
+    if (isSubmitting) return "Iniciando sesión...";
+    return "Iniciar Sesión";
   };
 
   return (
@@ -46,6 +131,7 @@ export default function LoginPage() {
 
       <div className="flex flex-col gap-6">
         <Input
+          ref={emailInputRef}
           type="email"
           label="Email"
           placeholder="correo@ejemplo.com"
@@ -65,7 +151,7 @@ export default function LoginPage() {
         />
 
         <Input
-          type="password"
+          type={showPassword ? "text" : "password"}
           label="Contraseña"
           placeholder="••••••••"
           value={formData.password}
@@ -81,13 +167,77 @@ export default function LoginPage() {
               "transition-colors",
             ].join(" "),
           }}
+          endContent={
+            <button
+              className="focus:outline-none"
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+            >
+              {showPassword ? (
+                <svg
+                  className="w-4 h-4 text-gray-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21"
+                  />
+                </svg>
+              ) : (
+                <svg
+                  className="w-4 h-4 text-gray-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                  />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                  />
+                </svg>
+              )}
+            </button>
+          }
         />
 
-        {authError && (
-          <p className="text-red-500 text-sm text-center">{authError}</p>
+        {(authError || isBlocked) && (
+          <div className="text-red-500 text-sm text-center">
+            {isBlocked
+              ? `Demasiados intentos. Intenta en ${Math.floor(
+                  blockTimeLeft / 60
+                )}:${(blockTimeLeft % 60).toString().padStart(2, "0")} minutos`
+              : authError}
+          </div>
         )}
 
-        <div className="flex justify-end">
+        {attemptCount > 0 && attemptCount < 5 && !isBlocked && (
+          <div className="text-orange-500 text-sm text-center">
+            Intento {attemptCount}/5. Ten cuidado con los intentos restantes.
+          </div>
+        )}
+
+        <div className="flex items-center justify-between">
+          <label className="flex items-center cursor-pointer">
+            <input
+              type="checkbox"
+              checked={rememberMe}
+              onChange={(e) => setRememberMe(e.target.checked)}
+              className="w-4 h-4 text-[#55A555] bg-gray-100 border-gray-300 rounded focus:ring-[#55A555] focus:ring-2"
+            />
+            <span className="ml-2 text-sm text-gray-600">Recordarme</span>
+          </label>
           <a
             href="/forgot-password"
             className="text-sm text-[#55A555] hover:underline"
@@ -100,9 +250,10 @@ export default function LoginPage() {
           color="success"
           onClick={handleSignIn}
           isLoading={loading || isSubmitting}
+          isDisabled={isBlocked}
           className="w-full bg-[#55A555] hover:opacity-90 transition-opacity"
         >
-          {loading || isSubmitting ? "Iniciando sesión..." : "Iniciar Sesión"}
+          {getButtonText()}
         </Button>
       </div>
     </div>

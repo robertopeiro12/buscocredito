@@ -13,10 +13,15 @@ import type { User, AuthContextType } from "../types/entities/user.types";
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 // Funciones para manejar cookies de autenticación
-const setAuthCookies = (token: string, userType: string) => {
+const setAuthCookies = (
+  token: string,
+  userType: string,
+  rememberMe: boolean = false
+) => {
+  const maxAge = rememberMe ? 2592000 : 86400; // 30 días si rememberMe, 1 día si no
   // Configurar cookies para el middleware
-  document.cookie = `auth-token=${token}; path=/; max-age=86400; SameSite=Lax`;
-  document.cookie = `user-type=${userType}; path=/; max-age=86400; SameSite=Lax`;
+  document.cookie = `auth-token=${token}; path=/; max-age=${maxAge}; SameSite=Lax`;
+  document.cookie = `user-type=${userType}; path=/; max-age=${maxAge}; SameSite=Lax`;
 };
 
 const clearAuthCookies = () => {
@@ -46,12 +51,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               Empresa: userData.Empresa,
               Empresa_id: userData.Empresa_id,
             };
-            
+
             setUser(userInfo);
-            
+
             // Configurar cookies para el middleware
             const token = await firebaseUser.getIdToken();
-            setAuthCookies(token, userData.type);
+            setAuthCookies(token, userData.type, false); // Default no remember
           }
         } catch (error) {
           console.error("Error fetching user data:", error);
@@ -67,21 +72,56 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => unsubscribe();
   }, []);
 
-  const signIn = async (email: string, password: string) => {
+  // Función para obtener mensaje de error específico
+  const getErrorMessage = (error: any) => {
+    switch (error?.code) {
+      case "auth/user-not-found":
+      case "auth/wrong-password":
+      case "auth/invalid-credential":
+        return "Email o contraseña incorrectos";
+      case "auth/too-many-requests":
+        return "Demasiados intentos fallidos. Intenta más tarde";
+      case "auth/user-disabled":
+        return "Esta cuenta ha sido deshabilitada";
+      case "auth/invalid-email":
+        return "Email inválido";
+      case "auth/network-request-failed":
+        return "Error de conexión. Verifica tu internet";
+      case "auth/timeout":
+        return "Tiempo de espera agotado. Intenta nuevamente";
+      default:
+        return "Error al iniciar sesión. Intenta nuevamente";
+    }
+  };
+
+  const signIn = async (
+    email: string,
+    password: string,
+    rememberMe: boolean = false
+  ) => {
     try {
       setLoading(true);
       setError(null);
 
-      const userCredential = await signInWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
+      // Timeout de 10 segundos
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error("timeout")), 10000);
+      });
+
+      const loginPromise = signInWithEmailAndPassword(auth, email, password);
+      const userCredential = (await Promise.race([
+        loginPromise,
+        timeoutPromise,
+      ])) as any;
       const db = getFirestore();
       const userDoc = await getDoc(doc(db, "cuentas", userCredential.user.uid));
 
       if (userDoc.exists()) {
         const userData = userDoc.data();
+
+        // Configurar cookies con la opción rememberMe
+        const token = await userCredential.user.getIdToken();
+        setAuthCookies(token, userData.type, rememberMe);
 
         // Redirección basada en el tipo de usuario
         switch (userData.type) {
@@ -107,7 +147,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (error: any) {
       console.error("Login error:", error);
       await firebaseSignOut(auth);
-      setError("Correo o contraseña incorrecta");
+      setError(getErrorMessage(error));
     } finally {
       setLoading(false);
     }
