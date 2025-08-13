@@ -60,10 +60,13 @@ export default function ForgotPasswordPage() {
     setError(null);
 
     try {
-      // Configuración personalizada para el email
+      // Configuración para desarrollo local
       const actionCodeSettings = {
-        url: `${window.location.origin}/login?message=password-reset`, // URL de retorno
-        handleCodeInApp: false, // Manejar en Firebase, no en la app
+        // Usar localhost mientras estés en desarrollo
+        url: `${
+          window.location.origin
+        }/login?message=password-reset&email=${encodeURIComponent(email)}`,
+        handleCodeInApp: false,
       };
 
       await sendPasswordResetEmail(auth, email.trim(), actionCodeSettings);
@@ -118,13 +121,50 @@ export default function ForgotPasswordPage() {
             </p>
             <p className="font-semibold text-[#55A555]">{email}</p>
 
-            <div className="mt-4 p-3 bg-blue-50 rounded-lg text-sm text-blue-700">
-              <p className="font-medium mb-1">💡 No encuentras el correo?</p>
-              <ul className="text-left space-y-1">
-                <li>• Revisa tu carpeta de spam o promociones</li>
-                <li>• El correo puede tardar unos minutos en llegar</li>
-                <li>• El enlace expira en 1 hora</li>
-              </ul>
+            <div className="mt-4 p-4 bg-amber-50 border-l-4 border-amber-400 rounded-lg text-sm">
+              <div className="flex items-start">
+                <div className="flex-shrink-0">
+                  <svg
+                    className="h-5 w-5 text-amber-400"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </div>
+                <div className="ml-3">
+                  <p className="font-medium text-amber-800 mb-2">
+                    Importante: Revisa tu bandeja de spam
+                  </p>
+                  <div className="text-amber-700 space-y-1">
+                    <p>
+                      • <strong>Gmail:</strong> Revisa "Promociones" y "Spam"
+                    </p>
+                    <p>
+                      • <strong>Outlook:</strong> Revisa "Correo no deseado"
+                    </p>
+                    <p>
+                      • <strong>Yahoo:</strong> Revisa "Bulk" y "Spam"
+                    </p>
+                    <p>
+                      • <strong>Marca como seguro:</strong> Agrega
+                      noreply@buscocredito-b3f6d.firebaseapp.com a tus contactos
+                    </p>
+                    <p>
+                      • <strong>Tiempo de entrega:</strong> El correo llega en
+                      1-5 minutos
+                    </p>
+                    <p>
+                      • <strong>Validez del enlace:</strong> Expira en 1 hora
+                      por seguridad
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -148,6 +188,18 @@ export default function ForgotPasswordPage() {
             >
               {canResend ? "Enviar otro correo" : `Reenviar en ${resendTimer}s`}
             </button>
+
+            <div className="mt-4 pt-4 border-t border-gray-200">
+              <p className="text-xs text-gray-500 text-center">
+                ¿No recibes el correo después de revisar spam? <br />
+                <a
+                  href="mailto:soporte@buscocredito.com?subject=Problema con recuperación de contraseña&body=Hola, solicité restablecer mi contraseña para: "
+                  className="text-[#55A555] hover:underline font-medium"
+                >
+                  Contacta nuestro soporte
+                </a>
+              </p>
+            </div>
           </div>
         </div>
       </div>
