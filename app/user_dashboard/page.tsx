@@ -30,18 +30,13 @@ import { Pagination } from "@/components/features/dashboard/Pagination";
 import { UserSettings } from "@/components/features/dashboard/UserSettings";
 import { HelpCenter } from "@/components/features/dashboard/HelpCenter";
 import { ErrorFallback } from "@/components/features/dashboard/ErrorFallback";
-import { 
-  AuthLoadingSkeleton, 
-  InitialLoadingSkeleton, 
-  LoanCardsSkeleton, 
-  SettingsLoadingSkeleton 
-} from "@/components/features/dashboard/LoadingSkeletons";
 import {
-  doc,
-  getFirestore,
-  getDoc,
-  updateDoc,
-} from "firebase/firestore";
+  AuthLoadingSkeleton,
+  InitialLoadingSkeleton,
+  LoanCardsSkeleton,
+  SettingsLoadingSkeleton,
+} from "@/components/features/dashboard/LoadingSkeletons";
+import { doc, getFirestore, getDoc, updateDoc } from "firebase/firestore";
 import { useNotification } from "@/components/common/ui/NotificationProvider";
 
 export default function DashboardPage() {
@@ -49,17 +44,20 @@ export default function DashboardPage() {
   const { isAuthorized, isLoading: isCheckingAuth } = useUserGuard();
   const dashboardState = useDashboardState();
   const { showNotification } = useNotification();
-  
+
   // Local state for modals
   const [showForm, setShowForm] = useState(false);
   const [showAcceptConfirmation, setShowAcceptConfirmation] = useState(false);
-  const [offerToAccept, setOfferToAccept] = useState<{ offer: any; index: number } | null>(null);
-  
+  const [offerToAccept, setOfferToAccept] = useState<{
+    offer: any;
+    index: number;
+  } | null>(null);
+
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 4; // 4 solicitudes por página
-  
-    // Destructure dashboard state for easier access
+
+  // Destructure dashboard state for easier access
   const {
     activeTab,
     setActiveTab,
@@ -101,7 +99,7 @@ export default function DashboardPage() {
     try {
       setErrors({
         ...errors,
-        offers: null
+        offers: null,
       });
 
       // Also check if the solicitud is marked as approved in Firestore
@@ -138,19 +136,22 @@ export default function DashboardPage() {
 
       // Check if any offer is already accepted based on its status field OR firestoreAcceptedOfferId
       const acceptedOffer = offers.find(
-        (offer: any) => offer.status === "accepted" || offer.id === firestoreAcceptedOfferId
+        (offer: any) =>
+          offer.status === "accepted" || offer.id === firestoreAcceptedOfferId
       );
 
       if (acceptedOffer || firestoreAcceptedOfferId) {
         // Si hay una oferta aceptada, establecer el ID y mostrar SOLO esa oferta
         const acceptedId = acceptedOffer?.id || firestoreAcceptedOfferId;
         setAcceptedOfferId(acceptedId);
-        
+
         if (acceptedOffer) {
           set_offer_Data([acceptedOffer]); // Solo mostrar la oferta aceptada
         } else {
           // Si tenemos el ID pero no encontramos la oferta en la lista, filtrar por ID
-          const filteredOffer = offers.filter((offer: any) => offer.id === firestoreAcceptedOfferId);
+          const filteredOffer = offers.filter(
+            (offer: any) => offer.id === firestoreAcceptedOfferId
+          );
           set_offer_Data(filteredOffer);
         }
       } else {
@@ -288,10 +289,10 @@ export default function DashboardPage() {
   const handleSolicitudSubmit = async (data: any) => {
     try {
       console.log("Creating solicitud with data:", data);
-      
+
       // Use the createSolicitud function instead of just refreshing
       const success = await createSolicitud(data);
-      
+
       if (success) {
         setShowForm(false);
         // Switch to loans tab to show the new solicitation
@@ -368,12 +369,13 @@ export default function DashboardPage() {
             {/* Main Content - Scrollable with left margin to account for fixed sidebar on desktop */}
             <div className="flex-1 min-w-0 md:ml-64 overflow-auto">
               <main className="p-4 md:p-6 lg:p-8 max-w-7xl mx-auto pt-0 md:pt-4">
-                <DashboardHeader 
-                  activeTab={activeTab} 
+                <DashboardHeader
+                  activeTab={activeTab}
                   onTabChange={setActiveTab}
-                  onSignOut={handleSignOut} 
+                  onSignOut={handleSignOut}
+                  userId={dashboardState.user?.uid}
                 />
-                
+
                 {activeTab === "loans" && (
                   <>
                     <div className="space-y-8">
@@ -393,10 +395,9 @@ export default function DashboardPage() {
                                       : "Propuestas Disponibles"}
                                   </h2>
                                   <p className="text-gray-600 mt-1">
-                                    {acceptedOfferId 
+                                    {acceptedOfferId
                                       ? "Has aceptado esta propuesta exitosamente"
-                                      : `${offer_data.length} propuestas disponibles para tu solicitud`
-                                    }
+                                      : `${offer_data.length} propuestas disponibles para tu solicitud`}
                                   </p>
                                 </div>
                                 <Button
@@ -407,7 +408,9 @@ export default function DashboardPage() {
                                     set_offer_Data([]);
                                   }}
                                   size="sm"
-                                  startContent={<ChevronRight className="w-4 h-4 rotate-180" />}
+                                  startContent={
+                                    <ChevronRight className="w-4 h-4 rotate-180" />
+                                  }
                                   className="text-gray-600 hover:text-gray-900"
                                 >
                                   Volver a Préstamos
@@ -429,7 +432,8 @@ export default function DashboardPage() {
                                   <div className="inline-flex items-center gap-2 px-4 py-2 bg-green-50 border border-green-200 rounded-lg">
                                     <CheckCircle2 className="w-5 h-5 text-green-600" />
                                     <p className="text-sm text-green-700 font-medium">
-                                      El prestamista se pondrá en contacto contigo para los siguientes pasos
+                                      El prestamista se pondrá en contacto
+                                      contigo para los siguientes pasos
                                     </p>
                                   </div>
                                 </div>
@@ -438,7 +442,7 @@ export default function DashboardPage() {
                           ) : (
                             <div>
                               {/* Dashboard Stats */}
-                              <DashboardStats 
+                              <DashboardStats
                                 solicitudes={solicitudes}
                                 offerCounts={offerCounts}
                               />
@@ -451,13 +455,15 @@ export default function DashboardPage() {
                                       <LoanRequestCard
                                         key={solicitud.id}
                                         solicitud={solicitud}
-                                        offerCount={offerCounts[solicitud.id] || 0}
+                                        offerCount={
+                                          offerCounts[solicitud.id] || 0
+                                        }
                                         onViewOffers={openBanksModal}
                                         onDelete={handleDeleteSolicitud}
                                       />
                                     ))}
                                   </div>
-                                  
+
                                   {/* Pagination */}
                                   <Pagination
                                     currentPage={currentPage}
@@ -475,41 +481,59 @@ export default function DashboardPage() {
                                     ¡Comienza tu primera solicitud!
                                   </h3>
                                   <p className="text-gray-600 mb-12 max-w-lg mx-auto text-lg leading-relaxed">
-                                    Solicita un préstamo y recibe múltiples propuestas de prestamistas verificados. 
-                                    Es rápido, seguro y sin compromisos iniciales.
+                                    Solicita un préstamo y recibe múltiples
+                                    propuestas de prestamistas verificados. Es
+                                    rápido, seguro y sin compromisos iniciales.
                                   </p>
                                   <Button
                                     color="primary"
                                     size="lg"
-                                    startContent={<PlusCircle className="w-6 h-6" />}
+                                    startContent={
+                                      <PlusCircle className="w-6 h-6" />
+                                    }
                                     onPress={() => setShowForm(true)}
                                     className="bg-green-600 hover:bg-green-700 text-white font-semibold px-10 py-5 text-xl h-auto shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
                                   >
                                     Solicitar Mi Primer Préstamo
                                   </Button>
-                                  
+
                                   {/* Benefits */}
                                   <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
                                     <div className="text-center">
                                       <div className="w-16 h-16 bg-blue-100 rounded-xl flex items-center justify-center mx-auto mb-4">
                                         <CheckCircle2 className="w-8 h-8 text-blue-600" />
                                       </div>
-                                      <h4 className="text-lg font-semibold text-gray-900 mb-3">Múltiples Ofertas</h4>
-                                      <p className="text-gray-600">Compara propuestas de diferentes prestamistas verificados</p>
+                                      <h4 className="text-lg font-semibold text-gray-900 mb-3">
+                                        Múltiples Ofertas
+                                      </h4>
+                                      <p className="text-gray-600">
+                                        Compara propuestas de diferentes
+                                        prestamistas verificados
+                                      </p>
                                     </div>
                                     <div className="text-center">
                                       <div className="w-16 h-16 bg-green-100 rounded-xl flex items-center justify-center mx-auto mb-4">
                                         <CreditCard className="w-8 h-8 text-green-600" />
                                       </div>
-                                      <h4 className="text-lg font-semibold text-gray-900 mb-3">Proceso Rápido</h4>
-                                      <p className="text-gray-600">Obtén respuestas en minutos, no en días o semanas</p>
+                                      <h4 className="text-lg font-semibold text-gray-900 mb-3">
+                                        Proceso Rápido
+                                      </h4>
+                                      <p className="text-gray-600">
+                                        Obtén respuestas en minutos, no en días
+                                        o semanas
+                                      </p>
                                     </div>
                                     <div className="text-center">
                                       <div className="w-16 h-16 bg-purple-100 rounded-xl flex items-center justify-center mx-auto mb-4">
                                         <CheckCircle2 className="w-8 h-8 text-purple-600" />
                                       </div>
-                                      <h4 className="text-lg font-semibold text-gray-900 mb-3">100% Seguro</h4>
-                                      <p className="text-gray-600">Prestamistas verificados y plataforma confiable</p>
+                                      <h4 className="text-lg font-semibold text-gray-900 mb-3">
+                                        100% Seguro
+                                      </h4>
+                                      <p className="text-gray-600">
+                                        Prestamistas verificados y plataforma
+                                        confiable
+                                      </p>
                                     </div>
                                   </div>
                                 </div>
@@ -582,10 +606,7 @@ export default function DashboardPage() {
               </p>
             </ModalBody>
             <ModalFooter className="border-t">
-              <Button
-                color="danger"
-                onPress={confirmDeleteSolicitud}
-              >
+              <Button color="danger" onPress={confirmDeleteSolicitud}>
                 Eliminar
               </Button>
               <Button
@@ -630,12 +651,12 @@ export default function DashboardPage() {
                         </p>
                         <ul className="text-sm text-amber-700 list-disc pl-5 mt-2 space-y-1">
                           <li>
-                            Al aceptar esta propuesta, las demás propuestas para esta
-                            solicitud se marcarán como rechazadas.
+                            Al aceptar esta propuesta, las demás propuestas para
+                            esta solicitud se marcarán como rechazadas.
                           </li>
                           <li>
-                            Solo el prestamista de la propuesta aceptada podrá ver
-                            tu solicitud.
+                            Solo el prestamista de la propuesta aceptada podrá
+                            ver tu solicitud.
                           </li>
                           <li>
                             Tu solicitud ya no será visible para otros

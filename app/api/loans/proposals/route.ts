@@ -59,18 +59,26 @@ export async function POST(request: NextRequest) {
       .collection('propuestas')
       .add(propuestaData);
 
-    // Crear notificación para el usuario
+    // Crear notificación para el usuario usando el formato estándar
     await adminFirestore
       .collection('notifications')
       .add({
-        userId: body.userId,
-        tipo: 'nueva_propuesta',
-        titulo: 'Nueva propuesta recibida',
-        mensaje: `Has recibido una nueva propuesta para tu solicitud de préstamo de $${propuestaData.amount?.toLocaleString()}`,
-        leida: false,
-        fechaCreacion: new Date(),
-        solicitudId: body.solicitudId,
-        propuestaId: propuestaRef.id,
+        recipientId: body.userId,
+        type: 'nueva_propuesta',
+        title: 'Nueva propuesta recibida',
+        message: `Has recibido una nueva propuesta para tu solicitud de préstamo de $${propuestaData.amount?.toLocaleString()}`,
+        data: {
+          loanId: body.solicitudId,
+          proposalId: propuestaRef.id,
+          amount: propuestaData.amount,
+          interestRate: propuestaData.interest_rate,
+          amortizationFrequency: propuestaData.amortization_frequency,
+          term: propuestaData.deadline,
+          comision: propuestaData.comision,
+          medicalBalance: propuestaData.medical_balance
+        },
+        read: false,
+        createdAt: new Date(),
       });
 
     return createSuccessResponse(

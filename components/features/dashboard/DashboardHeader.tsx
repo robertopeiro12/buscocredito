@@ -1,14 +1,21 @@
 import { Button } from "@nextui-org/react";
 import { LogOut, CreditCard, Settings, HelpCircle } from "lucide-react";
 import { DashboardTab } from "@/types/dashboard";
+import NotificationCenter from "./NotificationCenter";
 
 interface DashboardHeaderProps {
   activeTab: DashboardTab;
   onTabChange?: (tab: DashboardTab) => void;
   onSignOut?: () => void;
+  userId?: string;
 }
 
-export const DashboardHeader = ({ activeTab, onTabChange, onSignOut }: DashboardHeaderProps) => {
+export const DashboardHeader = ({
+  activeTab,
+  onTabChange,
+  onSignOut,
+  userId,
+}: DashboardHeaderProps) => {
   const getTitle = () => {
     switch (activeTab) {
       case "loans":
@@ -39,18 +46,18 @@ export const DashboardHeader = ({ activeTab, onTabChange, onSignOut }: Dashboard
     {
       tab: "loans" as DashboardTab,
       icon: CreditCard,
-      label: "Préstamos"
+      label: "Préstamos",
     },
     {
       tab: "settings" as DashboardTab,
       icon: Settings,
-      label: "Configuración"
+      label: "Configuración",
     },
     {
       tab: "help" as DashboardTab,
       icon: HelpCircle,
-      label: "Ayuda"
-    }
+      label: "Ayuda",
+    },
   ];
 
   return (
@@ -65,19 +72,23 @@ export const DashboardHeader = ({ activeTab, onTabChange, onSignOut }: Dashboard
               </div>
               <h1 className="text-lg font-bold text-gray-900">BuscoCredito</h1>
             </div>
-            {onSignOut && (
-              <Button
-                variant="light"
-                size="sm"
-                isIconOnly
-                onPress={onSignOut}
-                className="text-gray-600 hover:text-red-600"
-              >
-                <LogOut className="w-4 h-4" />
-              </Button>
-            )}
+            <div className="flex items-center gap-2">
+              {/* Notificaciones móvil */}
+              {userId && <NotificationCenter userId={userId} compact />}
+              {onSignOut && (
+                <Button
+                  variant="light"
+                  size="sm"
+                  isIconOnly
+                  onPress={onSignOut}
+                  className="text-gray-600 hover:text-red-600"
+                >
+                  <LogOut className="w-4 h-4" />
+                </Button>
+              )}
+            </div>
           </div>
-          
+
           <div className="flex gap-2">
             {menuItems.map((item) => (
               <Button
@@ -88,8 +99,8 @@ export const DashboardHeader = ({ activeTab, onTabChange, onSignOut }: Dashboard
                 startContent={<item.icon className="w-4 h-4" />}
                 onPress={() => onTabChange(item.tab)}
                 className={`flex-1 ${
-                  activeTab === item.tab 
-                    ? "bg-green-600 text-white" 
+                  activeTab === item.tab
+                    ? "bg-green-600 text-white"
                     : "text-gray-600"
                 }`}
               >
@@ -102,34 +113,35 @@ export const DashboardHeader = ({ activeTab, onTabChange, onSignOut }: Dashboard
 
       {/* Desktop Header */}
       <div className="mb-8 pb-6 border-b border-gray-200 hidden md:block">
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            {getTitle()}
-          </h1>
-          <p className="text-gray-600 text-lg">
-            {getDescription()}
-          </p>
-        </div>
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-            <span className="text-sm text-gray-500">En línea</span>
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              {getTitle()}
+            </h1>
+            <p className="text-gray-600 text-lg">{getDescription()}</p>
           </div>
-          
-          {onSignOut && (
-            <Button
-              variant="light"
-              size="sm"
-              startContent={<LogOut className="w-4 h-4" />}
-              onPress={onSignOut}
-              className="text-gray-600 hover:text-red-600 hover:bg-red-50"
-            >
-              Salir
-            </Button>
-          )}
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+              <span className="text-sm text-gray-500">En línea</span>
+            </div>
+
+            {/* Notificaciones */}
+            {userId && <NotificationCenter userId={userId} compact />}
+
+            {onSignOut && (
+              <Button
+                variant="light"
+                size="sm"
+                startContent={<LogOut className="w-4 h-4" />}
+                onPress={onSignOut}
+                className="text-gray-600 hover:text-red-600 hover:bg-red-50"
+              >
+                Salir
+              </Button>
+            )}
+          </div>
         </div>
-      </div>
       </div>
     </>
   );
