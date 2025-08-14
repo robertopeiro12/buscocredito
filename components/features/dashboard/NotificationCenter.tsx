@@ -95,9 +95,12 @@ export default function NotificationCenter({
 
   // Cargar contador de no leídas
   const loadUnreadCount = useCallback(async () => {
-    if (!userId || userId.trim() === "") {
+    if (!userId) {
+      console.log("No userId provided for unread count");
       return;
     }
+
+    console.log("Loading unread count for userId:", userId);
 
     try {
       const response = await fetch("/api/getUnreadCount", {
@@ -110,11 +113,18 @@ export default function NotificationCenter({
 
       if (response.ok) {
         const data = await response.json();
+        console.log("Unread count response:", data);
         if (data.status === 200) {
           setUnreadCount(data.count || 0);
         }
       } else {
-        console.error("Error loading unread count:", response.statusText);
+        const errorText = await response.text();
+        console.error(
+          "Error loading unread count:",
+          response.status,
+          response.statusText,
+          errorText
+        );
       }
     } catch (error) {
       console.error("Error loading unread count:", error);

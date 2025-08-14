@@ -2,6 +2,7 @@ import React from "react";
 import { CheckCircle, AlertCircle } from "lucide-react";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
+import { Select, SelectItem } from "@nextui-org/react";
 import InputField from "./InputField";
 import { SignupFormData, SignupErrors } from "@/types/signup";
 
@@ -13,7 +14,44 @@ interface StepContentProps {
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   handleAddressChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   handlePhoneChange: (phone: string) => void;
+  handleStateChange?: (state: string) => void;
 }
+
+// Lista completa de estados de México
+const MEXICAN_STATES = [
+  "Aguascalientes",
+  "Baja California",
+  "Baja California Sur",
+  "Campeche",
+  "Chiapas",
+  "Chihuahua",
+  "Ciudad de México",
+  "Coahuila",
+  "Colima",
+  "Durango",
+  "Estado de México",
+  "Guanajuato",
+  "Guerrero",
+  "Hidalgo",
+  "Jalisco",
+  "Michoacán",
+  "Morelos",
+  "Nayarit",
+  "Nuevo León",
+  "Oaxaca",
+  "Puebla",
+  "Querétaro",
+  "Quintana Roo",
+  "San Luis Potosí",
+  "Sinaloa",
+  "Sonora",
+  "Tabasco",
+  "Tamaulipas",
+  "Tlaxcala",
+  "Veracruz",
+  "Yucatán",
+  "Zacatecas",
+];
 
 const StepContent = ({
   step,
@@ -23,6 +61,7 @@ const StepContent = ({
   handleInputChange,
   handleAddressChange,
   handlePhoneChange,
+  handleStateChange,
 }: StepContentProps) => {
   const renderStepContent = () => {
     switch (step) {
@@ -205,15 +244,75 @@ const StepContent = ({
                   error={errors["address.city"]}
                   placeholder="Ciudad de México"
                 />
-                <InputField
-                  id="state"
-                  name="state"
-                  label="Estado"
-                  value={formData.address.state}
-                  onChange={handleAddressChange}
-                  error={errors["address.state"]}
-                  placeholder="CDMX"
-                />
+                <div className="relative">
+                  <label
+                    htmlFor="state"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
+                    Estado <span className="text-red-500">*</span>
+                  </label>
+                  <Select
+                    id="state"
+                    name="state"
+                    selectedKeys={
+                      formData.address.state ? [formData.address.state] : []
+                    }
+                    onSelectionChange={(keys) => {
+                      const selectedState = Array.from(keys)[0] as string;
+                      handleStateChange?.(selectedState);
+                    }}
+                    placeholder="Selecciona un estado"
+                    className="w-full"
+                    classNames={{
+                      trigger: `border ${
+                        errors["address.state"]
+                          ? "border-red-300 bg-red-50"
+                          : formData.address.state
+                          ? "border-green-300 bg-green-50"
+                          : "border-gray-300"
+                      } shadow-sm rounded-md`,
+                      value: errors["address.state"]
+                        ? "text-red-900"
+                        : formData.address.state
+                        ? "text-green-900"
+                        : "text-gray-900",
+                    }}
+                  >
+                    {MEXICAN_STATES.map((state) => (
+                      <SelectItem key={state} value={state}>
+                        {state}
+                      </SelectItem>
+                    ))}
+                  </Select>
+                  {/* Flechita personalizada más visible */}
+                  <div className="absolute right-3 top-9 transform pointer-events-none">
+                    <svg
+                      className="w-5 h-5 text-gray-800 font-bold"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="3"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M19 9l-7 7-7-7"
+                      />
+                    </svg>
+                  </div>
+                  {errors["address.state"] && (
+                    <div className="mt-1 flex items-center text-sm text-red-600">
+                      <AlertCircle className="w-4 h-4 mr-1" />
+                      {errors["address.state"]}
+                    </div>
+                  )}
+                  {formData.address.state && !errors["address.state"] && (
+                    <div className="mt-1 flex items-center text-sm text-green-600">
+                      <CheckCircle className="w-4 h-4 mr-1" />
+                      Estado válido
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </div>

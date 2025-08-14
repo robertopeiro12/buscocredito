@@ -334,15 +334,19 @@ export const markNotificationAsRead = async (notificationId: string) => {
 };
 
 export const getUnreadNotificationCount = async (userId: string) => {
+  console.log("getUnreadNotificationCount called with userId:", userId);
+  
   const Firestore = getAdminFirestore();
   const notificationsRef = Firestore.collection("notifications");
   
   try {
+    console.log("Executing Firestore query for unread notifications...");
     const snapshot = await notificationsRef
       .where("recipientId", "==", userId)
       .where("read", "==", false)
       .get();
     
+    console.log("Query successful, found", snapshot.size, "unread notifications");
     return { status: 200, count: snapshot.size };
   } catch (error: any) {
     console.error("Error getting unread count:", error);

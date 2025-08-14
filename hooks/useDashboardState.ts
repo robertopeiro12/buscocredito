@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import { User } from "firebase/auth";
 import { useRouter } from "next/navigation";
 import { auth } from "@/app/firebase";
-import { onAuthStateChanged, signOut } from "firebase/auth";
+import { onAuthStateChanged } from "firebase/auth";
+import { useAuth } from "@/contexts/AuthContext";
 import { useNotification } from "@/components/common/ui/NotificationProvider";
 import { 
   UserData, 
@@ -21,13 +22,13 @@ import {
   deleteSolicitud as deleteSolicitudService,
   createSolicitud as createSolicitudService,
 } from "@/services/dashboard-service";
-
 export const useDashboardState = () => {
   // User and navigation
   const [user, setUser] = useState<User | null>(null);
   const [activeTab, setActiveTab] = useState<DashboardTab>("loans");
   const router = useRouter();
   const { showNotification } = useNotification();
+  const { signOut } = useAuth();
 
   // Modal states
   const [showBanksModal, setShowBanksModal] = useState(false);
@@ -214,15 +215,14 @@ export const useDashboardState = () => {
   };
 
   // Utility functions
-  const handleSignOut = () => {
-    signOut(auth)
-      .then(() => {
-        setUser(null);
-        router.push("/login");
-      })
-      .catch((error) => {
-        console.error("Error signing out:", error);
-      });
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      setUser(null);
+      router.push("/login");
+    } catch (error) {
+      console.error("Error signing out:", error);
+    }
   };
 
   const handleErrorClose = (key: keyof ErrorState) => {

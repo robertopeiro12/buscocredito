@@ -17,7 +17,7 @@ import { useSignupForm } from "@/hooks/useSignupForm";
 export default function Signup() {
   const { user } = useAuth();
   const router = useRouter();
-  
+
   // Usar el hook personalizado para toda la lógica del formulario
   const {
     step,
@@ -28,6 +28,7 @@ export default function Signup() {
     handleInputChange,
     handleAddressChange,
     handlePhoneChange,
+    handleStateChange,
     handleNextStep,
     handlePrevStep,
     handleSubmit,
@@ -60,7 +61,7 @@ export default function Signup() {
             <div className="p-6 sm:p-10">
               <form onSubmit={handleSubmit} className="space-y-8">
                 <StepHeaderWithStep step={step} />
-                
+
                 <StepContent
                   step={step}
                   formData={formData}
@@ -69,6 +70,7 @@ export default function Signup() {
                   handleInputChange={handleInputChange}
                   handleAddressChange={handleAddressChange}
                   handlePhoneChange={handlePhoneChange}
+                  handleStateChange={handleStateChange}
                 />
 
                 <div className="mt-8 flex justify-between">

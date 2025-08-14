@@ -1,5 +1,12 @@
-import React from 'react';
-import { Card, CardBody, Select, SelectItem, Button, Input } from "@nextui-org/react";
+import React from "react";
+import {
+  Card,
+  CardBody,
+  Select,
+  SelectItem,
+  Button,
+  Input,
+} from "@nextui-org/react";
 import { Search, Filter, X } from "lucide-react";
 
 interface AdminMarketplaceFiltersProps {
@@ -23,13 +30,13 @@ const AdminMarketplaceFilters = ({
   setAmountRangeFilter,
   termFilter,
   setTermFilter,
-  onClearFilters
+  onClearFilters,
 }: AdminMarketplaceFiltersProps) => {
   const statusOptions = [
     { key: "all", label: "Todos los estados" },
     { key: "active", label: "Activas" },
     { key: "pending", label: "Pendientes" },
-    { key: "completed", label: "Completadas" }
+    { key: "completed", label: "Completadas" },
   ];
 
   const amountRangeOptions = [
@@ -38,7 +45,7 @@ const AdminMarketplaceFilters = ({
     { key: "50000-100000", label: "$50,000 - $100,000" },
     { key: "100000-250000", label: "$100,000 - $250,000" },
     { key: "250000-500000", label: "$250,000 - $500,000" },
-    { key: "500000+", label: "Más de $500,000" }
+    { key: "500000+", label: "Más de $500,000" },
   ];
 
   const termOptions = [
@@ -49,10 +56,14 @@ const AdminMarketplaceFilters = ({
     { key: "24 meses", label: "24 meses" },
     { key: "36 meses", label: "36 meses" },
     { key: "48 meses", label: "48 meses" },
-    { key: "60 meses", label: "60 meses" }
+    { key: "60 meses", label: "60 meses" },
   ];
 
-  const hasActiveFilters = searchTerm || statusFilter !== "all" || amountRangeFilter !== "all" || termFilter !== "all";
+  const hasActiveFilters =
+    searchTerm ||
+    statusFilter !== "all" ||
+    amountRangeFilter !== "all" ||
+    termFilter !== "all";
 
   return (
     <Card className="bg-white shadow-sm border border-gray-200">
@@ -75,10 +86,16 @@ const AdminMarketplaceFilters = ({
             <Select
               placeholder="Estado"
               selectedKeys={[statusFilter]}
-              onSelectionChange={(keys) => setStatusFilter(Array.from(keys)[0] as string)}
+              onSelectionChange={(keys) =>
+                setStatusFilter(Array.from(keys)[0] as string)
+              }
               className="w-full sm:w-40"
               size="sm"
               startContent={<Filter className="w-4 h-4 text-gray-400" />}
+              classNames={{
+                trigger: "bg-white border-gray-200 border-2",
+                selectorIcon: "text-gray-700 text-lg font-bold",
+              }}
             >
               {statusOptions.map((option) => (
                 <SelectItem key={option.key} value={option.key}>
@@ -90,9 +107,15 @@ const AdminMarketplaceFilters = ({
             <Select
               placeholder="Monto"
               selectedKeys={[amountRangeFilter]}
-              onSelectionChange={(keys) => setAmountRangeFilter(Array.from(keys)[0] as string)}
+              onSelectionChange={(keys) =>
+                setAmountRangeFilter(Array.from(keys)[0] as string)
+              }
               className="w-full sm:w-48"
               size="sm"
+              classNames={{
+                trigger: "bg-white border-gray-200 border-2",
+                selectorIcon: "text-gray-700 text-lg font-bold",
+              }}
             >
               {amountRangeOptions.map((option) => (
                 <SelectItem key={option.key} value={option.key}>
@@ -104,9 +127,15 @@ const AdminMarketplaceFilters = ({
             <Select
               placeholder="Plazo"
               selectedKeys={[termFilter]}
-              onSelectionChange={(keys) => setTermFilter(Array.from(keys)[0] as string)}
+              onSelectionChange={(keys) =>
+                setTermFilter(Array.from(keys)[0] as string)
+              }
               className="w-full sm:w-36"
               size="sm"
+              classNames={{
+                trigger: "bg-white border-gray-200 border-2",
+                selectorIcon: "text-gray-700 text-lg font-bold",
+              }}
             >
               {termOptions.map((option) => (
                 <SelectItem key={option.key} value={option.key}>

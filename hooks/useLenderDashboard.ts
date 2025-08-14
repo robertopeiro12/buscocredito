@@ -1,8 +1,9 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { onAuthStateChanged, signOut } from 'firebase/auth';
+import { onAuthStateChanged } from 'firebase/auth';
 import { doc, getFirestore, getDoc } from 'firebase/firestore';
 import { auth } from '@/app/firebase';
+import { useAuth } from '@/contexts/AuthContext';
 import { useLenderGuard } from '@/hooks/useRoleGuard';
 import { useLoan } from '@/hooks/useLoans';
 import { useProposal } from '@/app/lender/hooks/useProposal';
@@ -18,8 +19,10 @@ import type {
 
 const initialFilters: LenderFilters = {
   search: "",
-  amount: "all",
-  term: "all",
+  state: "",
+  city: "",
+  purpose: "all",
+  type: "all",
 };
 
 const initialPartnerData: PartnerData = {
@@ -30,6 +33,7 @@ const initialPartnerData: PartnerData = {
 
 export const useLenderDashboard = () => {
   const { isAuthorized, isLoading: isCheckingAuth } = useLenderGuard();
+  const { signOut } = useAuth();
   const router = useRouter();
   
   // Estados principales
@@ -75,44 +79,46 @@ export const useLenderDashboard = () => {
       const searchMatch =
         !filters.search ||
         request.amount.toString().includes(filters.search) ||
-        request.term.toLowerCase().includes(filters.search.toLowerCase());
+        request.term.toLowerCase().includes(filters.search.toLowerCase()) ||
+        request.purpose?.toLowerCase().includes(filters.search.toLowerCase()) ||
+        request.type?.toLowerCase().includes(filters.search.toLowerCase());
 
-      // Filtro de monto
-      let amountMatch = true;
-      if (filters.amount !== "all") {
-        switch (filters.amount) {
-          case "0-50000":
-            amountMatch = request.amount <= 50000;
-            break;
-          case "50000-100000":
-            amountMatch = request.amount > 50000 && request.amount <= 100000;
-            break;
-          case "100000+":
-            amountMatch = request.amount > 100000;
-            break;
-        }
+      // Filtro de estado (comparación exacta)
+      let stateMatch = true;
+      if (filters.state && userDataMap[request.userId]) {
+        stateMatch = userDataMap[request.userId]?.state === filters.state;
       }
 
-      // Filtro de plazo
-      let termMatch = true;
-      if (filters.term !== "all") {
-        const months = parseInt(request.term);
-        switch (filters.term) {
-          case "1-12":
-            termMatch = months <= 12;
-            break;
-          case "13-24":
-            termMatch = months > 12 && months <= 24;
-            break;
-          case "25+":
-            termMatch = months > 24;
-            break;
-        }
+      // Filtro de ciudad (búsqueda parcial insensible a mayúsculas)
+      let cityMatch = true;
+      if (filters.city && userDataMap[request.userId]) {
+        cityMatch = userDataMap[request.userId]?.city?.toLowerCase().includes(filters.city.toLowerCase()) || false;
       }
 
-      return searchMatch && amountMatch && termMatch;
+      // Filtro de propósito
+      let purposeMatch = true;
+      if (filters.purpose !== "all") {
+        purposeMatch = request.purpose === filters.purpose;
+      }
+
+      // Filtro de tipo
+      let typeMatch = true;
+      if (filters.type !== "all") {
+        // Mapear los tipos del formulario a los IDs almacenados
+        const typeMapping = {
+          'consumo': 'Crédito al consumo',
+          'deudas': 'Liquidación deudas',
+          'capital': 'Capital de trabajo',
+          'maquinaria': 'Adquisición de maquinaria o equipo'
+        };
+        
+        const mappedType = typeMapping[filters.type as keyof typeof typeMapping];
+        typeMatch = request.type === mappedType;
+      }
+
+      return searchMatch && stateMatch && cityMatch && purposeMatch && typeMatch;
     });
-  }, [requests, filters]);
+  }, [requests, filters, userDataMap]);
 
   // Funciones
   const getPartnerData = async (uid: string) => {
@@ -204,23 +210,22 @@ export const useLenderDashboard = () => {
     }
   };
 
-  const handleSignOut = () => {
-    // Limpiar estados antes del signout para evitar errores de permisos
-    setUser("");
-    setPartnerData(initialPartnerData);
-    setSelectedRequestId(null);
-    setUserData(null);
-    setLenderProposals([]);
-    
-    signOut(auth)
-      .then(() => {
-        router.push("/login");
-      })
-      .catch((error) => {
-        console.error("Error signing out:", error);
-        // Aun con error, redirigir al login
-        router.push("/login");
-      });
+  const handleSignOut = async () => {
+    try {
+      // Limpiar estados antes del signout para evitar errores de permisos
+      setUser("");
+      setPartnerData(initialPartnerData);
+      setSelectedRequestId(null);
+      setUserData(null);
+      setLenderProposals([]);
+      
+      // Usar signOut del AuthContext
+      await signOut();
+    } catch (error) {
+      console.error("Error signing out:", error);
+      // Aun con error, redirigir al login
+      router.push("/login");
+    }
   };
 
   const fetchLenderProposals = useCallback(async () => {

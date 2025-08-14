@@ -100,6 +100,28 @@ export const useSignupForm = () => {
     });
   };
 
+  const handleStateChange = (state: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      address: {
+        ...prev.address,
+        state,
+      },
+    }));
+
+    const fieldName = "address.state";
+    const error = validateField(fieldName, state, formData);
+    setErrors(prev => {
+      const newErrors = { ...prev };
+      if (error) {
+        newErrors[fieldName] = error;
+      } else {
+        delete newErrors[fieldName];
+      }
+      return newErrors;
+    });
+  };
+
   const handleNextStep = () => {
     const validation = validateStep(step, formData, errors);
     if (validation.isValid) {
@@ -200,6 +222,7 @@ export const useSignupForm = () => {
     handleInputChange,
     handleAddressChange,
     handlePhoneChange,
+    handleStateChange,
     handleNextStep,
     handlePrevStep,
     handleSubmit,
