@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Bell, X, Check, Clock } from "lucide-react";
-import { Button, Card } from "@nextui-org/react";
+import { Bell, X, Check, Clock, Info } from "lucide-react";
+import { Button, Card, Tooltip } from "@nextui-org/react";
 
 interface NotificationData {
   id: string;
@@ -357,12 +357,23 @@ export default function NotificationCenter({
                                   "N/A"}
                               </div>
                               <div>
-                                <span className="font-medium">
-                                  Seguro de vida:
-                                </span>{" "}
-                                $
-                                {notification.data.winningOffer?.medicalBalance?.toLocaleString() ||
-                                  "N/A"}
+                                <div className="flex items-center gap-1">
+                                  <span className="font-medium">
+                                    Seguro de vida saldo deudor:
+                                  </span>
+                                  <Tooltip
+                                    content="Seguro que cubre el adeudo en caso de una situación fatal"
+                                    placement="top"
+                                    className="max-w-xs"
+                                  >
+                                    <Info className="w-3 h-3 text-gray-400 hover:text-gray-600 cursor-help" />
+                                  </Tooltip>
+                                </div>
+                                <span className="ml-1">
+                                  $
+                                  {notification.data.winningOffer?.medicalBalance?.toLocaleString() ||
+                                    "N/A"}
+                                </span>
                               </div>
                             </div>
                           </div>
@@ -437,11 +448,22 @@ export default function NotificationCenter({
                                 {notification.data.comision?.toLocaleString()}
                               </div>
                               <div>
-                                <span className="font-medium">
-                                  Seguro de vida:
+                                <div className="flex items-center gap-1">
+                                  <span className="font-medium">
+                                    Seguro de vida saldo deudor:
+                                  </span>
+                                  <Tooltip
+                                    content="Seguro que cubre el adeudo en caso de una situación fatal"
+                                    placement="top"
+                                    className="max-w-xs"
+                                  >
+                                    <Info className="w-3 h-3 text-gray-400 hover:text-gray-600 cursor-help" />
+                                  </Tooltip>
+                                </div>
+                                <span>
+                                  $
+                                  {notification.data.medicalBalance?.toLocaleString()}
                                 </span>
-                                <br />$
-                                {notification.data.medicalBalance?.toLocaleString()}
                               </div>
                             </div>
                             <div className="border-t border-green-200 pt-2">
