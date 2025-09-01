@@ -1,5 +1,20 @@
-import { Button, Card, CardBody, CardFooter, Progress, Chip } from "@nextui-org/react";
-import { ChevronRight, TrendingUp, Calendar, CreditCard, DollarSign, Eye, Trash2 } from "lucide-react";
+import {
+  Button,
+  Card,
+  CardBody,
+  CardFooter,
+  Progress,
+  Chip,
+} from "@nextui-org/react";
+import {
+  ChevronRight,
+  TrendingUp,
+  Calendar,
+  CreditCard,
+  DollarSign,
+  Eye,
+  Trash2,
+} from "lucide-react";
 import { SolicitudData } from "@/types/dashboard";
 
 interface LoanRequestCardProps {
@@ -9,11 +24,11 @@ interface LoanRequestCardProps {
   onDelete: (solicitud: SolicitudData) => void;
 }
 
-export const LoanRequestCard = ({ 
-  solicitud, 
-  offerCount, 
-  onViewOffers, 
-  onDelete 
+export const LoanRequestCard = ({
+  solicitud,
+  offerCount,
+  onViewOffers,
+  onDelete,
 }: LoanRequestCardProps) => {
   const getStatusColor = () => {
     if (offerCount === 0) return "default";
@@ -44,34 +59,40 @@ export const LoanRequestCard = ({
               </span>
             </div>
           </div>
-          
+
           <div className="bg-gray-50 rounded-lg p-4">
             <div className="grid grid-cols-1 gap-3 text-sm">
               <div className="flex justify-between">
                 <span className="text-gray-500 font-medium">Plazo:</span>
-                <span className="font-semibold text-gray-900">{solicitud.term}</span>
+                <span className="font-semibold text-gray-900">
+                  {solicitud.term}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-500 font-medium">Pago:</span>
-                <span className="font-semibold text-gray-900">{solicitud.payment}</span>
+                <span className="font-semibold text-gray-900">
+                  {solicitud.payment}
+                </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-500 font-medium">Ingresos anuales:</span>
+                <span className="text-gray-500 font-medium">
+                  Ingresos mensuales:
+                </span>
                 <span className="font-semibold text-gray-900">
                   ${solicitud.income.toLocaleString()}
                 </span>
               </div>
             </div>
           </div>
-          
+
           <div className="pt-2">
             <div className="flex justify-between items-center mb-3">
               <span className="text-sm font-semibold text-gray-700">
                 Interés de prestamistas
               </span>
-              <Chip 
-                color={getStatusColor()} 
-                variant="flat" 
+              <Chip
+                color={getStatusColor()}
+                variant="flat"
                 size="md"
                 className="font-semibold"
               >
@@ -84,15 +105,14 @@ export const LoanRequestCard = ({
               color="success"
             />
             <p className="text-xs text-gray-500 mt-2">
-              {offerCount === 0 
-                ? "Esperando propuestas de prestamistas" 
-                : "Propuestas recibidas"
-              }
+              {offerCount === 0
+                ? "Esperando propuestas de prestamistas"
+                : "Propuestas recibidas"}
             </p>
           </div>
         </div>
       </CardBody>
-      
+
       <CardFooter className="px-8 py-6 bg-gray-50 border-t border-gray-100">
         <div className="flex justify-between w-full gap-4">
           <Button

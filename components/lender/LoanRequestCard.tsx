@@ -1,16 +1,10 @@
-import React from 'react';
-import {
-  Button,
-  Card,
-  Chip,
-  CardBody,
-} from "@nextui-org/react";
-import {
-  DollarSign,
-  Target,
-  User,
-} from "lucide-react";
-import type { LoanRequest, PublicUserData } from '@/app/lender/types/loan.types';
+import React from "react";
+import { Button, Card, Chip, CardBody } from "@nextui-org/react";
+import { DollarSign, Target, User } from "lucide-react";
+import type {
+  LoanRequest,
+  PublicUserData,
+} from "@/app/lender/types/loan.types";
 
 interface LoanRequestCardProps {
   request: LoanRequest;
@@ -19,11 +13,11 @@ interface LoanRequestCardProps {
   onMakeOffer: (requestId: string) => void;
 }
 
-const LoanRequestCard = ({ 
-  request, 
-  userData, 
-  index, 
-  onMakeOffer 
+const LoanRequestCard = ({
+  request,
+  userData,
+  index,
+  onMakeOffer,
 }: LoanRequestCardProps) => {
   return (
     <Card
@@ -53,9 +47,7 @@ const LoanRequestCard = ({
 
             <div className="grid grid-cols-2 gap-x-4 gap-y-3">
               <div>
-                <p className="text-sm text-gray-500">
-                  Monto Solicitado
-                </p>
+                <p className="text-sm text-gray-500">Monto Solicitado</p>
                 <p className="font-medium text-gray-800">
                   ${request.amount.toLocaleString()}
                 </p>
@@ -63,7 +55,7 @@ const LoanRequestCard = ({
 
               <div>
                 <p className="text-sm text-gray-500">
-                  Ingresos Anuales Comprobables
+                  Ingresos Mensuales Comprobables
                 </p>
                 <p className="font-medium text-gray-800">
                   ${request.income.toLocaleString()}
@@ -71,9 +63,7 @@ const LoanRequestCard = ({
               </div>
 
               <div>
-                <p className="text-sm text-gray-500">
-                  Frecuencia de Pago
-                </p>
+                <p className="text-sm text-gray-500">Frecuencia de Pago</p>
                 <p className="font-medium text-gray-800 capitalize">
                   {request.payment}
                 </p>
@@ -81,15 +71,11 @@ const LoanRequestCard = ({
 
               <div>
                 <p className="text-sm text-gray-500">Plazo</p>
-                <p className="font-medium text-gray-800">
-                  {request.term}
-                </p>
+                <p className="font-medium text-gray-800">{request.term}</p>
               </div>
 
               <div>
-                <p className="text-sm text-gray-500">
-                  Propósito
-                </p>
+                <p className="text-sm text-gray-500">Propósito</p>
                 <p className="font-medium text-gray-800">
                   {request.purpose || "No especificado"}
                 </p>
@@ -120,18 +106,14 @@ const LoanRequestCard = ({
               </div>
 
               <div>
-                <p className="text-sm text-gray-500">
-                  Estado
-                </p>
+                <p className="text-sm text-gray-500">Estado</p>
                 <p className="font-medium text-gray-800">
                   {userData?.state || "No disponible"}
                 </p>
               </div>
 
               <div>
-                <p className="text-sm text-gray-500">
-                  Ciudad
-                </p>
+                <p className="text-sm text-gray-500">Ciudad</p>
                 <p className="font-medium text-gray-800">
                   {userData?.city || "No disponible"}
                 </p>
