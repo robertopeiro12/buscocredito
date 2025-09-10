@@ -26,6 +26,7 @@ export interface WorkersSummary {
   totalWorkers: number;
   activeWorkers: number;
   totalSolicitudes: number;
+  totalPropuestasEnviadas: number;
   averageApprovalRate: number;
 }
 
@@ -81,6 +82,7 @@ export function useWorkerStats(options: UseWorkerStatsOptions = {}) {
     totalWorkers: 0,
     activeWorkers: 0,
     totalSolicitudes: 0,
+    totalPropuestasEnviadas: 0,
     averageApprovalRate: 0
   });
   const [isLoadingStats, setIsLoadingStats] = useState(true);

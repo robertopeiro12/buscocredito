@@ -35,12 +35,21 @@ export async function GET(request: NextRequest) {
     
     if (workersSnapshot.empty) {
       console.log(`⚠️ No se encontraron trabajadores para admin ${user.uid}`);
-      return NextResponse.json({ workers: [] }, { status: 200 });
+      return NextResponse.json({ 
+        workers: [],
+        summary: {
+          totalWorkers: 0,
+          activeWorkers: 0,
+          totalSolicitudes: 0,
+          totalPropuestasEnviadas: 0,
+          averageApprovalRate: 0
+        }
+      }, { status: 200 });
     }
 
     const workersStats = [];
     
-    // 2. Para cada trabajador, calcular estadísticas
+    // 2. Para cada trabajador, calcular estadísticas de propuestas
     for (const workerDoc of workersSnapshot.docs) {
       const workerId = workerDoc.id;
       const workerData = workerDoc.data();
@@ -48,33 +57,28 @@ export async function GET(request: NextRequest) {
       console.log(`📈 Calculando stats para trabajador ${workerId}...`);
       
       try {
-        // Obtener solicitudes asignadas a este trabajador
-        const solicitudesRef = db.collection('solicitudes');
-        const solicitudesQuery = solicitudesRef.where('partner', '==', workerId);
-        const solicitudesSnapshot = await solicitudesQuery.get();
-        
-        // Obtener propuestas donde este trabajador participó
+        // Obtener propuestas donde este trabajador es el partner (maneja la propuesta)
         const propuestasRef = db.collection('propuestas');
-        const propuestasQuery = propuestasRef.where('userId', '==', workerId);
+        const propuestasQuery = propuestasRef.where('partner', '==', workerId);
         const propuestasSnapshot = await propuestasQuery.get();
         
         // Calcular métricas básicas
-        const totalSolicitudes = solicitudesSnapshot.size;
         const totalPropuestas = propuestasSnapshot.size;
         
-        // Calcular solicitudes por estado
-        let solicitudesApproved = 0;
-        let solicitudesRejected = 0;
-        let solicitudesPending = 0;
+        // Calcular propuestas por estado
+        let propuestasApproved = 0;
+        let propuestasRejected = 0;
+        let propuestasPending = 0;
         let lastActivity: Date | null = null;
         
-        solicitudesSnapshot.forEach(doc => {
+        propuestasSnapshot.forEach(doc => {
           const data = doc.data();
           const status = data.status;
           
-          if (status === 'approved') solicitudesApproved++;
-          else if (status === 'rejected') solicitudesRejected++;
-          else solicitudesPending++;
+          // Mapear estados según la estructura real de Firebase
+          if (status === 'approved' || status === 'accepted') propuestasApproved++;
+          else if (status === 'rejected' || status === 'declined') propuestasRejected++;
+          else if (status === 'pending' || status === 'active') propuestasPending++;
           
           // Obtener última actividad
           if (data.updatedAt) {
@@ -82,12 +86,17 @@ export async function GET(request: NextRequest) {
             if (!lastActivity || updatedAt > lastActivity) {
               lastActivity = updatedAt;
             }
+          } else if (data.createdAt) {
+            const createdAt = data.createdAt.toDate();
+            if (!lastActivity || createdAt > lastActivity) {
+              lastActivity = createdAt;
+            }
           }
         });
         
-        // Calcular tasa de aprobación
-        const approvalRate = totalSolicitudes > 0 
-          ? Math.round((solicitudesApproved / totalSolicitudes) * 100) 
+        // Calcular tasa de aprobación basada en propuestas
+        const approvalRate = totalPropuestas > 0 
+          ? Math.round((propuestasApproved / totalPropuestas) * 100) 
           : 0;
         
         // Determinar estado del trabajador y calcular métricas
@@ -103,9 +112,9 @@ export async function GET(request: NextRequest) {
           isActive = activityDate.getTime() > sevenDaysAgo.getTime();
           lastActivityISO = activityDate.toISOString();
           
-          if (totalSolicitudes > 0) {
+          if (totalPropuestas > 0) {
             const daysDiff = Math.max(1, Math.ceil((now.getTime() - activityDate.getTime()) / (24 * 60 * 60 * 1000)));
-            averageDailyActivity = Math.round(totalSolicitudes / daysDiff);
+            averageDailyActivity = Math.round(totalPropuestas / daysDiff);
           }
         }
         
@@ -117,11 +126,11 @@ export async function GET(request: NextRequest) {
           
           // Métricas calculadas
           stats: {
-            totalSolicitudes,
+            totalSolicitudes: 0, // Ya no se usan solicitudes
             totalPropuestas,
-            solicitudesApproved,
-            solicitudesRejected,
-            solicitudesPending,
+            solicitudesApproved: propuestasApproved, // Mantenemos nombre por compatibilidad con el frontend
+            solicitudesRejected: propuestasRejected,
+            solicitudesPending: propuestasPending,
             approvalRate,
             lastActivity: lastActivityISO,
             isActive,
@@ -132,7 +141,7 @@ export async function GET(request: NextRequest) {
         };
         
         workersStats.push(workerStats);
-        console.log(`✅ Stats calculadas para ${workerData.Nombre}: ${totalSolicitudes} solicitudes, ${approvalRate}% aprobación`);
+        console.log(`✅ Stats calculadas para ${workerData.Nombre}: ${totalPropuestas} propuestas, ${approvalRate}% aprobación`);
         
       } catch (workerError) {
         console.error(`❌ Error calculando stats para trabajador ${workerId}:`, workerError);
@@ -178,6 +187,7 @@ export async function GET(request: NextRequest) {
         totalWorkers: workersStats.length,
         activeWorkers: workersStats.filter(w => w.stats.isActive).length,
         totalSolicitudes: workersStats.reduce((sum, w) => sum + w.stats.totalSolicitudes, 0),
+        totalPropuestasEnviadas: workersStats.reduce((sum, w) => sum + w.stats.totalPropuestas, 0),
         averageApprovalRate: workersStats.length > 0 
           ? Math.round(workersStats.reduce((sum, w) => sum + w.stats.approvalRate, 0) / workersStats.length)
           : 0

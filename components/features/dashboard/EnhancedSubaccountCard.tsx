@@ -95,14 +95,14 @@ export function EnhancedSubaccountCard({
   // Determinar nivel de performance
   const getPerformanceLevel = () => {
     const rate = stats.approvalRate;
-    const activity = stats.totalSolicitudes;
+    const activity = stats.totalPropuestas;
 
     if (rate >= 80 && activity >= 10)
       return { level: "Excelente", color: "success", icon: CheckCircle };
     if (rate >= 60 && activity >= 5)
       return { level: "Bueno", color: "warning", icon: TrendingUp };
     if (activity === 0)
-      return { level: "Sin actividad", color: "default", icon: AlertCircle };
+      return { level: "", color: "default", icon: AlertCircle };
     return { level: "Necesita atención", color: "danger", icon: XCircle };
   };
 
@@ -158,20 +158,24 @@ export function EnhancedSubaccountCard({
             {/* Performance general */}
             <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
               <div className="flex items-center gap-2">
-                <PerformanceIcon
-                  className={`w-4 h-4 ${
-                    performance.color === "success"
-                      ? "text-green-600"
-                      : performance.color === "warning"
-                      ? "text-yellow-600"
-                      : performance.color === "danger"
-                      ? "text-red-600"
-                      : "text-gray-600"
-                  }`}
-                />
-                <span className="text-sm font-medium text-gray-700">
-                  {performance.level}
-                </span>
+                {performance.level && (
+                  <>
+                    <PerformanceIcon
+                      className={`w-4 h-4 ${
+                        performance.color === "success"
+                          ? "text-green-600"
+                          : performance.color === "warning"
+                          ? "text-yellow-600"
+                          : performance.color === "danger"
+                          ? "text-red-600"
+                          : "text-gray-600"
+                      }`}
+                    />
+                    <span className="text-sm font-medium text-gray-700">
+                      {performance.level}
+                    </span>
+                  </>
+                )}
               </div>
               <div className="text-right">
                 <div className="text-xs text-gray-500">Tasa de aprobación</div>
@@ -192,7 +196,7 @@ export function EnhancedSubaccountCard({
             </div>
 
             {/* Progress bar de aprobación */}
-            {stats.totalSolicitudes > 0 && (
+            {stats.totalPropuestas > 0 && (
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Aprobación</span>
@@ -208,17 +212,17 @@ export function EnhancedSubaccountCard({
             )}
 
             {/* Estadísticas en grid */}
-            <div className="grid grid-cols-3 gap-3 text-center">
-              <Tooltip content="Total de solicitudes procesadas">
-                <div className="p-2 bg-blue-50 rounded-lg cursor-help">
-                  <div className="text-lg font-bold text-blue-600">
-                    {stats.totalSolicitudes}
+            <div className="grid grid-cols-4 gap-3 text-center">
+              <Tooltip content="Total de propuestas enviadas">
+                <div className="p-2 bg-purple-50 rounded-lg cursor-help">
+                  <div className="text-lg font-bold text-purple-600">
+                    {stats.totalPropuestas}
                   </div>
-                  <div className="text-xs text-blue-500">Solicitudes</div>
+                  <div className="text-xs text-purple-500">Propuestas</div>
                 </div>
               </Tooltip>
 
-              <Tooltip content="Solicitudes aprobadas">
+              <Tooltip content="Propuestas aprobadas">
                 <div className="p-2 bg-green-50 rounded-lg cursor-help">
                   <div className="text-lg font-bold text-green-600">
                     {stats.solicitudesApproved}
@@ -227,31 +231,42 @@ export function EnhancedSubaccountCard({
                 </div>
               </Tooltip>
 
-              <Tooltip content="Propuestas creadas">
-                <div className="p-2 bg-purple-50 rounded-lg cursor-help">
-                  <div className="text-lg font-bold text-purple-600">
-                    {stats.totalPropuestas}
+              <Tooltip content="Propuestas pendientes">
+                <div className="p-2 bg-yellow-50 rounded-lg cursor-help">
+                  <div className="text-lg font-bold text-yellow-600">
+                    {stats.solicitudesPending}
                   </div>
-                  <div className="text-xs text-purple-500">Propuestas</div>
+                  <div className="text-xs text-yellow-500">Pendientes</div>
+                </div>
+              </Tooltip>
+
+              <Tooltip content="Propuestas rechazadas">
+                <div className="p-2 bg-red-50 rounded-lg cursor-help">
+                  <div className="text-lg font-bold text-red-600">
+                    {stats.solicitudesRejected}
+                  </div>
+                  <div className="text-xs text-red-500">Rechazadas</div>
                 </div>
               </Tooltip>
             </div>
 
-            {/* Última actividad */}
-            <div className="flex items-center gap-2 text-sm text-gray-600">
-              <Clock className="w-4 h-4" />
-              <span>{formatLastActivity(stats.lastActivity)}</span>
-              {stats.averageDailyActivity > 0 && (
-                <Chip size="sm" variant="flat" color="primary">
-                  {stats.averageDailyActivity}/día
-                </Chip>
-              )}
-            </div>
+            {/* Última actividad - solo si hay actividad */}
+            {stats.lastActivity && (
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                <Clock className="w-4 h-4" />
+                <span>{formatLastActivity(stats.lastActivity)}</span>
+                {stats.averageDailyActivity > 0 && (
+                  <Chip size="sm" variant="flat" color="primary">
+                    {stats.averageDailyActivity}/día
+                  </Chip>
+                )}
+              </div>
+            )}
           </div>
         </CardBody>
 
         <CardFooter className="px-6 py-4 bg-gray-50 border-t border-gray-100">
-          <div className="flex justify-between w-full">
+          <div className="flex justify-center w-full">
             <Button
               color="danger"
               variant="light"
@@ -261,26 +276,6 @@ export function EnhancedSubaccountCard({
             >
               Eliminar
             </Button>
-            <div className="flex gap-2">
-              <Button
-                color="primary"
-                variant="flat"
-                onPress={() => onView?.(worker.id)}
-                startContent={<Eye className="w-4 h-4" />}
-                size="sm"
-              >
-                Ver
-              </Button>
-              <Button
-                color="primary"
-                variant="flat"
-                onPress={() => onEdit?.(worker.id)}
-                startContent={<Edit className="w-4 h-4" />}
-                size="sm"
-              >
-                Editar
-              </Button>
-            </div>
           </div>
         </CardFooter>
       </Card>
@@ -298,8 +293,7 @@ export function EnhancedSubaccountCard({
             </p>
             <div className="mt-2 p-3 bg-red-50 rounded-lg">
               <p className="text-sm text-red-600">
-                Se perderán {stats.totalSolicitudes} solicitudes procesadas y{" "}
-                {stats.totalPropuestas} propuestas.
+                Se perderán {stats.totalPropuestas} propuestas enviadas.
               </p>
             </div>
             <p className="text-sm text-gray-500">

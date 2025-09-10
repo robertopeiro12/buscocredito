@@ -109,7 +109,8 @@ export default function AdminDashboard() {
 
   // Funciones de utilidad para el dashboard
   const getActiveWorkersCount = () => summary?.activeWorkers || 0;
-  const getTotalSolicitudes = () => summary?.totalSolicitudes || 0;
+  const getTotalPropuestasEnviadas = () =>
+    summary?.totalPropuestasEnviadas || 0;
   const getAverageApprovalRate = () => summary?.averageApprovalRate || 0;
   const workersError = statsError || activityError;
 
@@ -160,21 +161,23 @@ export default function AdminDashboard() {
             {activeTab === "subaccounts" && (
               <div className="max-w-7xl mx-auto">
                 <div className="space-y-8">
-                  {/* Header Section Mejorado */}
+                  {/* Header Section Simplificado */}
                   <div className="bg-gradient-to-r from-slate-50 to-blue-50 rounded-2xl p-8 border border-slate-200/50">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h1 className="text-3xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">
-                          Gestión de Trabajadores
-                        </h1>
-                        <p className="text-slate-600 mt-2 text-lg">
-                          Administra tu equipo y supervisa el rendimiento
-                        </p>
-                        <div className="mt-4 flex items-center gap-2 px-3 py-1.5 bg-white/60 rounded-full text-sm">
-                          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                          <span className="text-slate-600 font-medium">
-                            Usuario actual: {userEmail}
-                          </span>
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center gap-4">
+                        <div className="p-3 bg-blue-100 rounded-xl">
+                          <Users className="w-8 h-8 text-blue-600" />
+                        </div>
+                        <div>
+                          <h1 className="text-3xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">
+                            Equipo de Trabajo
+                          </h1>
+                          <div className="flex items-center gap-2 mt-1">
+                            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                            <span className="text-slate-600 font-medium text-sm">
+                              {userEmail}
+                            </span>
+                          </div>
                         </div>
                       </div>
                       <Button
@@ -183,7 +186,7 @@ export default function AdminDashboard() {
                         startContent={<PlusCircle className="w-5 h-5" />}
                         className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-semibold px-6 py-3 h-auto rounded-xl shadow-lg hover:shadow-xl transition-all"
                       >
-                        Crear Trabajador
+                        Nuevo Trabajador
                       </Button>
                     </div>
                   </div>
@@ -243,15 +246,15 @@ export default function AdminDashboard() {
                         <div className="flex items-center justify-between">
                           <div>
                             <p className="text-amber-700 font-semibold text-sm uppercase tracking-wide">
-                              Total Solicitudes
+                              Propuestas Enviadas
                             </p>
                             <p className="text-3xl font-bold text-amber-900 mt-1">
-                              {getTotalSolicitudes()}
+                              {getTotalPropuestasEnviadas()}
                             </p>
                             <div className="flex items-center mt-2">
                               <div className="w-2 h-2 bg-amber-500 rounded-full mr-2"></div>
                               <span className="text-amber-600 text-xs font-medium">
-                                Procesadas
+                                Total enviadas
                               </span>
                             </div>
                           </div>
