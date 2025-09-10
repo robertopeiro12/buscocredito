@@ -270,7 +270,7 @@ export default function AdminDashboard() {
                         <div className="flex items-center justify-between">
                           <div>
                             <p className="text-purple-700 font-semibold text-sm uppercase tracking-wide">
-                              Tasa Aprobación
+                              Tasa Aceptación
                             </p>
                             <p className="text-3xl font-bold text-purple-900 mt-1">
                               {getAverageApprovalRate()}%

@@ -85,7 +85,7 @@ export function EnhancedSubaccountCard({
     return "danger";
   };
 
-  // Determinar color de la tasa de aprobación
+  // Determinar color de la tasa de aceptación
   const getApprovalRateColor = () => {
     if (stats.approvalRate >= 80) return "success";
     if (stats.approvalRate >= 60) return "warning";
@@ -142,7 +142,7 @@ export function EnhancedSubaccountCard({
             {stats.totalPropuestas > 0 && (
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Tasa de aprobación</span>
+                  <span className="text-gray-600">Tasa de aceptación</span>
                   <span className="font-medium">{stats.approvalRate}%</span>
                 </div>
                 <Progress
