@@ -6,14 +6,20 @@ import { verifyAuthentication, createUnauthorizedResponse } from '@/app/api/util
 
 export async function GET(request: NextRequest) {
   try {
+    console.log('🚀 API workers/stats iniciada');
+    
     // Verificar autenticación
     const user = await verifyAuthentication(request);
     if (!user) {
+      console.log('❌ Usuario no autenticado');
       return createUnauthorizedResponse();
     }
 
+    console.log(`👤 Usuario autenticado: ${user.uid}, tipo: ${user.userType}`);
+
     // Solo administradores pueden acceder
     if (user.userType !== 'b_admin') {
+      console.log('❌ Usuario no es administrador');
       return new Response(
         JSON.stringify({ error: 'Acceso denegado - Solo administradores' }), 
         { 
@@ -32,6 +38,9 @@ export async function GET(request: NextRequest) {
     const workersRef = db.collection('cuentas');
     const workersQuery = workersRef.where('Empresa_id', '==', user.uid);
     const workersSnapshot = await workersQuery.get();
+    
+    console.log(`📊 Buscando trabajadores para admin: ${user.uid}`);
+    console.log(`📊 Trabajadores encontrados: ${workersSnapshot.size}`);
     
     if (workersSnapshot.empty) {
       console.log(`⚠️ No se encontraron trabajadores para admin ${user.uid}`);
@@ -62,6 +71,8 @@ export async function GET(request: NextRequest) {
         const propuestasQuery = propuestasRef.where('partner', '==', workerId);
         const propuestasSnapshot = await propuestasQuery.get();
         
+        console.log(`📈 Trabajador ${workerId} (${workerData.Nombre}): ${propuestasSnapshot.size} propuestas`);
+        
         // Calcular métricas básicas
         const totalPropuestas = propuestasSnapshot.size;
         
@@ -80,14 +91,55 @@ export async function GET(request: NextRequest) {
           else if (status === 'rejected' || status === 'declined') propuestasRejected++;
           else if (status === 'pending' || status === 'active') propuestasPending++;
           
-          // Obtener última actividad
+          // Obtener última actividad - manejar diferentes formatos de fecha
           if (data.updatedAt) {
-            const updatedAt = data.updatedAt.toDate();
+            let updatedAt: Date;
+            
+            // Si es un Timestamp de Firebase
+            if (data.updatedAt.toDate && typeof data.updatedAt.toDate === 'function') {
+              updatedAt = data.updatedAt.toDate();
+            }
+            // Si es un string (ISO date)
+            else if (typeof data.updatedAt === 'string') {
+              updatedAt = new Date(data.updatedAt);
+            }
+            // Si es un número (timestamp)
+            else if (typeof data.updatedAt === 'number') {
+              updatedAt = new Date(data.updatedAt);
+            }
+            // Si es un objeto con segundos (Firestore Timestamp serializado)
+            else if (data.updatedAt.seconds) {
+              updatedAt = new Date(data.updatedAt.seconds * 1000);
+            }
+            else {
+              console.log(`⚠️ Formato de fecha no reconocido para updatedAt:`, data.updatedAt);
+              updatedAt = new Date(); // Fallback a fecha actual
+            }
+            
             if (!lastActivity || updatedAt > lastActivity) {
               lastActivity = updatedAt;
             }
           } else if (data.createdAt) {
-            const createdAt = data.createdAt.toDate();
+            let createdAt: Date;
+            
+            // Mismo manejo para createdAt
+            if (data.createdAt.toDate && typeof data.createdAt.toDate === 'function') {
+              createdAt = data.createdAt.toDate();
+            }
+            else if (typeof data.createdAt === 'string') {
+              createdAt = new Date(data.createdAt);
+            }
+            else if (typeof data.createdAt === 'number') {
+              createdAt = new Date(data.createdAt);
+            }
+            else if (data.createdAt.seconds) {
+              createdAt = new Date(data.createdAt.seconds * 1000);
+            }
+            else {
+              console.log(`⚠️ Formato de fecha no reconocido para createdAt:`, data.createdAt);
+              createdAt = new Date(); // Fallback a fecha actual
+            }
+            
             if (!lastActivity || createdAt > lastActivity) {
               lastActivity = createdAt;
             }
@@ -181,7 +233,7 @@ export async function GET(request: NextRequest) {
     
     console.log(`✅ Estadísticas calculadas para ${workersStats.length} trabajadores del admin ${user.uid}`);
     
-    return NextResponse.json({ 
+    const response = { 
       workers: workersStats,
       summary: {
         totalWorkers: workersStats.length,
@@ -192,7 +244,11 @@ export async function GET(request: NextRequest) {
           ? Math.round(workersStats.reduce((sum, w) => sum + w.stats.approvalRate, 0) / workersStats.length)
           : 0
       }
-    }, { status: 200 });
+    };
+    
+    console.log(`📤 Enviando respuesta:`, JSON.stringify(response, null, 2));
+    
+    return NextResponse.json(response, { status: 200 });
     
   } catch (error) {
     console.error('❌ Error en API workers/stats:', error);

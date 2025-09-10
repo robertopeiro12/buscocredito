@@ -119,11 +119,15 @@ export function useWorkerStats(options: UseWorkerStatsOptions = {}) {
 
       const data: WorkersStatsResponse = await response.json();
 
+      console.log(`✅ Estadísticas recibidas del API:`, data);
+      console.log(`📊 Workers recibidos:`, data.workers);
+      console.log(`📊 Summary recibido:`, data.summary);
+
       setWorkers(data.workers);
       setSummary(data.summary);
       setLastUpdated(new Date());
 
-      console.log(`✅ Estadísticas obtenidas: ${data.workers.length} trabajadores`);
+      console.log(`✅ Estado actualizado - Workers: ${data.workers.length} trabajadores`);
 
     } catch (error: any) {
       console.error('❌ Error obteniendo estadísticas:', error);
