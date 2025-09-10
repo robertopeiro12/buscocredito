@@ -91,6 +91,7 @@ export default function AdminDashboard() {
     useAdminLoans({
       status: "pending",
       enableRealtime: true,
+      adminCompany: adminData.Empresa, // Pasar la empresa del admin
     });
 
   // Hook para estadísticas de trabajadores

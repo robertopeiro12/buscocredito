@@ -1,10 +1,14 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from "react";
 import { Card, CardBody, Spinner } from "@nextui-org/react";
 import { Store, TrendingUp, Users, DollarSign } from "lucide-react";
-import { useAdminLoans } from '@/hooks/useAdminLoans';
-import type { LoanRequest, PublicUserData } from '@/types/entities/business.types';
-import AdminLoanRequestCard from './AdminLoanRequestCard';
-import AdminMarketplaceFilters from './AdminMarketplaceFilters';
+import { useAdminLoans } from "@/hooks/useAdminLoans";
+import { useAdminDashboard } from "@/hooks/useAdminDashboard";
+import type {
+  LoanRequest,
+  PublicUserData,
+} from "@/types/entities/business.types";
+import AdminLoanRequestCard from "./AdminLoanRequestCard";
+import AdminMarketplaceFilters from "./AdminMarketplaceFilters";
 
 // Extender el tipo para incluir campos adicionales
 interface ExtendedPublicUserData extends PublicUserData {
@@ -19,13 +23,18 @@ interface AdminMarketplaceViewProps {
 }
 
 const AdminMarketplaceView = ({}: AdminMarketplaceViewProps = {}) => {
-  const [userDataMap, setUserDataMap] = useState<Record<string, ExtendedPublicUserData>>({});
-  
+  const [userDataMap, setUserDataMap] = useState<
+    Record<string, ExtendedPublicUserData>
+  >({});
+
   // Estados de filtros
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [amountRangeFilter, setAmountRangeFilter] = useState("all");
   const [termFilter, setTermFilter] = useState("all");
+
+  // Obtener información del admin para pasar al hook
+  const { adminData } = useAdminDashboard();
 
   // Usar hook específico para admin que puede obtener todas las solicitudes
   const {
@@ -35,6 +44,7 @@ const AdminMarketplaceView = ({}: AdminMarketplaceViewProps = {}) => {
   } = useAdminLoans({
     status: "pending", // Solo solicitudes pendientes
     enableRealtime: true,
+    adminCompany: adminData.Empresa, // Pasar la empresa del admin
   });
 
   // Debug: log para verificar que las solicitudes se están cargando
@@ -46,9 +56,11 @@ const AdminMarketplaceView = ({}: AdminMarketplaceViewProps = {}) => {
   // Cargar datos de usuarios para las solicitudes
   useEffect(() => {
     const loadUserData = async () => {
-      const userIds = loanRequests.map(request => request.userId).filter(Boolean);
+      const userIds = loanRequests
+        .map((request) => request.userId)
+        .filter(Boolean);
       const uniqueUserIds = Array.from(new Set(userIds));
-      
+
       for (const userId of uniqueUserIds) {
         if (userId && !userDataMap[userId]) {
           try {
@@ -62,9 +74,9 @@ const AdminMarketplaceView = ({}: AdminMarketplaceViewProps = {}) => {
 
             if (response.ok) {
               const data = await response.json();
-              setUserDataMap(prev => ({
+              setUserDataMap((prev) => ({
                 ...prev,
-                [userId]: data.data || {}
+                [userId]: data.data || {},
               }));
             }
           } catch (error) {
@@ -85,13 +97,13 @@ const AdminMarketplaceView = ({}: AdminMarketplaceViewProps = {}) => {
       // Filtro de búsqueda
       if (searchTerm) {
         const searchLower = searchTerm.toLowerCase();
-        const matchesSearch = 
+        const matchesSearch =
           request.id.toLowerCase().includes(searchLower) ||
           request.amount.toString().includes(searchLower) ||
           request.purpose?.toLowerCase().includes(searchLower) ||
           request.type.toLowerCase().includes(searchLower) ||
           request.term.toLowerCase().includes(searchLower);
-        
+
         if (!matchesSearch) return false;
       }
 
@@ -179,7 +191,10 @@ const AdminMarketplaceView = ({}: AdminMarketplaceViewProps = {}) => {
               No hay solicitudes que mostrar
             </h3>
             <p className="text-gray-500">
-              {searchTerm || statusFilter !== "all" || amountRangeFilter !== "all" || termFilter !== "all"
+              {searchTerm ||
+              statusFilter !== "all" ||
+              amountRangeFilter !== "all" ||
+              termFilter !== "all"
                 ? "No se encontraron solicitudes que coincidan con los filtros aplicados."
                 : "Aún no hay solicitudes de préstamos en el marketplace."}
             </p>
@@ -204,8 +219,9 @@ const AdminMarketplaceView = ({}: AdminMarketplaceViewProps = {}) => {
           <div className="flex items-center gap-2 text-gray-600">
             <Store className="w-4 h-4" />
             <p className="text-sm">
-              <strong>Nota:</strong> Esta vista permite monitorear todas las solicitudes de préstamos en el marketplace.
-              Como administrador, puedes ver toda la información pero no realizar ofertas.
+              <strong>Nota:</strong> Esta vista permite monitorear todas las
+              solicitudes de préstamos en el marketplace. Como administrador,
+              puedes ver toda la información pero no realizar ofertas.
             </p>
           </div>
         </CardBody>
