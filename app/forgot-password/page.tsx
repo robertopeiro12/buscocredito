@@ -142,13 +142,16 @@ export default function ForgotPasswordPage() {
                   </p>
                   <div className="text-amber-700 space-y-1">
                     <p>
-                      • <strong>Gmail:</strong> Revisa "Promociones" y "Spam"
+                      • <strong>Gmail:</strong> Revisa &ldquo;Promociones&rdquo;
+                      y &ldquo;Spam&rdquo;
                     </p>
                     <p>
-                      • <strong>Outlook:</strong> Revisa "Correo no deseado"
+                      • <strong>Outlook:</strong> Revisa &ldquo;Correo no
+                      deseado&rdquo;
                     </p>
                     <p>
-                      • <strong>Yahoo:</strong> Revisa "Bulk" y "Spam"
+                      • <strong>Yahoo:</strong> Revisa &ldquo;Bulk&rdquo; y
+                      &ldquo;Spam&rdquo;
                     </p>
                     <p>
                       • <strong>Marca como seguro:</strong> Agrega

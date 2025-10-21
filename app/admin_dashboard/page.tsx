@@ -39,6 +39,7 @@ import AdminMarketplaceView from "@/components/admin/AdminMarketplaceView";
 import { useAdminDashboard } from "@/hooks/useAdminDashboard";
 import { useAdminLoans } from "@/hooks/useAdminLoans";
 import { useWorkerStats } from "@/hooks/useWorkerStats";
+import MigrationButton from "@/components/admin/MigrationButton";
 
 export default function AdminDashboard() {
   const {

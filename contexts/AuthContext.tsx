@@ -39,24 +39,74 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         try {
+          // Primero obtener el token para acceder a custom claims
+          const tokenResult = await firebaseUser.getIdTokenResult();
+          const customClaims = tokenResult.claims;
+
           const db = getFirestore();
           const userDoc = await getDoc(doc(db, "cuentas", firebaseUser.uid));
 
           if (userDoc.exists()) {
             const userData = userDoc.data();
+
+            // Priorizar custom claims sobre datos de Firestore
+            const userType =
+              customClaims.userType || customClaims.role || userData.type;
+
             const userInfo = {
               uid: firebaseUser.uid,
               email: firebaseUser.email,
-              type: userData.type,
-              Empresa: userData.Empresa,
-              Empresa_id: userData.Empresa_id,
+              type: userType,
+              Empresa: customClaims.empresa || userData.Empresa,
+              Empresa_id: customClaims.empresaId || userData.Empresa_id,
             };
 
             setUser(userInfo);
 
             // Configurar cookies para el middleware
-            const token = await firebaseUser.getIdToken();
-            setAuthCookies(token, userData.type, false); // Default no remember
+            const token = tokenResult.token;
+            setAuthCookies(token, userType, false); // Default no remember
+
+            // Si el usuario no tiene custom claims pero tiene tipo en Firestore,
+            // configurar los claims automáticamente
+            if (!customClaims.userType && userData.type) {
+              console.log(
+                "🔄 Setting up missing custom claims for user:",
+                firebaseUser.uid
+              );
+              try {
+                await fetch("/api/auth/setup-user-claims", {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify({
+                    userId: firebaseUser.uid,
+                    userData: {
+                      name: userData.name,
+                      email: userData.email,
+                      type: userData.type,
+                      Empresa: userData.Empresa,
+                      Empresa_id: userData.Empresa_id,
+                    },
+                  }),
+                  credentials: "include",
+                });
+              } catch (claimsError) {
+                console.warn("⚠️ Could not set custom claims:", claimsError);
+                // No bloquear el login si no se pueden establecer los claims
+              }
+            }
+          } else {
+            console.warn("⚠️ User document not found for:", firebaseUser.uid);
+            // Si no existe el documento del usuario, crear uno básico
+            setUser({
+              uid: firebaseUser.uid,
+              email: firebaseUser.email,
+              type:
+                (customClaims.userType as "user" | "b_admin" | "b_sale") ||
+                "user",
+            });
           }
         } catch (error) {
           console.error("Error fetching user data:", error);
