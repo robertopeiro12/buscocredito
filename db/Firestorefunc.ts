@@ -276,9 +276,7 @@ export const createNotification = async (notificationData: {
       createdAt: new Date(),
     };
     
-    console.log(`Creating notification for user ${notificationData.recipientId} of type ${notificationData.type}:`, newNotification);
     const docRef = await notificationsRef.add(newNotification);
-    console.log(`✅ Notification created successfully with ID: ${docRef.id} for recipient: ${notificationData.recipientId}`);
     
     return { status: 200, notificationId: docRef.id };
   } catch (error: any) {
@@ -334,19 +332,15 @@ export const markNotificationAsRead = async (notificationId: string) => {
 };
 
 export const getUnreadNotificationCount = async (userId: string) => {
-  console.log("getUnreadNotificationCount called with userId:", userId);
-  
   const Firestore = getAdminFirestore();
   const notificationsRef = Firestore.collection("notifications");
   
   try {
-    console.log("Executing Firestore query for unread notifications...");
     const snapshot = await notificationsRef
       .where("recipientId", "==", userId)
       .where("read", "==", false)
       .get();
     
-    console.log("Query successful, found", snapshot.size, "unread notifications");
     return { status: 200, count: snapshot.size };
   } catch (error: any) {
     console.error("Error getting unread count:", error);

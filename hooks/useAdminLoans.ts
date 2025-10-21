@@ -100,11 +100,6 @@ export function useAdminLoans(options: UseAdminLoansOptions = {}) {
           return !hasOwnProposal; // Invertir la lógica: mostrar si NO tiene propuesta propia
         });
       
-      console.log("useAdminLoans - Total loans found:", loansSnapshot.docs.length);
-      console.log("useAdminLoans - Admin company:", options.adminCompany);
-      console.log("useAdminLoans - Filtered loans:", fetchedLoans.length);
-      console.log("useAdminLoans - Query status:", options.status);
-      
       setLoans(fetchedLoans);
       setError(null);
     } catch (err) {

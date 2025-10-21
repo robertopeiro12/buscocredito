@@ -47,12 +47,6 @@ const AdminMarketplaceView = ({}: AdminMarketplaceViewProps = {}) => {
     adminCompany: adminData.Empresa, // Pasar la empresa del admin
   });
 
-  // Debug: log para verificar que las solicitudes se están cargando
-  useEffect(() => {
-    console.log("Admin Marketplace - Loan requests:", loanRequests);
-    console.log("Admin Marketplace - Loading:", isLoading);
-  }, [loanRequests, isLoading]);
-
   // Cargar datos de usuarios para las solicitudes
   useEffect(() => {
     const loadUserData = async () => {
