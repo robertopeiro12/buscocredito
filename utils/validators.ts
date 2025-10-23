@@ -183,7 +183,7 @@ export const validateStep = (
     case 3:
       fieldsToValidate = [
         "street",
-        "number",
+        "exteriorNumber",
         "colony",
         "city",
         "state",
@@ -202,7 +202,7 @@ export const validateStep = (
       : formData[field as keyof SignupFormData] as string;
 
     // Campos opcionales - no validar si están vacíos
-    const optionalFields = ["secondLastName"];
+    const optionalFields = ["secondLastName", "address.interiorNumber"];
     
     // Validate empty fields (skip optional fields)
     if ((!value || !value.trim()) && !optionalFields.includes(field)) {

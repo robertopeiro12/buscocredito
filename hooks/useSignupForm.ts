@@ -15,7 +15,8 @@ const initialFormData: SignupFormData = {
   phone: "",
   address: {
     street: "",
-    number: "",
+    exteriorNumber: "",
+    interiorNumber: "",
     colony: "",
     city: "",
     state: "",

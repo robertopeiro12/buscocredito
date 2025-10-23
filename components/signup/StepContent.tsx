@@ -180,15 +180,24 @@ const StepContent = ({
                 error={errors["address.street"]}
                 placeholder="Av. Insurgentes"
               />
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-3 gap-4">
                 <InputField
-                  id="number"
-                  name="number"
-                  label="Número"
-                  value={formData.address.number}
+                  id="exteriorNumber"
+                  name="exteriorNumber"
+                  label="Número Exterior"
+                  value={formData.address.exteriorNumber}
                   onChange={handleAddressChange}
-                  error={errors["address.number"]}
+                  error={errors["address.exteriorNumber"]}
                   placeholder="123"
+                />
+                <InputField
+                  id="interiorNumber"
+                  name="interiorNumber"
+                  label="Número Interior"
+                  value={formData.address.interiorNumber}
+                  onChange={handleAddressChange}
+                  error={errors["address.interiorNumber"]}
+                  placeholder="A, 2, etc. (opcional)"
                 />
                 <InputField
                   id="zipCode"

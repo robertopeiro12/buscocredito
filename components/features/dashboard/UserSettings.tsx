@@ -64,7 +64,15 @@ export const UserSettings = ({ userData, onUpdate }: UserSettingsProps) => {
               <div>
                 <p className="text-sm text-gray-500">Calle y Número</p>
                 <p className="text-gray-900">
-                  {`${userData.address.street} #${userData.address.number}`}
+                  {`${userData.address.street} #${
+                    userData.address.exteriorNumber ||
+                    userData.address.number ||
+                    "No disponible"
+                  }${
+                    userData.address.interiorNumber
+                      ? ` Int. ${userData.address.interiorNumber}`
+                      : ""
+                  }`}
                 </p>
               </div>
               <div>

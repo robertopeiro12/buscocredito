@@ -2,12 +2,15 @@ import { Timestamp } from "firebase/firestore";
 
 export interface Address {
   street: string;
-  number: string;
+  exteriorNumber: string;
+  interiorNumber: string;
   colony: string;
   city: string;
   state: string;
   country: string;
   zipCode: string;
+  // Campo legacy para retrocompatibilidad
+  number?: string;
 }
 
 export interface UserData {
