@@ -5,6 +5,7 @@ import { doc, getFirestore, setDoc, Timestamp } from 'firebase/firestore';
 import { auth } from '@/app/firebase';
 import { SignupFormData, SignupErrors } from '@/types/signup';
 import { validateField, validateStep } from '@/utils/validators';
+import { generateInitialCreditScore } from '@/utils/creditScore';
 
 const initialFormData: SignupFormData = {
   name: "",
@@ -166,6 +167,9 @@ export const useSignupForm = () => {
       const db = getFirestore();
       const userRef = doc(db, "cuentas", userCredential.user.uid);
 
+      // Generar score crediticio inicial
+      const creditScore = generateInitialCreditScore();
+
       await setDoc(userRef, {
         name: formData.name,
         last_name: formData.lastName,
@@ -176,6 +180,7 @@ export const useSignupForm = () => {
         address: formData.address,
         email: formData.email,
         type: "user",
+        creditScore: creditScore,
         created_at: Timestamp.now(),
       });
 

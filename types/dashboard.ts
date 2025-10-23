@@ -1,4 +1,5 @@
 import { Timestamp } from "firebase/firestore";
+import { CreditScore } from "./creditScore";
 
 export interface Address {
   street: string;
@@ -22,6 +23,7 @@ export interface UserData {
   birthday: any; // You might want to make this more specific
   phone: string;
   address: Address;
+  creditScore: CreditScore;
 }
 
 export interface SolicitudData {

@@ -54,8 +54,11 @@ service cloud.firestore {
     // ========================================
     
     match /cuentas/{userId} {
-      // Los usuarios solo pueden leer y escribir su propia cuenta
-      allow read, write: if isOwner(userId) && isValidUserData();
+      // Los usuarios solo pueden leer su propia cuenta
+      allow read: if isOwner(userId);
+      
+      // Los usuarios pueden escribir su propia cuenta si los datos son válidos
+      allow write: if isOwner(userId) && isValidUserData();
       
       // Admins pueden leer y consultar todas las cuentas (para gestión)
       allow read, list: if isAdmin();
@@ -80,8 +83,8 @@ service cloud.firestore {
                        request.resource.data.userId == request.auth.uid &&
                        isValidSolicitudData();
       
-      // Los usuarios pueden leer y actualizar sus propias solicitudes
-      allow read, update: if isUser() && 
+      // Los usuarios pueden leer, actualizar y eliminar sus propias solicitudes
+      allow read, update, delete: if isUser() && 
                              resource.data.userId == request.auth.uid;
       
       // Lenders pueden leer solicitudes pendientes para hacer ofertas

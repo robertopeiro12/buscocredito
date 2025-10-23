@@ -87,6 +87,32 @@ const LoanRequestCard = ({
                   {request.type || "No especificado"}
                 </p>
               </div>
+
+              {userData?.creditScore && (
+                <div>
+                  <p className="text-sm text-gray-500">Score Crediticio</p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <p className="font-medium text-gray-800">
+                      {userData.creditScore.score}
+                    </p>
+                    <Chip
+                      size="sm"
+                      className={`${
+                        userData.creditScore.classification === "Excelente"
+                          ? "bg-emerald-100 text-emerald-800"
+                          : userData.creditScore.classification === "Bueno"
+                          ? "bg-green-100 text-green-800"
+                          : userData.creditScore.classification === "Regular"
+                          ? "bg-orange-100 text-orange-800"
+                          : "bg-red-100 text-red-800"
+                      }`}
+                      variant="flat"
+                    >
+                      {userData.creditScore.classification}
+                    </Chip>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
