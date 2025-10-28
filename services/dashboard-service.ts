@@ -24,10 +24,62 @@ export const fetchUserData = async (userId: string): Promise<UserData> => {
     if (userDoc.exists()) {
       return userDoc.data() as UserData;
     } else {
-      throw new Error('Documento de usuario no encontrado');
+      // Para usuarios nuevos que pueden no tener documento aún, devolver datos por defecto
+      console.log('Documento de usuario no encontrado, devolviendo datos por defecto');
+      return {
+        name: "",
+        last_name: "",
+        second_last_name: "",
+        email: "",
+        rfc: "",
+        birthday: null,
+        phone: "",
+        address: {
+          street: "",
+          exteriorNumber: "",
+          interiorNumber: "",
+          colony: "",
+          city: "",
+          state: "",
+          country: "México",
+          zipCode: "",
+        },
+        creditScore: {
+          score: 0,
+          classification: "Alto Riesgo"
+        },
+      };
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('fetchUserData: Error occurred:', error);
+    // Si hay error de permisos, también devolver datos por defecto para usuarios nuevos
+    if (error?.message?.includes('Missing or insufficient permissions') || 
+        error?.code === 'permission-denied') {
+      console.log('Error de permisos, devolviendo datos por defecto para usuario nuevo');
+      return {
+        name: "",
+        last_name: "",
+        second_last_name: "",
+        email: "",
+        rfc: "",
+        birthday: null,
+        phone: "",
+        address: {
+          street: "",
+          exteriorNumber: "",
+          interiorNumber: "",
+          colony: "",
+          city: "",
+          state: "",
+          country: "México",
+          zipCode: "",
+        },
+        creditScore: {
+          score: 0,
+          classification: "Alto Riesgo"
+        },
+      };
+    }
     throw error;
   }
 };

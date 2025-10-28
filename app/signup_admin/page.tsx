@@ -59,6 +59,7 @@ export default function SignUpAdmin() {
       const db = getFirestore();
       await setDoc(doc(db, "cuentas", userId), {
         Empresa: b_name,
+        name: b_name, // Usar el nombre de la empresa como nombre para cumplir con las reglas
         type: "b_admin",
         email: email,
         // Removed createdAt field
@@ -142,7 +143,7 @@ export default function SignUpAdmin() {
               label="Nombre de la empresa"
               type="text"
               placeholder="Nombre de la empresa"
-              value={b_name}  
+              value={b_name}
               onChange={(e) => setb_Name(e.target.value)}
               isRequired
               size="lg"

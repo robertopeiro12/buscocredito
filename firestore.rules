@@ -33,10 +33,22 @@ service cloud.firestore {
       return isAdmin() || isLender();
     }
     
-    // Verificar si los datos son válidos
+    // Función para verificar si el usuario es un usuario regular (incluso sin custom claims)
+    function isUserOrUnauthenticated() {
+      return getUserType() == 'user' || getUserType() == null;
+    }
+    
+    // Verificar si los datos son válidos para escritura
     function isValidUserData() {
       return request.resource.data.keys().hasAll(['name', 'email', 'type']) &&
              request.resource.data.email is string &&
+             request.resource.data.name is string &&
+             request.resource.data.type in ['user', 'b_admin', 'b_sale'];
+    }
+    
+    // Función más flexible para verificar datos de usuario en operaciones de lectura/escritura
+    function isValidUserDataForUpdate() {
+      return request.resource.data.email is string &&
              request.resource.data.name is string &&
              request.resource.data.type in ['user', 'b_admin', 'b_sale'];
     }
@@ -54,23 +66,34 @@ service cloud.firestore {
     // ========================================
     
     match /cuentas/{userId} {
-      // Los usuarios solo pueden leer su propia cuenta
+      // Todos los usuarios autenticados pueden leer su propia cuenta (sin depender de custom claims)
       allow read: if isOwner(userId);
       
-      // Los usuarios pueden escribir su propia cuenta si los datos son válidos
-      allow write: if isOwner(userId) && isValidUserData();
+      // Los usuarios pueden actualizar su propia cuenta con validación más flexible
+      allow update: if isOwner(userId) && isValidUserDataForUpdate();
+      
+      // Permitir creación para usuarios nuevos (durante el signup regular)
+      allow create: if isOwner(userId) && isValidUserData();
+      
+      // Permitir creación de cuentas b_admin (signup admin) - más flexible
+      allow create: if isOwner(userId) && 
+                       request.resource.data.type == 'b_admin' &&
+                       request.resource.data.email is string &&
+                       request.resource.data.Empresa is string;
       
       // Admins pueden leer y consultar todas las cuentas (para gestión)
       allow read, list: if isAdmin();
-      
-      // Lenders pueden leer datos públicos específicos de usuarios con solicitudes
-      allow read: if isLender() && 
-                     exists(/databases/$(database)/documents/solicitudes/$(userId));
       
       // Admins pueden crear subcuentas (b_sale)
       allow create: if isAdmin() && 
                        request.resource.data.type == 'b_sale' &&
                        request.resource.data.Empresa_id == request.auth.uid;
+      
+      // Permitir creación de cuentas b_sale (workers) - más flexible
+      allow create: if isOwner(userId) && 
+                       request.resource.data.type == 'b_sale' &&
+                       request.resource.data.email is string &&
+                       request.resource.data.name is string;
     }
     
     // ========================================
@@ -78,17 +101,32 @@ service cloud.firestore {
     // ========================================
     
     match /solicitudes/{solicitudId} {
-      // Los usuarios pueden crear sus propias solicitudes
-      allow create: if isUser() && 
+      // Los usuarios pueden crear sus propias solicitudes (incluso sin custom claims)
+      allow create: if request.auth != null &&
                        request.resource.data.userId == request.auth.uid &&
                        isValidSolicitudData();
       
-      // Los usuarios pueden leer, actualizar y eliminar sus propias solicitudes
-      allow read, update, delete: if isUser() && 
-                             resource.data.userId == request.auth.uid;
+      // Los usuarios pueden leer sus propias solicitudes (incluso sin custom claims)
+      allow read: if request.auth != null && 
+                     resource.data.userId == request.auth.uid;
       
-      // Lenders pueden leer solicitudes pendientes para hacer ofertas
-      allow read: if isLender() && resource.data.status == 'pending';
+      // Permitir query/list para usuarios autenticados (la query debe filtrar por userId)
+      allow list: if request.auth != null;
+      
+      // Los usuarios pueden actualizar y eliminar sus propias solicitudes (con o sin custom claims)
+      allow update, delete: if request.auth != null && 
+                               resource.data.userId == request.auth.uid;
+      
+      // Lenders pueden leer solicitudes pendientes (verificando desde su documento de cuenta)
+      allow read: if request.auth != null && 
+                     resource.data.status == 'pending' &&
+                     exists(/databases/$(database)/documents/cuentas/$(request.auth.uid)) &&
+                     get(/databases/$(database)/documents/cuentas/$(request.auth.uid)).data.type == 'b_sale';
+      
+      // Lenders pueden hacer queries para buscar solicitudes (verificando tipo desde cuenta)
+      allow list: if request.auth != null &&
+                     exists(/databases/$(database)/documents/cuentas/$(request.auth.uid)) &&
+                     get(/databases/$(database)/documents/cuentas/$(request.auth.uid)).data.type == 'b_sale';
       
       // Admins pueden leer todas las solicitudes
       allow read: if isAdmin();
@@ -104,24 +142,33 @@ service cloud.firestore {
     // ========================================
     
     match /propuestas/{propuestaId} {
-      // Lenders pueden crear propuestas para solicitudes existentes
-      allow create: if isLender() && 
+      // Lenders pueden crear propuestas para solicitudes existentes (verificando tipo desde cuenta)
+      allow create: if request.auth != null && 
                        exists(/databases/$(database)/documents/solicitudes/$(request.resource.data.loanId)) &&
                        request.resource.data.partner == request.auth.uid &&
                        request.resource.data.amount is number &&
-                       request.resource.data.amount > 0;
+                       request.resource.data.amount > 0 &&
+                       exists(/databases/$(database)/documents/cuentas/$(request.auth.uid)) &&
+                       get(/databases/$(database)/documents/cuentas/$(request.auth.uid)).data.type == 'b_sale';
       
-      // Lenders pueden leer y actualizar sus propias propuestas
-      allow read, update: if isLender() && 
-                             resource.data.partner == request.auth.uid;
+      // Lenders pueden leer y actualizar sus propias propuestas (verificando tipo desde cuenta)
+      allow read, update: if request.auth != null && 
+                             resource.data.partner == request.auth.uid &&
+                             exists(/databases/$(database)/documents/cuentas/$(request.auth.uid)) &&
+                             get(/databases/$(database)/documents/cuentas/$(request.auth.uid)).data.type == 'b_sale';
       
-      // Usuarios pueden leer propuestas dirigidas a sus solicitudes
-      allow read: if isUser() && 
+      // Lenders pueden hacer queries para buscar sus propias propuestas (verificando tipo desde cuenta)
+      allow list: if request.auth != null &&
+                     exists(/databases/$(database)/documents/cuentas/$(request.auth.uid)) &&
+                     get(/databases/$(database)/documents/cuentas/$(request.auth.uid)).data.type == 'b_sale';
+      
+      // Usuarios pueden leer propuestas dirigidas a sus solicitudes (incluso sin custom claims)
+      allow read: if request.auth != null && 
                      exists(/databases/$(database)/documents/solicitudes/$(resource.data.loanId)) &&
                      get(/databases/$(database)/documents/solicitudes/$(resource.data.loanId)).data.userId == request.auth.uid;
       
-      // Usuarios pueden actualizar el status de propuestas (aceptar/rechazar)
-      allow update: if isUser() && 
+      // Usuarios pueden actualizar el status de propuestas (aceptar/rechazar) (incluso sin custom claims)
+      allow update: if request.auth != null && 
                        exists(/databases/$(database)/documents/solicitudes/$(resource.data.loanId)) &&
                        get(/databases/$(database)/documents/solicitudes/$(resource.data.loanId)).data.userId == request.auth.uid &&
                        request.resource.data.diff(resource.data).affectedKeys()
@@ -136,9 +183,12 @@ service cloud.firestore {
     // ========================================
     
     match /notifications/{notificationId} {
-      // Los usuarios solo pueden leer sus propias notificaciones
+      // Los usuarios pueden leer sus propias notificaciones
       allow read: if request.auth != null && 
                      resource.data.recipientId == request.auth.uid;
+      
+      // Permitir query/list para usuarios autenticados (la query debe filtrar por recipientId)
+      allow list: if request.auth != null;
       
       // Los usuarios pueden marcar como leídas sus notificaciones
       allow update: if request.auth != null && 
