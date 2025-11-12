@@ -78,7 +78,6 @@ const InputField = ({
     <div>
       <label htmlFor={id} className="block text-sm font-medium text-gray-700">
         {label} {!optional && <span className="text-red-500">*</span>}
-        {optional && <span className="text-gray-400 text-xs">(opcional)</span>}
       </label>
       <div className="mt-1 relative rounded-md shadow-sm">
         <input

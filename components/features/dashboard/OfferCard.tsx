@@ -137,8 +137,8 @@ export const OfferCard = ({
 
               {offer.amortization !== undefined && offer.amortization > 0 && (
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Amortización:</span>
-                  <span className="font-semibold text-gray-900">
+                  <span className="text-gray-600 text-base">Pago:</span>
+                  <span className="font-semibold text-gray-900 text-base">
                     ${offer.amortization?.toLocaleString()}
                   </span>
                 </div>

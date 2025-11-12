@@ -197,7 +197,8 @@ const StepContent = ({
                   value={formData.address.interiorNumber}
                   onChange={handleAddressChange}
                   error={errors["address.interiorNumber"]}
-                  placeholder="A, 2, etc. (opcional)"
+                  placeholder="A, 2, etc."
+                  optional={true}
                 />
                 <InputField
                   id="zipCode"

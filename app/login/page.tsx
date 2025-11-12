@@ -11,18 +11,14 @@ const validationRules = {
   email: (value: string) => {
     if (!value) return "El email es requerido";
     if (value.length > 254) return "Email demasiado largo";
+    // Solo validar formato básico, no revelar si el email existe
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
-      return "Email inválido";
+      return "Formato de email inválido";
     }
   },
   password: (value: string) => {
     if (!value) return "La contraseña es requerida";
-    if (value.length < 8) {
-      return "La contraseña debe tener al menos 8 caracteres";
-    }
-    if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(value)) {
-      return "Incluye mayúsculas, minúsculas y números";
-    }
+    // No validar complejidad en login, solo que no esté vacío
   },
 };
 

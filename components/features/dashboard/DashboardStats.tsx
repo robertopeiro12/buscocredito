@@ -41,7 +41,7 @@ export const DashboardStats = ({
       textColor: "text-green-700",
     },
     {
-      title: "Préstamos Aprobados",
+      title: "Tus propuestas que aprobaste",
       value: solicitudesAprobadas,
       icon: CheckCircle2,
       color: "emerald",

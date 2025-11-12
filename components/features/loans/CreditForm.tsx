@@ -781,7 +781,7 @@ const Section6 = ({
             Posteriormente se le solicitará documentación que respalde estos
             ingresos mensuales declarados
           </p>
-          <p className="text-xs text-gray-400">
+          <p className="text-sm text-gray-500">
             Ejemplos: Comprobantes de recibo de nómina, estados de cuenta
             bancarios, declaración de impuestos, etc.
           </p>

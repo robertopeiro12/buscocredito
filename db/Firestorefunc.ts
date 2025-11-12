@@ -76,7 +76,8 @@ export const getUserOfferData = async (id: string) => {
       country: userData.address?.country || 'No disponible',
       state: userData.address?.state || 'No disponible',
       city: userData.address?.city || 'No disponible',
-      purpose: userData.purpose || 'No especificado'
+      purpose: userData.purpose || 'No especificado',
+      creditScore: userData.creditScore || null
     }
     
     return { status: 200, data: filteredData }

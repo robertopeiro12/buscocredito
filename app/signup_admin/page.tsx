@@ -100,7 +100,7 @@ export default function SignUpAdmin() {
         <h4 className="text-2xl font-bold text-gray-800">BuscoCredito</h4>
         <p className="text-base text-gray-600 mt-2">
           {isVerified
-            ? "Crea tu cuenta de administrador"
+            ? "Crea tu cuenta de institución financiera"
             : "Ingresa tu token de acceso"}
         </p>
       </CardHeader>
