@@ -1,13 +1,17 @@
 import { Timestamp } from "firebase/firestore";
+import { CreditScore } from "./creditScore";
 
 export interface Address {
   street: string;
-  number: string;
+  exteriorNumber: string;
+  interiorNumber: string;
   colony: string;
   city: string;
   state: string;
   country: string;
   zipCode: string;
+  // Campo legacy para retrocompatibilidad
+  number?: string;
 }
 
 export interface UserData {
@@ -19,6 +23,7 @@ export interface UserData {
   birthday: any; // You might want to make this more specific
   phone: string;
   address: Address;
+  creditScore: CreditScore;
 }
 
 export interface SolicitudData {

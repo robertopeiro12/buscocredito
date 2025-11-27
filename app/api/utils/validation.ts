@@ -7,20 +7,24 @@ import "server-only";
 export interface ValidationResult {
   isValid: boolean;
   errors: string[];
+  missingFields?: string[];
 }
 
 export function validateRequiredFields(data: any, requiredFields: string[]): ValidationResult {
   const errors: string[] = [];
+  const missingFields: string[] = [];
   
   for (const field of requiredFields) {
     if (!data[field] || (typeof data[field] === 'string' && data[field].trim() === '')) {
       errors.push(`${field} es requerido`);
+      missingFields.push(field);
     }
   }
   
   return {
     isValid: errors.length === 0,
-    errors
+    errors,
+    missingFields
   };
 }
 

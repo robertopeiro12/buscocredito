@@ -30,6 +30,10 @@ export interface PublicUserData {
   city: string;
   birthday?: string | null;
   purpose?: string;
+  creditScore?: {
+    score: number;
+    classification: string;
+  };
   // Podemos agregar más campos si son necesarios
 }
 

@@ -5,6 +5,7 @@ import { doc, getFirestore, setDoc, Timestamp } from 'firebase/firestore';
 import { auth } from '@/app/firebase';
 import { SignupFormData, SignupErrors } from '@/types/signup';
 import { validateField, validateStep } from '@/utils/validators';
+import { generateInitialCreditScore } from '@/utils/creditScore';
 
 const initialFormData: SignupFormData = {
   name: "",
@@ -15,7 +16,8 @@ const initialFormData: SignupFormData = {
   phone: "",
   address: {
     street: "",
-    number: "",
+    exteriorNumber: "",
+    interiorNumber: "",
     colony: "",
     city: "",
     state: "",
@@ -100,6 +102,28 @@ export const useSignupForm = () => {
     });
   };
 
+  const handleStateChange = (state: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      address: {
+        ...prev.address,
+        state,
+      },
+    }));
+
+    const fieldName = "address.state";
+    const error = validateField(fieldName, state, formData);
+    setErrors(prev => {
+      const newErrors = { ...prev };
+      if (error) {
+        newErrors[fieldName] = error;
+      } else {
+        delete newErrors[fieldName];
+      }
+      return newErrors;
+    });
+  };
+
   const handleNextStep = () => {
     const validation = validateStep(step, formData, errors);
     if (validation.isValid) {
@@ -143,6 +167,9 @@ export const useSignupForm = () => {
       const db = getFirestore();
       const userRef = doc(db, "cuentas", userCredential.user.uid);
 
+      // Generar score crediticio inicial
+      const creditScore = generateInitialCreditScore();
+
       await setDoc(userRef, {
         name: formData.name,
         last_name: formData.lastName,
@@ -153,10 +180,13 @@ export const useSignupForm = () => {
         address: formData.address,
         email: formData.email,
         type: "user",
+        creditScore: creditScore,
         created_at: Timestamp.now(),
       });
 
-      router.push("/login");
+      // El AuthContext detectará al usuario y redirigirá automáticamente
+      // No necesitamos redirigir manualmente aquí
+      
     } catch (err) {
       console.error("Error al registrarse:", err);
       setErrors((prev) => ({
@@ -198,6 +228,7 @@ export const useSignupForm = () => {
     handleInputChange,
     handleAddressChange,
     handlePhoneChange,
+    handleStateChange,
     handleNextStep,
     handlePrevStep,
     handleSubmit,

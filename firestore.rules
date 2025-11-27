@@ -3,41 +3,233 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // TEMPORAL: Reglas permisivas hasta resolver problema con Firebase Admin SDK
-    // El Admin SDK debería bypasear estas reglas, pero no lo está haciendo
+    // ========================================
+    // FUNCIONES DE UTILIDAD PARA VALIDACIÓN
+    // ========================================
     
-    // Permitir que usuarios autenticados accedan a cuentas
+    // Verificar si el usuario es propietario del documento
+    function isOwner(userId) {
+      return request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Verificar tipo de usuario desde custom claims o documento
+    function getUserType() {
+      return request.auth.token.userType;
+    }
+    
+    function isAdmin() {
+      return getUserType() == 'b_admin';
+    }
+    
+    function isLender() {
+      return getUserType() == 'b_sale';
+    }
+    
+    function isUser() {
+      return getUserType() == 'user';
+    }
+    
+    function isAdminOrLender() {
+      return isAdmin() || isLender();
+    }
+    
+    // Función para verificar si el usuario es un usuario regular (incluso sin custom claims)
+    function isUserOrUnauthenticated() {
+      return getUserType() == 'user' || getUserType() == null;
+    }
+    
+    // Verificar si los datos son válidos para escritura
+    function isValidUserData() {
+      return request.resource.data.keys().hasAll(['name', 'email', 'type']) &&
+             request.resource.data.email is string &&
+             request.resource.data.name is string &&
+             request.resource.data.type in ['user', 'b_admin', 'b_sale'];
+    }
+    
+    // Función más flexible para verificar datos de usuario en operaciones de lectura/escritura
+    function isValidUserDataForUpdate() {
+      return request.resource.data.email is string &&
+             request.resource.data.name is string &&
+             request.resource.data.type in ['user', 'b_admin', 'b_sale'];
+    }
+    
+    function isValidSolicitudData() {
+      return request.resource.data.keys().hasAll(['userId', 'amount', 'purpose', 'type', 'status']) &&
+             request.resource.data.amount is number &&
+             request.resource.data.amount > 0 &&
+             request.resource.data.userId is string &&
+             request.resource.data.status in ['pending', 'approved', 'rejected'];
+    }
+    
+    // ========================================
+    // REGLAS PARA CUENTAS DE USUARIO
+    // ========================================
+    
     match /cuentas/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
-      allow read: if request.auth != null; // Permitir leer otros perfiles
+      // Todos los usuarios autenticados pueden leer su propia cuenta (sin depender de custom claims)
+      allow read: if isOwner(userId);
+      
+      // Los usuarios pueden actualizar su propia cuenta con validación más flexible
+      allow update: if isOwner(userId) && isValidUserDataForUpdate();
+      
+      // Permitir creación para usuarios nuevos (durante el signup regular)
+      allow create: if isOwner(userId) && isValidUserData();
+      
+      // Permitir creación de cuentas b_admin (signup admin) - más flexible
+      allow create: if isOwner(userId) && 
+                       request.resource.data.type == 'b_admin' &&
+                       request.resource.data.email is string &&
+                       request.resource.data.Empresa is string;
+      
+      // Admins pueden leer y consultar todas las cuentas (para gestión)
+      allow read, list: if isAdmin();
+      
+      // Admins pueden crear subcuentas (b_sale)
+      allow create: if isAdmin() && 
+                       request.resource.data.type == 'b_sale' &&
+                       request.resource.data.Empresa_id == request.auth.uid;
+      
+      // Permitir creación de cuentas b_sale (workers) - más flexible
+      allow create: if isOwner(userId) && 
+                       request.resource.data.type == 'b_sale' &&
+                       request.resource.data.email is string &&
+                       request.resource.data.name is string;
     }
     
-    // Permitir que usuarios autenticados accedan a solicitudes
+    // ========================================
+    // REGLAS PARA SOLICITUDES DE PRÉSTAMO
+    // ========================================
+    
     match /solicitudes/{solicitudId} {
-      allow read, write, create: if request.auth != null;
+      // Los usuarios pueden crear sus propias solicitudes (incluso sin custom claims)
+      allow create: if request.auth != null &&
+                       request.resource.data.userId == request.auth.uid &&
+                       isValidSolicitudData();
+      
+      // Los usuarios pueden leer sus propias solicitudes (incluso sin custom claims)
+      allow read: if request.auth != null && 
+                     resource.data.userId == request.auth.uid;
+      
+      // Permitir query/list para usuarios autenticados (la query debe filtrar por userId)
+      allow list: if request.auth != null;
+      
+      // Los usuarios pueden actualizar y eliminar sus propias solicitudes (con o sin custom claims)
+      allow update, delete: if request.auth != null && 
+                               resource.data.userId == request.auth.uid;
+      
+      // Lenders pueden leer solicitudes pendientes (verificando desde su documento de cuenta)
+      allow read: if request.auth != null && 
+                     resource.data.status == 'pending' &&
+                     exists(/databases/$(database)/documents/cuentas/$(request.auth.uid)) &&
+                     get(/databases/$(database)/documents/cuentas/$(request.auth.uid)).data.type == 'b_sale';
+      
+      // Lenders pueden hacer queries para buscar solicitudes (verificando tipo desde cuenta)
+      allow list: if request.auth != null &&
+                     exists(/databases/$(database)/documents/cuentas/$(request.auth.uid)) &&
+                     get(/databases/$(database)/documents/cuentas/$(request.auth.uid)).data.type == 'b_sale';
+      
+      // Admins pueden leer todas las solicitudes
+      allow read: if isAdmin();
+      
+      // Solo admins pueden cambiar el status (approved/rejected)
+      allow update: if isAdmin() && 
+                       request.resource.data.diff(resource.data).affectedKeys()
+                         .hasOnly(['status', 'updatedAt']);
     }
     
-    // Permitir que usuarios autenticados accedan a propuestas
+    // ========================================
+    // REGLAS PARA PROPUESTAS DE PRESTAMISTAS
+    // ========================================
+    
     match /propuestas/{propuestaId} {
-      allow read, write, create: if request.auth != null;
+      // Lenders pueden crear propuestas para solicitudes existentes (verificando tipo desde cuenta)
+      allow create: if request.auth != null && 
+                       exists(/databases/$(database)/documents/solicitudes/$(request.resource.data.loanId)) &&
+                       request.resource.data.partner == request.auth.uid &&
+                       request.resource.data.amount is number &&
+                       request.resource.data.amount > 0 &&
+                       exists(/databases/$(database)/documents/cuentas/$(request.auth.uid)) &&
+                       get(/databases/$(database)/documents/cuentas/$(request.auth.uid)).data.type == 'b_sale';
+      
+      // Lenders pueden leer y actualizar sus propias propuestas (verificando tipo desde cuenta)
+      allow read, update: if request.auth != null && 
+                             resource.data.partner == request.auth.uid &&
+                             exists(/databases/$(database)/documents/cuentas/$(request.auth.uid)) &&
+                             get(/databases/$(database)/documents/cuentas/$(request.auth.uid)).data.type == 'b_sale';
+      
+      // Lenders pueden hacer queries para buscar sus propias propuestas (verificando tipo desde cuenta)
+      allow list: if request.auth != null &&
+                     exists(/databases/$(database)/documents/cuentas/$(request.auth.uid)) &&
+                     get(/databases/$(database)/documents/cuentas/$(request.auth.uid)).data.type == 'b_sale';
+      
+      // Usuarios pueden leer propuestas dirigidas a sus solicitudes (incluso sin custom claims)
+      allow read: if request.auth != null && 
+                     exists(/databases/$(database)/documents/solicitudes/$(resource.data.loanId)) &&
+                     get(/databases/$(database)/documents/solicitudes/$(resource.data.loanId)).data.userId == request.auth.uid;
+      
+      // Usuarios pueden actualizar el status de propuestas (aceptar/rechazar) (incluso sin custom claims)
+      allow update: if request.auth != null && 
+                       exists(/databases/$(database)/documents/solicitudes/$(resource.data.loanId)) &&
+                       get(/databases/$(database)/documents/solicitudes/$(resource.data.loanId)).data.userId == request.auth.uid &&
+                       request.resource.data.diff(resource.data).affectedKeys()
+                         .hasOnly(['status', 'updatedAt']);
+      
+      // Admins pueden leer y consultar todas las propuestas
+      allow read, list: if isAdmin();
     }
     
-    // Permitir que usuarios autenticados accedan a notificaciones
+    // ========================================
+    // REGLAS PARA NOTIFICACIONES
+    // ========================================
+    
     match /notifications/{notificationId} {
-      allow read, write, create: if request.auth != null;
+      // Los usuarios pueden leer sus propias notificaciones
+      allow read: if request.auth != null && 
+                     resource.data.recipientId == request.auth.uid;
+      
+      // Permitir query/list para usuarios autenticados (la query debe filtrar por recipientId)
+      allow list: if request.auth != null;
+      
+      // Los usuarios pueden marcar como leídas sus notificaciones
+      allow update: if request.auth != null && 
+                       resource.data.recipientId == request.auth.uid &&
+                       request.resource.data.diff(resource.data).affectedKeys()
+                         .hasOnly(['read', 'readAt']);
+      
+      // Solo el sistema (Admin SDK) puede crear notificaciones
+      // Las notificaciones se crean desde Cloud Functions o Admin SDK
+      allow create: if false; // Solo Admin SDK puede crear
+      
+      // Admins pueden leer todas las notificaciones
+      allow read: if isAdmin();
     }
     
-    // Permitir subcuentas para usuarios autenticados
+    // ========================================
+    // REGLAS PARA SUBCUENTAS
+    // ========================================
+    
     match /subcuentas/{subcuentaId} {
-      allow read, write, create: if request.auth != null;
+      // Solo admins pueden gestionar subcuentas
+      allow read, write, create, delete: if isAdmin();
+      
+      // Las subcuentas pueden leer su propia información
+      allow read: if request.auth != null && 
+                     resource.data.userId == request.auth.uid;
     }
     
-    // Permitir métricas para usuarios autenticados
+    // ========================================
+    // REGLAS PARA MÉTRICAS Y ANALYTICS
+    // ========================================
+    
     match /metrics/{document=**} {
-      allow read, write: if request.auth != null;
+      // Solo admins pueden acceder a métricas
+      allow read, write: if isAdmin();
     }
     
-    // Por defecto: denegar todo lo demás
+    // ========================================
+    // REGLA POR DEFECTO: DENEGAR TODO
+    // ========================================
+    
     match /{document=**} {
       allow read, write: if false;
     }

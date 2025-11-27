@@ -2,12 +2,15 @@
 
 export interface AddressData {
   street: string;
-  number: string;
+  exteriorNumber: string;
+  interiorNumber: string;
   colony: string;
   city: string;
   state: string;
   country: string;
   zipCode: string;
+  // Campo legacy para retrocompatibilidad
+  number?: string;
 }
 
 export interface SignupFormData {
@@ -34,7 +37,8 @@ export interface SignupErrors {
   password?: string;
   confirmPassword?: string;
   'address.street'?: string;
-  'address.number'?: string;
+  'address.exteriorNumber'?: string;
+  'address.interiorNumber'?: string;
   'address.colony'?: string;
   'address.city'?: string;
   'address.state'?: string;
@@ -67,4 +71,5 @@ export interface InputFieldProps {
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   error?: string;
   placeholder?: string;
+  optional?: boolean;
 }

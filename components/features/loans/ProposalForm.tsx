@@ -324,8 +324,10 @@ export function ProposalForm({
                 onUpdate({ amortization_frequency: e.target.value as any })
               }
               classNames={{
-                trigger: "border-gray-200 data-[hover=true]:border-green-500",
+                trigger:
+                  "border-gray-200 data-[hover=true]:border-green-500 border-2",
                 listbox: "border-gray-200",
+                selectorIcon: "text-gray-700 text-xl font-bold",
               }}
             >
               <SelectItem key="mensual">Mensual</SelectItem>

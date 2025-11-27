@@ -29,15 +29,15 @@ export const useForm = (initialState: FormState = {}, validationRules?: Validati
       [name]: value
     }));
     
-    // Validar el campo si tiene reglas de validación
-    if (validationRules && validationRules[name]) {
-      const error = validateField(name, value);
+    // No validar en onChange para evitar revelar información
+    // Solo limpiar el error si el campo estaba tocado y ahora tiene valor
+    if (touched[name] && value) {
       setErrors(prev => ({
         ...prev,
-        [name]: error || ''
+        [name]: ''
       }));
     }
-  }, [validationRules, validateField]);
+  }, [touched]);
 
   const handleBlur = useCallback((name: string) => {
     setTouched(prev => ({

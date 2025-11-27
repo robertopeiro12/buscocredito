@@ -64,7 +64,15 @@ export const UserSettings = ({ userData, onUpdate }: UserSettingsProps) => {
               <div>
                 <p className="text-sm text-gray-500">Calle y Número</p>
                 <p className="text-gray-900">
-                  {`${userData.address.street} #${userData.address.number}`}
+                  {`${userData.address.street} #${
+                    userData.address.exteriorNumber ||
+                    userData.address.number ||
+                    "No disponible"
+                  }${
+                    userData.address.interiorNumber
+                      ? ` Int. ${userData.address.interiorNumber}`
+                      : ""
+                  }`}
                 </p>
               </div>
               <div>
@@ -85,6 +93,41 @@ export const UserSettings = ({ userData, onUpdate }: UserSettingsProps) => {
               </div>
             </div>
           </div>
+
+          {/* Score Crediticio */}
+          {userData.creditScore && (
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4 border-b pb-2">
+                SCORE CREDITICIO
+              </h3>
+              <div className="grid grid-cols-2 gap-6">
+                <div>
+                  <p className="text-sm text-gray-500">Puntuación</p>
+                  <p className="text-2xl font-bold text-green-600">
+                    {userData.creditScore.score}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Clasificación</p>
+                  <div className="mt-1">
+                    <span
+                      className={`inline-flex px-3 py-1 text-sm font-medium rounded-full ${
+                        userData.creditScore.classification === "Excelente"
+                          ? "bg-emerald-100 text-emerald-800"
+                          : userData.creditScore.classification === "Bueno"
+                          ? "bg-green-100 text-green-800"
+                          : userData.creditScore.classification === "Regular"
+                          ? "bg-orange-100 text-orange-800"
+                          : "bg-red-100 text-red-800"
+                      }`}
+                    >
+                      {userData.creditScore.classification}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="mt-8 flex justify-between">

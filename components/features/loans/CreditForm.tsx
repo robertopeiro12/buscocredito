@@ -743,10 +743,10 @@ const Section6 = ({
       {/* Section Header */}
       <div className="text-center space-y-3">
         <h2 className="text-2xl font-bold text-gray-800">
-          Ingresos Anuales Comprobables
+          Ingresos Mensuales Comprobables
         </h2>
         <p className="text-gray-600 max-w-md mx-auto">
-          Ingrese sus ingresos anuales totales que pueda comprobar. Esta
+          Ingrese sus ingresos mensuales totales que pueda comprobar. Esta
           información nos ayuda a determinar la capacidad de pago para su
           crédito.
         </p>
@@ -771,15 +771,21 @@ const Section6 = ({
               focus:outline-none focus:ring-2 
               ${error ? "focus:ring-red-200" : "focus:ring-blue-200"}
             `}
-            placeholder="Ingrese sus ingresos anuales"
+            placeholder="Ingrese sus ingresos mensuales"
           />
         </div>
 
         {/* Helper Text */}
-        <p className="text-sm text-gray-500 text-center">
-          Posteriormente se le solicitará documentación que respalde estos
-          ingresos anuales declarados
-        </p>
+        <div className="text-sm text-gray-500 text-center space-y-2">
+          <p>
+            Posteriormente se le solicitará documentación que respalde estos
+            ingresos mensuales declarados
+          </p>
+          <p className="text-sm text-gray-500">
+            Ejemplos: Comprobantes de recibo de nómina, estados de cuenta
+            bancarios, declaración de impuestos, etc.
+          </p>
+        </div>
 
         {/* Error Message */}
         {error && (
@@ -788,7 +794,7 @@ const Section6 = ({
             animate={{ opacity: 1, y: 0 }}
             className="text-red-500 text-sm bg-red-50 p-2 rounded-lg text-center"
           >
-            Por favor ingrese un monto anual válido mayor a cero
+            Por favor ingrese un monto mensual válido mayor a cero
           </motion.p>
         )}
       </div>
@@ -867,7 +873,7 @@ const FinalSection = ({
       icon: Calendar,
     },
     {
-      label: "Ingresos Anuales Comprobables",
+      label: "Ingresos Mensuales Comprobables",
       value: formatCurrency(formData.income),
       icon: Wallet,
     },

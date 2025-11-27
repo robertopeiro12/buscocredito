@@ -1,16 +1,10 @@
-import React from 'react';
-import {
-  Card,
-  Chip,
-  CardBody,
-} from "@nextui-org/react";
-import {
-  DollarSign,
-  Target,
-  User,
-  Eye,
-} from "lucide-react";
-import type { LoanRequest, PublicUserData } from '@/types/entities/business.types';
+import React from "react";
+import { Card, Chip, CardBody } from "@nextui-org/react";
+import { DollarSign, Target, User, Eye } from "lucide-react";
+import type {
+  LoanRequest,
+  PublicUserData,
+} from "@/types/entities/business.types";
 
 // Extender el tipo para incluir campos adicionales que puede tener el admin
 interface ExtendedPublicUserData extends PublicUserData {
@@ -26,12 +20,11 @@ interface AdminLoanRequestCardProps {
   index: number;
 }
 
-const AdminLoanRequestCard = ({ 
-  request, 
-  userData, 
-  index 
+const AdminLoanRequestCard = ({
+  request,
+  userData,
+  index,
 }: AdminLoanRequestCardProps) => {
-
   return (
     <Card
       key={request.id}
@@ -60,9 +53,7 @@ const AdminLoanRequestCard = ({
 
             <div className="grid grid-cols-2 gap-x-4 gap-y-3">
               <div>
-                <p className="text-sm text-gray-500">
-                  Monto Solicitado
-                </p>
+                <p className="text-sm text-gray-500">Monto Solicitado</p>
                 <p className="font-medium text-gray-800">
                   ${request.amount.toLocaleString()}
                 </p>
@@ -70,7 +61,7 @@ const AdminLoanRequestCard = ({
 
               <div>
                 <p className="text-sm text-gray-500">
-                  Ingresos Anuales Comprobables
+                  Ingresos Mensuales Comprobables
                 </p>
                 <p className="font-medium text-gray-800">
                   ${request.income.toLocaleString()}
@@ -78,9 +69,7 @@ const AdminLoanRequestCard = ({
               </div>
 
               <div>
-                <p className="text-sm text-gray-500">
-                  Frecuencia de Pago
-                </p>
+                <p className="text-sm text-gray-500">Frecuencia de Pago</p>
                 <p className="font-medium text-gray-800 capitalize">
                   {request.payment}
                 </p>
@@ -88,15 +77,11 @@ const AdminLoanRequestCard = ({
 
               <div>
                 <p className="text-sm text-gray-500">Plazo</p>
-                <p className="font-medium text-gray-800">
-                  {request.term}
-                </p>
+                <p className="font-medium text-gray-800">{request.term}</p>
               </div>
 
               <div>
-                <p className="text-sm text-gray-500">
-                  Propósito
-                </p>
+                <p className="text-sm text-gray-500">Propósito</p>
                 <p className="font-medium text-gray-800">
                   {request.purpose || "No especificado"}
                 </p>
@@ -104,10 +89,34 @@ const AdminLoanRequestCard = ({
 
               <div>
                 <p className="text-sm text-gray-500">Tipo</p>
-                <p className="font-medium text-gray-800">
-                  {request.type}
-                </p>
+                <p className="font-medium text-gray-800">{request.type}</p>
               </div>
+
+              {userData?.creditScore && (
+                <div>
+                  <p className="text-sm text-gray-500">Score Crediticio</p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <p className="font-medium text-gray-800">
+                      {userData.creditScore.score}
+                    </p>
+                    <Chip
+                      size="sm"
+                      className={`${
+                        userData.creditScore.classification === "Excelente"
+                          ? "bg-emerald-100 text-emerald-800"
+                          : userData.creditScore.classification === "Bueno"
+                          ? "bg-green-100 text-green-800"
+                          : userData.creditScore.classification === "Regular"
+                          ? "bg-orange-100 text-orange-800"
+                          : "bg-red-100 text-red-800"
+                      }`}
+                      variant="flat"
+                    >
+                      {userData.creditScore.classification}
+                    </Chip>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
@@ -123,7 +132,7 @@ const AdminLoanRequestCard = ({
                   <div>
                     <p className="text-sm text-gray-500">Nombre</p>
                     <p className="font-medium text-gray-800">
-                      {userData.first_name} {userData.last_name || ''}
+                      {userData.first_name} {userData.last_name || ""}
                     </p>
                   </div>
                 )}
@@ -139,23 +148,15 @@ const AdminLoanRequestCard = ({
                   <div className="col-span-2">
                     <p className="text-sm text-gray-500">Ubicación</p>
                     <p className="font-medium text-gray-800">
-                      {[userData.city, userData.state, userData.country].filter(Boolean).join(', ')}
+                      {[userData.city, userData.state, userData.country]
+                        .filter(Boolean)
+                        .join(", ")}
                     </p>
                   </div>
                 )}
               </div>
             </div>
           )}
-
-          {/* Información adicional */}
-          <div className="mb-4">
-            <h4 className="text-md font-semibold mb-3 flex items-center border-b border-gray-100 pb-2 text-gray-700">
-              <Target className="h-4 w-4 text-gray-500 mr-2" />
-              Información Adicional
-            </h4>
-            <div className="grid grid-cols-1 gap-y-2">
-            </div>
-          </div>
 
           {/* Indicador de solo lectura */}
           <div className="bg-green-50 border border-green-200 rounded-lg p-3">

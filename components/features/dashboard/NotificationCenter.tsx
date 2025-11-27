@@ -1,13 +1,13 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Bell, X, Check, Clock } from "lucide-react";
-import { Button, Card } from "@nextui-org/react";
+import { Bell, X, Check, Clock, Info } from "lucide-react";
+import { Button, Card, Tooltip } from "@nextui-org/react";
 
 interface NotificationData {
   id: string;
   recipientId: string;
-  type: "loan_accepted" | "loan_assigned_other";
+  type: "loan_accepted" | "loan_assigned_other" | "nueva_propuesta";
   title: string;
   message: string;
   data?: {
@@ -37,7 +37,10 @@ interface NotificationCenterProps {
   compact?: boolean;
 }
 
-export default function NotificationCenter({ userId, compact = false }: NotificationCenterProps) {
+export default function NotificationCenter({
+  userId,
+  compact = false,
+}: NotificationCenterProps) {
   const [notifications, setNotifications] = useState<NotificationData[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -46,7 +49,7 @@ export default function NotificationCenter({ userId, compact = false }: Notifica
   // Cargar notificaciones
   const loadNotifications = useCallback(async () => {
     if (!userId) return;
-    
+
     setLoading(true);
     try {
       const response = await fetch("/api/notifications", {
@@ -59,13 +62,15 @@ export default function NotificationCenter({ userId, compact = false }: Notifica
 
       if (response.ok) {
         const data = await response.json();
-        
+
         // Manejar la estructura de respuesta correcta
         let notifications = [];
         if (data.success && data.data) {
           // Nueva estructura: {success: true, data: {notifications: [...]}, message: "..."}
           if (data.data.notifications) {
-            notifications = Array.isArray(data.data.notifications) ? data.data.notifications : [];
+            notifications = Array.isArray(data.data.notifications)
+              ? data.data.notifications
+              : [];
           } else if (Array.isArray(data.data)) {
             notifications = data.data;
           }
@@ -76,7 +81,7 @@ export default function NotificationCenter({ userId, compact = false }: Notifica
           // Respuesta directa como array
           notifications = data;
         }
-        
+
         setNotifications(notifications);
       } else {
         console.error("Error loading notifications:", response.statusText);
@@ -90,10 +95,13 @@ export default function NotificationCenter({ userId, compact = false }: Notifica
 
   // Cargar contador de no leídas
   const loadUnreadCount = useCallback(async () => {
-    if (!userId || userId.trim() === '') {
+    if (!userId) {
+      console.log("No userId provided for unread count");
       return;
     }
-    
+
+    console.log("Loading unread count for userId:", userId);
+
     try {
       const response = await fetch("/api/getUnreadCount", {
         method: "POST",
@@ -105,11 +113,18 @@ export default function NotificationCenter({ userId, compact = false }: Notifica
 
       if (response.ok) {
         const data = await response.json();
+        console.log("Unread count response:", data);
         if (data.status === 200) {
           setUnreadCount(data.count || 0);
         }
       } else {
-        console.error("Error loading unread count:", response.statusText);
+        const errorText = await response.text();
+        console.error(
+          "Error loading unread count:",
+          response.status,
+          response.statusText,
+          errorText
+        );
       }
     } catch (error) {
       console.error("Error loading unread count:", error);
@@ -129,13 +144,11 @@ export default function NotificationCenter({ userId, compact = false }: Notifica
 
       if (response.ok) {
         // Actualizar la notificación en el estado local
-        setNotifications(prev => 
-          prev.map(n => 
-            n.id === notificationId ? { ...n, read: true } : n
-          )
+        setNotifications((prev) =>
+          prev.map((n) => (n.id === notificationId ? { ...n, read: true } : n))
         );
         // Actualizar contador
-        setUnreadCount(prev => Math.max(0, prev - 1));
+        setUnreadCount((prev) => Math.max(0, prev - 1));
       }
     } catch (error) {
       console.error("Error marking as read:", error);
@@ -147,7 +160,7 @@ export default function NotificationCenter({ userId, compact = false }: Notifica
     if (userId) {
       loadNotifications();
       loadUnreadCount();
-      
+
       // Recargar cada 30 segundos
       const interval = setInterval(() => {
         loadUnreadCount();
@@ -170,6 +183,8 @@ export default function NotificationCenter({ userId, compact = false }: Notifica
         return "✓";
       case "loan_assigned_other":
         return "i";
+      case "nueva_propuesta":
+        return "💰";
       default:
         return "•";
     }
@@ -181,6 +196,8 @@ export default function NotificationCenter({ userId, compact = false }: Notifica
         return "border-l-green-500 bg-green-50";
       case "loan_assigned_other":
         return "border-l-blue-500 bg-blue-50";
+      case "nueva_propuesta":
+        return "border-l-yellow-500 bg-yellow-50";
       default:
         return "border-l-gray-500 bg-gray-50";
     }
@@ -188,7 +205,7 @@ export default function NotificationCenter({ userId, compact = false }: Notifica
 
   const formatDate = (createdAt: any) => {
     if (!createdAt) return "";
-    
+
     let date: Date;
     if (createdAt.toDate) {
       date = createdAt.toDate();
@@ -197,13 +214,13 @@ export default function NotificationCenter({ userId, compact = false }: Notifica
     } else {
       date = new Date(createdAt);
     }
-    
+
     return date.toLocaleString("es-ES", {
       day: "2-digit",
       month: "2-digit",
       year: "numeric",
       hour: "2-digit",
-      minute: "2-digit"
+      minute: "2-digit",
     });
   };
 
@@ -219,7 +236,13 @@ export default function NotificationCenter({ userId, compact = false }: Notifica
       >
         <Bell className={`${compact ? "h-4 w-4" : "h-5 w-5"} text-gray-600`} />
         {unreadCount > 0 && (
-          <span className={`absolute ${compact ? "-top-0.5 -right-0.5 h-4 w-4 text-[10px]" : "-top-1 -right-1 h-5 w-5 text-xs"} bg-red-500 text-white rounded-full flex items-center justify-center font-medium`}>
+          <span
+            className={`absolute ${
+              compact
+                ? "-top-0.5 -right-0.5 h-4 w-4 text-[10px]"
+                : "-top-1 -right-1 h-5 w-5 text-xs"
+            } bg-red-500 text-white rounded-full flex items-center justify-center font-medium`}
+          >
             {unreadCount > 9 ? "9+" : unreadCount}
           </span>
         )}
@@ -227,7 +250,11 @@ export default function NotificationCenter({ userId, compact = false }: Notifica
 
       {/* Panel de notificaciones */}
       {isOpen && (
-        <div className={`absolute ${compact ? "right-0 top-10" : "right-0 top-12"} w-96 bg-white rounded-lg shadow-lg border border-gray-200 z-50 max-h-96 overflow-hidden`}>
+        <div
+          className={`absolute ${
+            compact ? "right-0 top-10" : "right-0 top-12"
+          } w-96 bg-white rounded-lg shadow-lg border border-gray-200 z-50 max-h-96 overflow-hidden`}
+        >
           {/* Header */}
           <div className="p-4 border-b border-gray-100 bg-gray-50">
             <div className="flex justify-between items-center">
@@ -265,7 +292,9 @@ export default function NotificationCenter({ userId, compact = false }: Notifica
               notifications.map((notification) => (
                 <div
                   key={notification.id}
-                  className={`p-4 border-b border-gray-100 border-l-4 ${getNotificationColor(notification.type)} ${
+                  className={`p-4 border-b border-gray-100 border-l-4 ${getNotificationColor(
+                    notification.type
+                  )} ${
                     !notification.read ? "bg-opacity-100" : "bg-opacity-30"
                   } hover:bg-opacity-60 transition-colors`}
                 >
@@ -275,82 +304,179 @@ export default function NotificationCenter({ userId, compact = false }: Notifica
                         <span className="text-lg">
                           {getNotificationIcon(notification.type)}
                         </span>
-                        <h4 className={`font-medium text-sm ${
-                          !notification.read ? "text-gray-900" : "text-gray-600"
-                        }`}>
+                        <h4
+                          className={`font-medium text-sm ${
+                            !notification.read
+                              ? "text-gray-900"
+                              : "text-gray-600"
+                          }`}
+                        >
                           {notification.title}
                         </h4>
                       </div>
-                      <p className={`text-sm ${
-                        !notification.read ? "text-gray-700" : "text-gray-500"
-                      }`}>
+                      <p
+                        className={`text-sm ${
+                          !notification.read ? "text-gray-700" : "text-gray-500"
+                        }`}
+                      >
                         {notification.message}
                       </p>
-                      
+
                       {/* Información adicional para competidores */}
-                      {notification.type === "loan_assigned_other" && notification.data && (
-                        <div className="mt-3 p-3 bg-gray-50 rounded-md text-xs">
-                          <h5 className="font-medium text-gray-700 mb-2">Detalles de la propuesta ganadora:</h5>
-                          <div className="space-y-1 text-gray-600">
-                            <div>
-                              <span className="font-medium">Monto:</span> ${notification.data.winningOffer?.amount?.toLocaleString() || 'N/A'}
-                            </div>
-                            <div>
-                              <span className="font-medium">Tasa:</span> {notification.data.winningOffer?.interestRate || 'N/A'}%
-                            </div>
-                            <div>
-                              <span className="font-medium">Frecuencia:</span> {notification.data.winningOffer?.amortizationFrequency || 'N/A'}
-                            </div>
-                            <div>
-                              <span className="font-medium">Plazo:</span> {notification.data.winningOffer?.term || 'N/A'} meses
-                            </div>
-                            <div>
-                              <span className="font-medium">Comisión:</span> ${notification.data.winningOffer?.comision?.toLocaleString() || 'N/A'}
-                            </div>
-                            <div>
-                              <span className="font-medium">Seguro de vida:</span> ${notification.data.winningOffer?.medicalBalance?.toLocaleString() || 'N/A'}
+                      {notification.type === "loan_assigned_other" &&
+                        notification.data && (
+                          <div className="mt-3 p-3 bg-gray-50 rounded-md text-xs">
+                            <h5 className="font-medium text-gray-700 mb-2">
+                              Detalles de la propuesta ganadora:
+                            </h5>
+                            <div className="space-y-1 text-gray-600">
+                              <div>
+                                <span className="font-medium">Monto:</span> $
+                                {notification.data.winningOffer?.amount?.toLocaleString() ||
+                                  "N/A"}
+                              </div>
+                              <div>
+                                <span className="font-medium">Tasa:</span>{" "}
+                                {notification.data.winningOffer?.interestRate ||
+                                  "N/A"}
+                                %
+                              </div>
+                              <div>
+                                <span className="font-medium">Frecuencia:</span>{" "}
+                                {notification.data.winningOffer
+                                  ?.amortizationFrequency || "N/A"}
+                              </div>
+                              <div>
+                                <span className="font-medium">Plazo:</span>{" "}
+                                {notification.data.winningOffer?.term || "N/A"}{" "}
+                                meses
+                              </div>
+                              <div>
+                                <span className="font-medium">Comisión:</span> $
+                                {notification.data.winningOffer?.comision?.toLocaleString() ||
+                                  "N/A"}
+                              </div>
+                              <div>
+                                <div className="flex items-center gap-1">
+                                  <span className="font-medium">
+                                    Seguro de vida saldo deudor:
+                                  </span>
+                                  <Tooltip
+                                    content="Seguro que cubre el adeudo en caso de una situación fatal"
+                                    placement="top"
+                                    className="max-w-xs"
+                                  >
+                                    <Info className="w-3 h-3 text-gray-400 hover:text-gray-600 cursor-help" />
+                                  </Tooltip>
+                                </div>
+                                <span className="ml-1">
+                                  $
+                                  {notification.data.winningOffer?.medicalBalance?.toLocaleString() ||
+                                    "N/A"}
+                                </span>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      )}
-                      
+                        )}
+
+                      {/* Información adicional para propuestas nuevas */}
+                      {notification.type === "nueva_propuesta" &&
+                        notification.data && (
+                          <div className="mt-3 p-3 bg-yellow-50 rounded-md text-xs">
+                            <h5 className="font-medium text-yellow-700 mb-2">
+                              Detalles de la nueva propuesta:
+                            </h5>
+                            <div className="space-y-1 text-yellow-600">
+                              <div>
+                                <span className="font-medium">Monto:</span> $
+                                {notification.data.amount?.toLocaleString() ||
+                                  "N/A"}
+                              </div>
+                              <div>
+                                <span className="font-medium">Tasa:</span>{" "}
+                                {notification.data.interestRate || "N/A"}%
+                              </div>
+                              <div>
+                                <span className="font-medium">Plazo:</span>{" "}
+                                {notification.data.term || "N/A"} meses
+                              </div>
+                              <div>
+                                <span className="font-medium">Frecuencia:</span>{" "}
+                                {notification.data.amortizationFrequency ||
+                                  "N/A"}
+                              </div>
+                            </div>
+                            <div className="border-t border-yellow-200 pt-2 mt-2">
+                              <span className="font-medium text-yellow-700">
+                                Revisa las ofertas en tu dashboard
+                              </span>
+                            </div>
+                          </div>
+                        )}
+
                       {/* Información adicional para ganadores */}
-                      {notification.type === "loan_accepted" && notification.data && (
-                        <div className="mt-3 p-3 bg-green-50 rounded-md text-xs">
-                          <h5 className="font-medium text-green-700 mb-2">Detalles de la propuesta aceptada</h5>
-                          <div className="grid grid-cols-2 gap-2 text-green-600 mb-3">
-                            <div>
-                              <span className="font-medium">Monto:</span>
-                              <br />${notification.data.amount?.toLocaleString()}
+                      {notification.type === "loan_accepted" &&
+                        notification.data && (
+                          <div className="mt-3 p-3 bg-green-50 rounded-md text-xs">
+                            <h5 className="font-medium text-green-700 mb-2">
+                              Detalles de la propuesta aceptada
+                            </h5>
+                            <div className="grid grid-cols-2 gap-2 text-green-600 mb-3">
+                              <div>
+                                <span className="font-medium">Monto:</span>
+                                <br />$
+                                {notification.data.amount?.toLocaleString()}
+                              </div>
+                              <div>
+                                <span className="font-medium">Tasa:</span>
+                                <br />
+                                {notification.data.interestRate}%
+                              </div>
+                              <div>
+                                <span className="font-medium">Frecuencia:</span>
+                                <br />
+                                {notification.data.amortizationFrequency}
+                              </div>
+                              <div>
+                                <span className="font-medium">Plazo:</span>
+                                <br />
+                                {notification.data.term} meses
+                              </div>
+                              <div>
+                                <span className="font-medium">Comisión:</span>
+                                <br />$
+                                {notification.data.comision?.toLocaleString()}
+                              </div>
+                              <div>
+                                <div className="flex items-center gap-1">
+                                  <span className="font-medium">
+                                    Seguro de vida saldo deudor:
+                                  </span>
+                                  <Tooltip
+                                    content="Seguro que cubre el adeudo en caso de una situación fatal"
+                                    placement="top"
+                                    className="max-w-xs"
+                                  >
+                                    <Info className="w-3 h-3 text-gray-400 hover:text-gray-600 cursor-help" />
+                                  </Tooltip>
+                                </div>
+                                <span>
+                                  $
+                                  {notification.data.medicalBalance?.toLocaleString()}
+                                </span>
+                              </div>
                             </div>
-                            <div>
-                              <span className="font-medium">Tasa:</span>
-                              <br />{notification.data.interestRate}%
-                            </div>
-                            <div>
-                              <span className="font-medium">Frecuencia:</span>
-                              <br />{notification.data.amortizationFrequency}
-                            </div>
-                            <div>
-                              <span className="font-medium">Plazo:</span>
-                              <br />{notification.data.term} meses
-                            </div>
-                            <div>
-                              <span className="font-medium">Comisión:</span>
-                              <br />${notification.data.comision?.toLocaleString()}
-                            </div>
-                            <div>
-                              <span className="font-medium">Seguro de vida:</span>
-                              <br />${notification.data.medicalBalance?.toLocaleString()}
+                            <div className="border-t border-green-200 pt-2">
+                              <span className="font-medium text-green-700">
+                                Próximos pasos:
+                              </span>
+                              <br />
+                              <span className="text-green-600">
+                                Contactate con el usuario
+                              </span>
                             </div>
                           </div>
-                          <div className="border-t border-green-200 pt-2">
-                            <span className="font-medium text-green-700">Próximos pasos:</span>
-                            <br />
-                            <span className="text-green-600">Contactate con el usuario</span>
-                          </div>
-                        </div>
-                      )}
+                        )}
                     </div>
                     {!notification.read && (
                       <Button

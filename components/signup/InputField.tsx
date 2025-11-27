@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { CheckCircle, AlertCircle } from 'lucide-react';
-import { InputFieldProps } from '@/types/signup';
+import React, { useState, useEffect } from "react";
+import { CheckCircle, AlertCircle } from "lucide-react";
+import { InputFieldProps } from "@/types/signup";
 
 const InputField = ({
   id,
@@ -11,6 +11,7 @@ const InputField = ({
   onChange,
   error,
   placeholder,
+  optional = false,
 }: InputFieldProps) => {
   const [isFocused, setIsFocused] = useState(false);
   const [debouncedValue, setDebouncedValue] = useState(value);
@@ -76,7 +77,7 @@ const InputField = ({
   return (
     <div>
       <label htmlFor={id} className="block text-sm font-medium text-gray-700">
-        {label} <span className="text-red-500">*</span>
+        {label} {!optional && <span className="text-red-500">*</span>}
       </label>
       <div className="mt-1 relative rounded-md shadow-sm">
         <input
@@ -90,7 +91,7 @@ const InputField = ({
           placeholder={placeholder}
           aria-invalid={error ? "true" : "false"}
           aria-describedby={`${id}-description`}
-          required
+          required={!optional}
           className={`block w-full px-4 py-3 rounded-md border ${
             error
               ? "border-red-300 text-red-900 placeholder-red-300 focus:ring-red-500 focus:border-red-500"

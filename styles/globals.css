@@ -8,6 +8,25 @@
     .section-min-height{
       min-height: calc(100vh - 83px);
     }
+    
+    /* Mejorar visibilidad de las flechas de los Select - Más específico */
+    [data-slot="selectorIcon"] {
+      color: #374151 !important;
+      font-size: 20px !important;
+      font-weight: 700 !important;
+    }
+    
+    [data-slot="trigger"]:hover [data-slot="selectorIcon"] {
+      color: #1f2937 !important;
+    }
+    
+    /* Estilo alternativo para chevron down */
+    .nextui-select-trigger svg {
+      color: #374151 !important;
+      width: 20px !important;
+      height: 20px !important;
+      stroke-width: 2.5 !important;
+    }
   }
 
   body {

@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { auth } from "@/app/firebase";
-import { onAuthStateChanged, signOut } from "firebase/auth";
+import { onAuthStateChanged } from "firebase/auth";
+import { useAuth } from "@/contexts/AuthContext";
 import { useAdminGuard } from "./useRoleGuard";
 import { useAdminMetrics } from "./useAdminMetrics";
 import {
@@ -35,6 +36,7 @@ export type FormErrors = {
 export function useAdminDashboard() {
   const router = useRouter();
   const { isAuthorized, isLoading: isCheckingAuth } = useAdminGuard();
+  const { signOut } = useAuth();
 
   // Authentication states
   const [user, setUser] = useState("");
@@ -300,19 +302,18 @@ export function useAdminDashboard() {
   };
 
   // Handle sign out
-  const handleSignOut = () => {
-    signOut(auth)
-      .then(() => {
-        toast.success("¡Hasta pronto! Sesión cerrada exitosamente", {
-          icon: "👋",
-        });
-        router.push("/login");
-      })
-      .catch((error) => {
-        toast.error("No se pudo cerrar sesión. Intenta nuevamente.", {
-          icon: "❌",
-        });
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      toast.success("¡Hasta pronto! Sesión cerrada exitosamente", {
+        icon: "👋",
       });
+      router.push("/login");
+    } catch (error) {
+      toast.error("No se pudo cerrar sesión. Intenta nuevamente.", {
+        icon: "❌",
+      });
+    }
   };
 
   // Date range handlers

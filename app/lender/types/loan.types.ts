@@ -22,8 +22,10 @@ export interface LenderState {
 
 export interface LenderFilters {
   search: string;
-  amount: 'all' | '0-50000' | '50000-100000' | '100000+';
-  term: 'all' | '1-12' | '13-24' | '25+';
+  state: string; // Estado de la República Mexicana
+  city: string; // Ciudad
+  purpose: 'all' | 'Personal' | 'Negocio'; // Basado en tus propósitos definidos
+  type: 'all' | 'consumo' | 'deudas' | 'capital' | 'maquinaria'; // Basado en tus tipos definidos
 }
 
 export interface PartnerData {

@@ -1,15 +1,10 @@
-import React, { useState } from 'react';
-import {
-  Button,
-  Card,
-  Chip,
-  CardBody,
-} from "@nextui-org/react";
+import React, { useState } from "react";
+import { Button, Card, Chip, CardBody } from "@nextui-org/react";
 import { User, ChevronRight, CreditCard } from "lucide-react";
 import { LenderStats } from "@/components/features/dashboard/LenderStats";
 import { MarketplacePagination } from "@/components/features/dashboard/MarketplacePagination";
 import { LenderLoadingSkeletons } from "@/components/features/dashboard/LenderLoadingSkeletons";
-import type { LenderProposal } from '@/app/lender/types/loan.types';
+import type { LenderProposal } from "@/app/lender/types/loan.types";
 
 interface MyOffersViewProps {
   lenderProposals: LenderProposal[];
@@ -19,16 +14,16 @@ interface MyOffersViewProps {
   allRequests?: any[];
 }
 
-const MyOffersView = ({ 
-  lenderProposals, 
-  loadingProposals, 
+const MyOffersView = ({
+  lenderProposals,
+  loadingProposals,
   onGoToMarketplace,
-  allRequests = []
+  allRequests = [],
 }: MyOffersViewProps) => {
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 9; // 9 ofertas por página
-  
+
   // Pagination logic
   const totalPages = Math.ceil(lenderProposals.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
@@ -112,7 +107,10 @@ const MyOffersView = ({
         <>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {currentOffers.map((proposal) => (
-              <Card key={proposal.id} className="shadow-md hover:shadow-lg transition-shadow duration-200">
+              <Card
+                key={proposal.id}
+                className="shadow-md hover:shadow-lg transition-shadow duration-200"
+              >
                 <CardBody className="p-6">
                   <div className="flex justify-between items-start mb-4">
                     <div>
@@ -128,7 +126,9 @@ const MyOffersView = ({
                         ${proposal.amount?.toLocaleString()}
                       </span>
                       <Chip
-                        className={`text-white text-sm ${getStatusColor(proposal.status)}`}
+                        className={`text-white text-sm ${getStatusColor(
+                          proposal.status
+                        )}`}
                       >
                         {getStatusText(proposal.status)}
                       </Chip>
@@ -154,18 +154,40 @@ const MyOffersView = ({
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-gray-500 text-sm">
+                        Frecuencia de pago:
+                      </span>
+                      <span className="font-medium capitalize">
+                        {proposal.amortization_frequency}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-500 text-sm">
                         Fecha de propuesta:
                       </span>
                       <span className="font-medium">
-                        {proposal.createdAt ? 
-                          (typeof proposal.createdAt === 'object' && 'seconds' in proposal.createdAt ?
-                            new Date((proposal.createdAt as any).seconds * 1000).toLocaleDateString() :
-                            new Date(proposal.createdAt as string).toLocaleDateString()
-                          ) : 
-                          "No disponible"
-                        }
+                        {proposal.createdAt
+                          ? typeof proposal.createdAt === "object" &&
+                            "seconds" in proposal.createdAt
+                            ? new Date(
+                                (proposal.createdAt as any).seconds * 1000
+                              ).toLocaleDateString()
+                            : new Date(
+                                proposal.createdAt as string
+                              ).toLocaleDateString()
+                          : "No disponible"}
                       </span>
                     </div>
+                    {proposal.medical_balance !== undefined &&
+                      proposal.medical_balance > 0 && (
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-500 text-sm">
+                            Seguro de vida saldo deudor:
+                          </span>
+                          <span className="font-medium">
+                            ${proposal.medical_balance?.toLocaleString()}
+                          </span>
+                        </div>
+                      )}
                     <div className="flex justify-between items-center">
                       <span className="text-gray-500 text-sm">
                         Amortización:
@@ -175,9 +197,7 @@ const MyOffersView = ({
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-500 text-sm">
-                        Comisión:
-                      </span>
+                      <span className="text-gray-500 text-sm">Comisión:</span>
                       <span className="font-medium">
                         ${proposal.comision?.toLocaleString()}
                       </span>

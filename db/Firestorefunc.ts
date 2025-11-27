@@ -76,7 +76,8 @@ export const getUserOfferData = async (id: string) => {
       country: userData.address?.country || 'No disponible',
       state: userData.address?.state || 'No disponible',
       city: userData.address?.city || 'No disponible',
-      purpose: userData.purpose || 'No especificado'
+      purpose: userData.purpose || 'No especificado',
+      creditScore: userData.creditScore || null
     }
     
     return { status: 200, data: filteredData }
@@ -276,9 +277,7 @@ export const createNotification = async (notificationData: {
       createdAt: new Date(),
     };
     
-    console.log(`Creating notification for user ${notificationData.recipientId} of type ${notificationData.type}:`, newNotification);
     const docRef = await notificationsRef.add(newNotification);
-    console.log(`✅ Notification created successfully with ID: ${docRef.id} for recipient: ${notificationData.recipientId}`);
     
     return { status: 200, notificationId: docRef.id };
   } catch (error: any) {

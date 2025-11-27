@@ -14,6 +14,7 @@ import type { LoanRequest } from '@/types/entities/business.types';
 interface UseAdminLoansOptions {
   status?: 'pending' | 'approved' | 'rejected';
   enableRealtime?: boolean;
+  adminCompany?: string; // Agregar empresa del admin como parámetro
 }
 
 export function useAdminLoans(options: UseAdminLoansOptions = {}) {
@@ -40,22 +41,43 @@ export function useAdminLoans(options: UseAdminLoansOptions = {}) {
     }
 
     try {
-      // Para admin: obtener todas las solicitudes y filtrar las que ya tienen propuestas
+      // Para admin: obtener todas las solicitudes y filtrar correctamente
       const loansSnapshot = await getDocs(loansQuery);
       
-      // Obtener todas las propuestas existentes para filtrar solicitudes que ya tienen ofertas
+      // Si no hay adminCompany, mostrar todas las solicitudes
+      if (!options.adminCompany) {
+        const fetchedLoans = loansSnapshot.docs
+          .map(doc => ({
+            id: doc.id,
+            ...doc.data(),
+            createdAt: doc.data().createdAt instanceof Timestamp 
+              ? doc.data().createdAt.toDate() 
+              : new Date()
+          } as LoanRequest));
+        
+        setLoans(fetchedLoans);
+        setError(null);
+        setLoading(false);
+        return;
+      }
+
+      // Obtener todas las propuestas existentes
       const propuestasRef = collection(db, "propuestas");
       const propuestasSnapshot = await getDocs(propuestasRef);
       
-      const existingLoanIds = new Set();
+      // Agrupar propuestas por loanId
+      const proposalsByLoanId = new Map();
       propuestasSnapshot.forEach(doc => {
         const data = doc.data();
         if (data.loanId) {
-          existingLoanIds.add(data.loanId);
+          if (!proposalsByLoanId.has(data.loanId)) {
+            proposalsByLoanId.set(data.loanId, []);
+          }
+          proposalsByLoanId.get(data.loanId).push(data);
         }
       });
 
-      // Filtrar solicitudes que NO tienen propuestas (como en el lender)
+      // Filtrar solicitudes: mostrar las que NO tienen propuestas de la empresa del admin
       const fetchedLoans = loansSnapshot.docs
         .map(doc => ({
           id: doc.id,
@@ -64,12 +86,19 @@ export function useAdminLoans(options: UseAdminLoansOptions = {}) {
             ? doc.data().createdAt.toDate() 
             : new Date()
         } as LoanRequest))
-        .filter(loan => !existingLoanIds.has(loan.id));
-      
-      console.log("useAdminLoans - Total loans found:", loansSnapshot.docs.length);
-      console.log("useAdminLoans - Loans with proposals:", existingLoanIds.size);
-      console.log("useAdminLoans - Filtered loans (no proposals):", fetchedLoans.length);
-      console.log("useAdminLoans - Query status:", options.status);
+        .filter(loan => {
+          const proposals = proposalsByLoanId.get(loan.id) || [];
+          
+          // Si no hay propuestas, mostrar la solicitud (disponible para todas las empresas)
+          if (proposals.length === 0) {
+            return true;
+          }
+          
+          // Si hay propuestas, mostrar solo si NINGUNA es de la empresa del admin
+          // (ocultar solo las solicitudes donde esta empresa ya envió propuesta)
+          const hasOwnProposal = proposals.some((proposal: any) => proposal.company === options.adminCompany);
+          return !hasOwnProposal; // Invertir la lógica: mostrar si NO tiene propuesta propia
+        });
       
       setLoans(fetchedLoans);
       setError(null);
@@ -79,7 +108,7 @@ export function useAdminLoans(options: UseAdminLoansOptions = {}) {
     } finally {
       setLoading(false);
     }
-  }, [options.status]);
+  }, [options.status, options.adminCompany]);
 
   useEffect(() => {
     // Fetch inicial
@@ -99,15 +128,36 @@ export function useAdminLoans(options: UseAdminLoansOptions = {}) {
       const unsubscribe = onSnapshot(
         loansQuery,
         async (snapshot) => {
-          // También filtrar en tiempo real las solicitudes que ya tienen propuestas
+          // Si no hay adminCompany, mostrar todas las solicitudes
+          if (!options.adminCompany) {
+            const fetchedLoans = snapshot.docs
+              .map(doc => ({
+                id: doc.id,
+                ...doc.data(),
+                createdAt: doc.data().createdAt instanceof Timestamp 
+                  ? doc.data().createdAt.toDate() 
+                  : new Date()
+              } as LoanRequest));
+            
+            setLoans(fetchedLoans);
+            setLoading(false);
+            setError(null);
+            return;
+          }
+
+          // También aplicar el mismo filtro en tiempo real
           const propuestasRef = collection(db, "propuestas");
           const propuestasSnapshot = await getDocs(propuestasRef);
           
-          const existingLoanIds = new Set();
+          // Agrupar propuestas por loanId
+          const proposalsByLoanId = new Map();
           propuestasSnapshot.forEach(doc => {
             const data = doc.data();
             if (data.loanId) {
-              existingLoanIds.add(data.loanId);
+              if (!proposalsByLoanId.has(data.loanId)) {
+                proposalsByLoanId.set(data.loanId, []);
+              }
+              proposalsByLoanId.get(data.loanId).push(data);
             }
           });
 
@@ -119,7 +169,19 @@ export function useAdminLoans(options: UseAdminLoansOptions = {}) {
                 ? doc.data().createdAt.toDate() 
                 : new Date()
             } as LoanRequest))
-            .filter(loan => !existingLoanIds.has(loan.id));
+            .filter(loan => {
+              const proposals = proposalsByLoanId.get(loan.id) || [];
+              
+              // Si no hay propuestas, mostrar la solicitud (disponible para todas las empresas)
+              if (proposals.length === 0) {
+                return true;
+              }
+              
+              // Si hay propuestas, mostrar solo si NINGUNA es de la empresa del admin
+              // (ocultar solo las solicitudes donde esta empresa ya envió propuesta)
+              const hasOwnProposal = proposals.some((proposal: any) => proposal.company === options.adminCompany);
+              return !hasOwnProposal; // Invertir la lógica: mostrar si NO tiene propuesta propia
+            });
           
           setLoans(fetchedLoans);
           setLoading(false);
@@ -134,7 +196,7 @@ export function useAdminLoans(options: UseAdminLoansOptions = {}) {
 
       return () => unsubscribe();
     }
-  }, [fetchLoans, options.enableRealtime, options.status]);
+  }, [fetchLoans, options.enableRealtime, options.status, options.adminCompany]);
 
   return {
     loans,

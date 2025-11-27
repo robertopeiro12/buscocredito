@@ -1,6 +1,5 @@
 import admin from 'firebase-admin';
 import "server-only"
-const serviceAccount = require('../serviceAccountKey.json');
 
 export function initAdmin(){
   if(admin.apps.length > 0){
@@ -8,9 +7,22 @@ export function initAdmin(){
   }
 
   try {
+    // Verificar que las variables de entorno estén disponibles
+    const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
+    const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
+    const privateKey = process.env.FIREBASE_PRIVATE_KEY;
+
+    if (!projectId || !clientEmail || !privateKey) {
+      throw new Error('Missing Firebase Admin credentials in environment variables');
+    }
+
     const app = admin.initializeApp({
-      credential: admin.credential.cert(serviceAccount),
-      databaseURL: 'https://buscocredito-b3f6d.firebaseio.com'
+      credential: admin.credential.cert({
+        projectId,
+        clientEmail,
+        privateKey: privateKey.replace(/\\n/g, '\n')
+      }),
+      databaseURL: `https://${projectId}-default-rtdb.firebaseio.com`
     });
     
     console.log('✅ Firebase Admin SDK inicializado correctamente');

@@ -63,10 +63,16 @@ export const validateField = (
   switch (name) {
     case "name":
     case "lastName":
-    case "secondLastName":
       if (!value.trim()) {
         return "Este campo es requerido";
       } else if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(value)) {
+        return "Solo se permiten letras";
+      }
+      break;
+
+    case "secondLastName":
+      // Apellido materno es OPCIONAL en México
+      if (value.trim() && !/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(value)) {
         return "Solo se permiten letras";
       }
       break;
@@ -177,7 +183,7 @@ export const validateStep = (
     case 3:
       fieldsToValidate = [
         "street",
-        "number",
+        "exteriorNumber",
         "colony",
         "city",
         "state",
@@ -195,15 +201,20 @@ export const validateStep = (
       ? formData.address[field.split(".")[1] as keyof typeof formData.address]
       : formData[field as keyof SignupFormData] as string;
 
-    // Validate empty fields
-    if (!value || !value.trim()) {
+    // Campos opcionales - no validar si están vacíos
+    const optionalFields = ["secondLastName", "address.interiorNumber"];
+    
+    // Validate empty fields (skip optional fields)
+    if ((!value || !value.trim()) && !optionalFields.includes(field)) {
       stepErrors[field] = `Este campo es requerido`;
     }
 
-    // Run field-specific validation
-    const fieldError = validateField(field, value, formData);
-    if (fieldError) {
-      stepErrors[field] = fieldError;
+    // Run field-specific validation only if field has value or is required
+    if (value && value.trim()) {
+      const fieldError = validateField(field, value, formData);
+      if (fieldError) {
+        stepErrors[field] = fieldError;
+      }
     }
   });
 
