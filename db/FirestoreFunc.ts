@@ -348,4 +348,3 @@ export const getUnreadNotificationCount = async (userId: string) => {
     return { error: error.message, status: 500 };
   }
 };
-

@@ -3,7 +3,7 @@
 import { Input, Button } from "@nextui-org/react";
 import { useAuth } from "../../contexts/AuthContext";
 import { useForm } from "../../hooks/useForm";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 
 // Reglas de validación
@@ -22,7 +22,7 @@ const validationRules = {
   },
 };
 
-export default function LoginPage() {
+function LoginForm() {
   const { signIn, loading, error: authError } = useAuth();
   const searchParams = useSearchParams();
   const resetMessage = searchParams?.get("message");
@@ -51,6 +51,32 @@ export default function LoginPage() {
     handleSubmit,
   } = useForm({ email: "", password: "" }, validationRules);
 
+  // Función de inicio de sesión memoizada
+  const handleSignIn = useCallback(async () => {
+    // Verificar si está bloqueado
+    if (isBlocked) {
+      return;
+    }
+
+    // Rate limiting: máximo 5 intentos
+    if (attemptCount >= 5) {
+      setIsBlocked(true);
+      setBlockTimeLeft(300); // 5 minutos
+      return;
+    }
+
+    try {
+      await handleSubmit(async (values) => {
+        await signIn(values.email, values.password, rememberMe);
+        // Reset contador si login es exitoso
+        setAttemptCount(0);
+      });
+    } catch (error) {
+      // Incrementar contador solo si hay error de autenticación
+      setAttemptCount((prev) => prev + 1);
+    }
+  }, [isBlocked, attemptCount, handleSubmit, signIn, rememberMe]);
+
   // Timer para el bloqueo
   useEffect(() => {
     let timer: NodeJS.Timeout;
@@ -75,7 +101,7 @@ export default function LoginPage() {
 
     document.addEventListener("keypress", handleKeyPress);
     return () => document.removeEventListener("keypress", handleKeyPress);
-  }, [loading, isSubmitting, isBlocked]);
+  }, [loading, isSubmitting, isBlocked, handleSignIn]);
 
   // Focus automático en el email input al cargar
   useEffect(() => {
@@ -83,31 +109,6 @@ export default function LoginPage() {
       emailInputRef.current.focus();
     }
   }, []);
-
-  const handleSignIn = async () => {
-    // Verificar si está bloqueado
-    if (isBlocked) {
-      return;
-    }
-
-    // Rate limiting: máximo 5 intentos
-    if (attemptCount >= 5) {
-      setIsBlocked(true);
-      setBlockTimeLeft(300); // 5 minutos
-      return;
-    }
-
-    try {
-      await handleSubmit(async (values) => {
-        await signIn(values.email, values.password, rememberMe);
-        // Reset contador si login es exitoso
-        setAttemptCount(0);
-      });
-    } catch (error) {
-      // Incrementar contador solo si hay error de autenticación
-      setAttemptCount((prev) => prev + 1);
-    }
-  };
 
   // Función para obtener el texto del botón dinámico
   const getButtonText = () => {
@@ -281,5 +282,17 @@ export default function LoginPage() {
         </Button>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="bg-white p-8 rounded-xl shadow-lg w-full border border-gray-100">
+        <div className="text-center">Cargando...</div>
+      </div>
+    }>
+      <LoginForm />
+    </Suspense>
   );
 }

@@ -54,12 +54,17 @@ export const useDashboardState = () => {
     phone: "",
     address: {
       street: "",
-      number: "",
+      exteriorNumber: "",
+      interiorNumber: "",
       colony: "",
       city: "",
       state: "",
       country: "",
       zipCode: "",
+    },
+    creditScore: {
+      score: 0,
+      classification: "Alto Riesgo",
     },
   });
   const [offerCounts, setOfferCounts] = useState<{ [key: string]: number }>({});
