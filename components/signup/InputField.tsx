@@ -108,14 +108,12 @@ const InputField = ({
           id={`${id}-description`}
           className={`mt-1 text-sm ${messageColor} transition-all duration-200 flex items-center gap-1`}
         >
-          {error ? (
+          {error && (
+            <div>
             <AlertCircle className="h-4 w-4 inline" />
-          ) : isValid ? (
-            <CheckCircle className="h-4 w-4 inline" />
-          ) : (
-            <span className="h-4 w-4 inline-block" />
+            <span>{validationMessage}</span>
+            </div>
           )}
-          <span>{validationMessage}</span>
         </div>
       )}
     </div>
