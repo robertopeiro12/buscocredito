@@ -2,10 +2,11 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 // Definir los tipos de usuario
-type UserType = 'b_admin' | 'b_sale' | 'user';
+type UserType = 'super_admin' | 'b_admin' | 'b_sale' | 'user';
 
 // Definir las rutas protegidas y los roles permitidos
 const protectedRoutes: Record<string, UserType[]> = {
+  '/super_admin_dashboard': ['super_admin'],
   '/admin_dashboard': ['b_admin'],
   '/lender': ['b_sale'],
   '/user_dashboard': ['user'],

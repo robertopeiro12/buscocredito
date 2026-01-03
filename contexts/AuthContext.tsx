@@ -83,7 +83,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                   body: JSON.stringify({
                     userId: firebaseUser.uid,
                     userData: {
-                      name: userData.name,
+                      name: userData.Nombre || userData.name || "Usuario",
                       email: userData.email,
                       type: userData.type,
                       Empresa: userData.Empresa,
@@ -175,6 +175,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         // Redirección basada en el tipo de usuario
         switch (userData.type) {
+          case "super_admin":
+            router.push("/super_admin_dashboard");
+            break;
           case "b_admin":
             if (!userData.Empresa) {
               throw new Error("Cuenta de administrador no válida");

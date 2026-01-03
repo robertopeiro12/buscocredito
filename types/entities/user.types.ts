@@ -1,7 +1,7 @@
 export interface User {
   uid: string;
   email: string | null;
-  type?: 'b_admin' | 'b_sale' | 'user';
+  type?: 'super_admin' | 'b_admin' | 'b_sale' | 'user';
   Empresa?: string;
   Empresa_id?: string;
 }
