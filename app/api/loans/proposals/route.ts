@@ -4,6 +4,7 @@ import { adminFirestore } from '@/app/firebase-admin';
 import { verifyAuthentication } from '../../utils/auth';
 import { ApiResponses, createSuccessResponse, createErrorResponse } from '../../utils/response';
 import { BusinessValidators, validateRequiredFields } from '../../utils/validation';
+import { createNotification } from '@/db/FirestoreFunc';
 
 export async function POST(request: NextRequest) {
   try {
@@ -59,27 +60,23 @@ export async function POST(request: NextRequest) {
       .collection('propuestas')
       .add(propuestaData);
 
-    // Crear notificación para el usuario usando el formato estándar
-    await adminFirestore
-      .collection('notifications')
-      .add({
-        recipientId: body.userId,
-        type: 'nueva_propuesta',
-        title: 'Nueva propuesta recibida',
-        message: `Has recibido una nueva propuesta para tu solicitud de préstamo de $${propuestaData.amount?.toLocaleString()}`,
-        data: {
-          loanId: body.solicitudId,
-          proposalId: propuestaRef.id,
-          amount: propuestaData.amount,
-          interestRate: propuestaData.interest_rate,
-          amortizationFrequency: propuestaData.amortization_frequency,
-          term: propuestaData.deadline,
-          comision: propuestaData.comision,
-          medicalBalance: propuestaData.medical_balance
-        },
-        read: false,
-        createdAt: new Date(),
-      });
+    // Crear notificación para el usuario (web + email)
+    await createNotification({
+      recipientId: body.userId,
+      type: 'nueva_propuesta',
+      title: 'Nueva propuesta recibida',
+      message: `Has recibido una nueva propuesta para tu solicitud de préstamo de $${propuestaData.amount?.toLocaleString()}`,
+      data: {
+        loanId: body.solicitudId,
+        proposalId: propuestaRef.id,
+        amount: propuestaData.amount,
+        interestRate: propuestaData.interest_rate,
+        amortizationFrequency: propuestaData.amortization_frequency,
+        term: propuestaData.deadline,
+        comision: propuestaData.comision,
+        medicalBalance: propuestaData.medical_balance
+      },
+    });
 
     return createSuccessResponse(
       { propuestaId: propuestaRef.id },
