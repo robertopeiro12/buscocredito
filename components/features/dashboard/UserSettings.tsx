@@ -1,14 +1,45 @@
-import { Button, Card, CardBody } from "@nextui-org/react";
-import { User as UserIcon } from "lucide-react";
+import { useState } from "react";
+import { Button, Card, CardBody, Switch, Spinner } from "@nextui-org/react";
+import { User as UserIcon, Bell, Mail } from "lucide-react";
 import { UserData } from "@/types/dashboard";
 import { formatDate } from "@/utils/dashboard-utils";
 
 interface UserSettingsProps {
   userData: UserData;
   onUpdate: (data: any) => void;
+  userId?: string;
 }
 
-export const UserSettings = ({ userData, onUpdate }: UserSettingsProps) => {
+export const UserSettings = ({ userData, onUpdate, userId }: UserSettingsProps) => {
+  const [emailNotifications, setEmailNotifications] = useState(
+    (userData as any).emailNotifications !== false
+  );
+  const [savingPreferences, setSavingPreferences] = useState(false);
+
+  const handleEmailNotificationsChange = async (enabled: boolean) => {
+    if (!userId) return;
+    
+    setSavingPreferences(true);
+    try {
+      const response = await fetch("/api/users/preferences", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          userId, 
+          emailNotifications: enabled 
+        }),
+      });
+      
+      if (response.ok) {
+        setEmailNotifications(enabled);
+      }
+    } catch (error) {
+      console.error("Error updating preferences:", error);
+    } finally {
+      setSavingPreferences(false);
+    }
+  };
+
   return (
     <Card className="bg-white max-w-4xl mx-auto">
       <CardBody className="p-6">
@@ -128,6 +159,54 @@ export const UserSettings = ({ userData, onUpdate }: UserSettingsProps) => {
               </div>
             </div>
           )}
+
+          {/* Preferencias de Notificaciones */}
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4 border-b pb-2">
+              PREFERENCIAS DE NOTIFICACIONES
+            </h3>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
+                    <Mail className="w-5 h-5 text-green-600" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-900">Notificaciones por correo</p>
+                    <p className="text-sm text-gray-500">
+                      Recibe alertas por email cuando recibas nuevas propuestas
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  {savingPreferences && <Spinner size="sm" />}
+                  <Switch
+                    isSelected={emailNotifications}
+                    onValueChange={handleEmailNotificationsChange}
+                    isDisabled={savingPreferences || !userId}
+                    color="success"
+                    size="lg"
+                  />
+                </div>
+              </div>
+              <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                    <Bell className="w-5 h-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-900">Notificaciones en la web</p>
+                    <p className="text-sm text-gray-500">
+                      Siempre recibirás notificaciones dentro de la plataforma
+                    </p>
+                  </div>
+                </div>
+                <span className="px-3 py-1 bg-green-100 text-green-700 text-sm font-medium rounded-full">
+                  Siempre activas
+                </span>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div className="mt-8 flex justify-between">

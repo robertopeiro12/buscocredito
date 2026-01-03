@@ -1,6 +1,7 @@
 import "server-only"
 import { getFirestore, FieldValue } from "firebase-admin/firestore"
 import { initAdmin } from './FirebaseAdmin'
+import { sendEmailNotification, EmailNotificationData } from '@/services/email-service'
 
 // Helper function to get Firebase Admin Firestore instance
 function getAdminFirestore() {
@@ -259,25 +260,79 @@ export const getLenderProposals = async (lenderId: string) => {
     console.error("Error getting lender proposals:", error);
     return { error: error.message, status: 500 };
   }
-};// Notification functions
+};
+
+// Notification functions
 export const createNotification = async (notificationData: {
   recipientId: string;
   type: string;
   title: string;
   message: string;
   data?: any;
+  sendEmail?: boolean; // Optional flag to send email notification
 }) => {
   const Firestore = getAdminFirestore();
   const notificationsRef = Firestore.collection("notifications");
   
   try {
     const newNotification = {
-      ...notificationData,
+      recipientId: notificationData.recipientId,
+      type: notificationData.type,
+      title: notificationData.title,
+      message: notificationData.message,
+      data: notificationData.data,
       read: false,
+      emailSent: false,
       createdAt: new Date(),
     };
     
     const docRef = await notificationsRef.add(newNotification);
+    
+    // Send email notification (async, don't block)
+    // Default to sending email unless explicitly disabled
+    const shouldSendEmail = notificationData.sendEmail !== false;
+    
+    if (shouldSendEmail) {
+      // Get user data to retrieve email and name
+      try {
+        const userDoc = await Firestore.collection("cuentas").doc(notificationData.recipientId).get();
+        
+        if (userDoc.exists) {
+          const userData = userDoc.data();
+          const userEmail = userData?.email;
+          const userName = userData?.Nombre || userData?.name || 'Usuario';
+          
+          // Check if user has email notifications enabled (default: true)
+          const emailNotificationsEnabled = userData?.emailNotifications !== false;
+          
+          if (userEmail && emailNotificationsEnabled) {
+            const emailData: EmailNotificationData = {
+              recipientEmail: userEmail,
+              recipientName: userName,
+              type: notificationData.type as EmailNotificationData['type'],
+              title: notificationData.title,
+              message: notificationData.message,
+              data: notificationData.data,
+            };
+            
+            // Send email asynchronously (don't await to not block the response)
+            sendEmailNotification(emailData).then(result => {
+              if (result.success) {
+                // Update notification to mark email as sent
+                docRef.update({ emailSent: true, emailId: result.id }).catch(console.error);
+              } else {
+                console.warn(`⚠️ Failed to send email to ${userEmail}:`, result.error);
+              }
+            }).catch(error => {
+              console.error('❌ Error in email notification:', error);
+            });
+          }
+        }
+      } catch (emailError) {
+        console.warn('⚠️ Could not send email notification:', emailError);
+        // Don't fail the notification creation if email fails
+      }
+    }
     
     return { status: 200, notificationId: docRef.id };
   } catch (error: any) {

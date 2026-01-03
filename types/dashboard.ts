@@ -98,4 +98,4 @@ export interface OfferToAccept {
   index: number;
 }
 
-export type DashboardTab = "loans" | "settings" | "help";
+export type DashboardTab = "loans" | "settings" | "help" | "notifications";

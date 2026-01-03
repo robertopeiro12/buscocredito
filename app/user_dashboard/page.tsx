@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useUserGuard } from "@/hooks/useRoleGuard";
 import { useDashboardState } from "@/hooks/useDashboardState";
 import {
@@ -30,6 +30,7 @@ import { Pagination } from "@/components/features/dashboard/Pagination";
 import { UserSettings } from "@/components/features/dashboard/UserSettings";
 import { HelpCenter } from "@/components/features/dashboard/HelpCenter";
 import { ErrorFallback } from "@/components/features/dashboard/ErrorFallback";
+import NotificationHistory from "@/components/features/dashboard/NotificationHistory";
 import {
   AuthLoadingSkeleton,
   InitialLoadingSkeleton,
@@ -56,6 +57,36 @@ export default function DashboardPage() {
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 4; // 4 solicitudes por página
+
+  // Unread notifications count
+  const [unreadNotifications, setUnreadNotifications] = useState(0);
+
+  // Fetch unread notifications count
+  const fetchUnreadCount = useCallback(async () => {
+    if (!dashboardState.user?.uid) return;
+    try {
+      const response = await fetch("/api/getUnreadCount", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: dashboardState.user.uid }),
+      });
+      if (response.ok) {
+        const data = await response.json();
+        if (data.status === 200) {
+          setUnreadNotifications(data.count || 0);
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching unread count:", error);
+    }
+  }, [dashboardState.user?.uid]);
+
+  // Fetch unread count on mount and periodically
+  useEffect(() => {
+    fetchUnreadCount();
+    const interval = setInterval(fetchUnreadCount, 30000); // Every 30 seconds
+    return () => clearInterval(interval);
+  }, [fetchUnreadCount]);
 
   // Destructure dashboard state for easier access
   const {
@@ -364,6 +395,7 @@ export default function DashboardPage() {
             <DashboardSidebar
               activeTab={activeTab}
               onTabChange={setActiveTab}
+              unreadNotifications={unreadNotifications}
             />
 
             {/* Main Content - Scrollable with left margin to account for fixed sidebar on desktop */}
@@ -569,9 +601,16 @@ export default function DashboardPage() {
                       <UserSettings
                         userData={userData}
                         onUpdate={handleUpdateUserData}
+                        userId={dashboardState.user?.uid}
                       />
                     )}
                   </>
+                )}
+
+                {activeTab === "notifications" && dashboardState.user?.uid && (
+                  <NotificationHistory 
+                    userId={dashboardState.user.uid} 
+                  />
                 )}
 
                 {activeTab === "help" && <HelpCenter />}

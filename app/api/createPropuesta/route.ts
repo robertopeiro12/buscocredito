@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { adminFirestore } from '@/app/firebase-admin';
 import { verifyAuthentication, createUnauthorizedResponse, createForbiddenResponse } from '../utils/auth';
+import { createNotification } from '@/db/FirestoreFunc';
 
 export async function POST(request: NextRequest) {
   try {
@@ -53,23 +54,23 @@ export async function POST(request: NextRequest) {
         updatedAt: new Date().toISOString(),
       });
 
-    // Crear notificación para el usuario usando el formato estándar
-    await adminFirestore
-      .collection('notifications')
-      .add({
-        recipientId: body.userId,
-        type: 'nueva_propuesta',
-        title: 'Nueva propuesta recibida',
-        message: `Has recibido una nueva propuesta para tu solicitud de préstamo de $${propuestaData.montoOfrecido.toLocaleString()}`,
-        data: {
-          loanId: body.solicitudId,
-          proposalId: propuestaRef.id,
-          amount: propuestaData.montoOfrecido,
-          // Agregar más datos si están disponibles en propuestaData
-        },
-        read: false,
-        createdAt: new Date(),
-      });
+    // Crear notificación para el usuario (web + email)
+    await createNotification({
+      recipientId: body.userId,
+      type: 'nueva_propuesta',
+      title: 'Nueva propuesta recibida',
+      message: `Has recibido una nueva propuesta para tu solicitud de préstamo de $${propuestaData.montoOfrecido?.toLocaleString() || propuestaData.amount?.toLocaleString() || 'N/A'}`,
+      data: {
+        loanId: body.solicitudId,
+        proposalId: propuestaRef.id,
+        amount: propuestaData.montoOfrecido || propuestaData.amount,
+        interestRate: propuestaData.tasaInteres || propuestaData.interest_rate,
+        amortizationFrequency: propuestaData.frecuenciaPago || propuestaData.amortization_frequency,
+        term: propuestaData.plazo || propuestaData.deadline,
+        comision: propuestaData.comision,
+        medicalBalance: propuestaData.seguroVida || propuestaData.medical_balance
+      },
+    });
 
     return NextResponse.json({
       success: true,
