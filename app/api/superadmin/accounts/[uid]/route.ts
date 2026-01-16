@@ -193,19 +193,65 @@ export async function DELETE(
       console.warn("User not found in Firebase Auth:", authError.message);
     }
 
-    // Delete from Firestore
+    // Delete from Firestore cuentas collection
     await db.collection("cuentas").doc(uid).delete();
 
-    // Optionally delete related data (solicitudes, propuestas, etc.)
-    // This is commented out for safety - enable if needed
-    // const batch = db.batch();
-    // const solicitudesSnapshot = await db.collection("solicitudes").where("user_id", "==", uid).get();
-    // solicitudesSnapshot.docs.forEach(doc => batch.delete(doc.ref));
-    // await batch.commit();
+    // Delete related solicitudes
+    const solicitudesSnapshot = await db.collection("solicitudes").where("userId", "==", uid).get();
+    const solicitudIds: string[] = [];
+    
+    if (!solicitudesSnapshot.empty) {
+      const solicitudesBatch = db.batch();
+      solicitudesSnapshot.docs.forEach(doc => {
+        solicitudIds.push(doc.id);
+        solicitudesBatch.delete(doc.ref);
+      });
+      await solicitudesBatch.commit();
+      console.log(`Deleted ${solicitudesSnapshot.size} solicitudes for user ${uid}`);
+    }
+
+    // Delete propuestas related to user's solicitudes (by loanId)
+    if (solicitudIds.length > 0) {
+      // Firestore 'in' query is limited to 30 items, so we need to batch
+      for (let i = 0; i < solicitudIds.length; i += 30) {
+        const batch = solicitudIds.slice(i, i + 30);
+        const propuestasSnapshot = await db.collection("propuestas").where("loanId", "in", batch).get();
+        
+        if (!propuestasSnapshot.empty) {
+          const propuestasBatch = db.batch();
+          propuestasSnapshot.docs.forEach(doc => propuestasBatch.delete(doc.ref));
+          await propuestasBatch.commit();
+          console.log(`Deleted ${propuestasSnapshot.size} propuestas for user ${uid}'s solicitudes`);
+        }
+      }
+    }
+
+    // Also delete propuestas created by this user (if they're a lender)
+    const lenderPropuestasSnapshot = await db.collection("propuestas").where("lenderId", "==", uid).get();
+    if (!lenderPropuestasSnapshot.empty) {
+      const lenderBatch = db.batch();
+      lenderPropuestasSnapshot.docs.forEach(doc => lenderBatch.delete(doc.ref));
+      await lenderBatch.commit();
+      console.log(`Deleted ${lenderPropuestasSnapshot.size} propuestas created by lender ${uid}`);
+    }
+
+    // Delete notifications for this user
+    const notificationsSnapshot = await db.collection("notifications").where("recipientId", "==", uid).get();
+    if (!notificationsSnapshot.empty) {
+      const notificationsBatch = db.batch();
+      notificationsSnapshot.docs.forEach(doc => notificationsBatch.delete(doc.ref));
+      await notificationsBatch.commit();
+      console.log(`Deleted ${notificationsSnapshot.size} notifications for user ${uid}`);
+    }
 
     return NextResponse.json({
       success: true,
-      message: "Account deleted successfully",
+      message: "Account and all related data deleted successfully",
+      deletedData: {
+        solicitudes: solicitudesSnapshot.size,
+        propuestas: solicitudIds.length > 0 ? "deleted" : 0,
+        notifications: notificationsSnapshot.size,
+      }
     });
   } catch (error: any) {
     console.error("Error deleting account:", error);
