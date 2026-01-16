@@ -1,6 +1,5 @@
 // hooks/useProposal.ts
 import { useState, useEffect } from 'react';
-import { getFirestore, addDoc, collection } from 'firebase/firestore';
 import type { ProposalData, LoanRequest } from '../types/loan.types';
 
 export function useProposal(loan: LoanRequest | null) {
@@ -75,31 +74,39 @@ export function useProposal(loan: LoanRequest | null) {
       setError(errors.join(', '));
       return false;
     }
-
     setLoading(true);
     setError(null);
 
     try {
-      const db = getFirestore();
-      await addDoc(collection(db, 'propuestas'), {
-        ...proposalData,
-        loanId: loan.id,
-        userId: loan.userId,
-        status: 'pending',
-        createdAt: new Date(),
-        // Incluir información adicional de la solicitud para referencia
-        requestInfo: {
-          originalAmount: loan.amount,
-          originalTerm: loan.term,
-          originalPayment: loan.payment,
-          purpose: loan.purpose,
-          type: loan.type
-        }
+      const response = await fetch('/api/createPropuesta', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...proposalData,
+          solicitudId: loan.id,
+          userId: loan.userId,
+          // Incluir información adicional de la solicitud para referencia
+          requestInfo: {
+            originalAmount: loan.amount,
+            originalTerm: loan.term,
+            originalPayment: loan.payment,
+            purpose: loan.purpose,
+            type: loan.type
+          }
+        }),
+        credentials: 'include',
       });
 
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Error al enviar la propuesta');
+      }
+
       return true;
-    } catch (err) {
-      setError('Error al enviar la propuesta');
+    } catch (err: any) {
+      setError(err.message || 'Error al enviar la propuesta');
       console.error('Error al enviar la propuesta:', err);
       return false;
     } finally {

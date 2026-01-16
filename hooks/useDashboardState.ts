@@ -1,8 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { User } from "firebase/auth";
 import { useRouter } from "next/navigation";
 import { auth } from "@/app/firebase";
 import { onAuthStateChanged } from "firebase/auth";
+import { getFirestore, collection, query, where, onSnapshot } from "firebase/firestore";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNotification } from "@/components/common/ui/NotificationProvider";
 import { 
@@ -54,12 +55,17 @@ export const useDashboardState = () => {
     phone: "",
     address: {
       street: "",
-      number: "",
+      exteriorNumber: "",
+      interiorNumber: "",
       colony: "",
       city: "",
       state: "",
       country: "",
       zipCode: "",
+    },
+    creditScore: {
+      score: 0,
+      classification: "Alto Riesgo",
     },
   });
   const [offerCounts, setOfferCounts] = useState<{ [key: string]: number }>({});
@@ -119,6 +125,73 @@ export const useDashboardState = () => {
 
     return () => unsubscribe();
   }, [router]);
+
+  // Ref to track previous offer counts for notification logic
+  const prevOfferCountsRef = useRef<{ [key: string]: number }>({});
+
+  // Real-time listener for proposals (propuestas)
+  useEffect(() => {
+    if (!user?.uid || solicitudes.length === 0) return;
+
+    const db = getFirestore();
+    const unsubscribers: (() => void)[] = [];
+
+    // Set up listeners for proposals on each solicitud
+    solicitudes.forEach((solicitud) => {
+      // Listen for proposals by loanId
+      const propuestasQuery = query(
+        collection(db, "propuestas"),
+        where("loanId", "==", solicitud.id)
+      );
+
+      const unsubscribeLoanId = onSnapshot(propuestasQuery, (snapshot) => {
+        const count = snapshot.docs.length;
+        const prevCount = prevOfferCountsRef.current[solicitud.id];
+        
+        // Show notification if count increased (outside of setState)
+        if (prevCount !== undefined && count > prevCount) {
+          showNotification({
+            type: "success",
+            message: "¡Nueva propuesta recibida!",
+            description: `Tienes una nueva propuesta para tu solicitud de ${solicitud.purpose}.`,
+          });
+        }
+        
+        // Update ref and state
+        prevOfferCountsRef.current[solicitud.id] = count;
+        setOfferCounts((prev) => {
+          if (prev[solicitud.id] !== count) {
+            return { ...prev, [solicitud.id]: count };
+          }
+          return prev;
+        });
+      });
+      unsubscribers.push(unsubscribeLoanId);
+
+      // Also listen for proposals by solicitudId (backward compatibility)
+      const propuestasBySolicitudQuery = query(
+        collection(db, "propuestas"),
+        where("solicitudId", "==", solicitud.id)
+      );
+
+      const unsubscribeSolicitudId = onSnapshot(propuestasBySolicitudQuery, (snapshot) => {
+        // We need to combine counts from both queries, but since we're already
+        // tracking by loanId, we only update if we find additional documents
+        const existingCount = snapshot.docs.length;
+        const currentCount = prevOfferCountsRef.current[solicitud.id] || 0;
+        
+        if (existingCount > currentCount) {
+          prevOfferCountsRef.current[solicitud.id] = existingCount;
+          setOfferCounts((prev) => ({ ...prev, [solicitud.id]: existingCount }));
+        }
+      });
+      unsubscribers.push(unsubscribeSolicitudId);
+    });
+
+    return () => {
+      unsubscribers.forEach((unsubscribe) => unsubscribe());
+    };
+  }, [user?.uid, solicitudes, showNotification]);
 
   // Helper functions
   const fetchOfferCountForSolicitud = async (loanId: string) => {

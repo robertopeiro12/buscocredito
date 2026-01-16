@@ -1,15 +1,17 @@
 import { Button } from "@nextui-org/react";
-import { CreditCard, HelpCircle, Settings } from "lucide-react";
+import { Bell, CreditCard, HelpCircle, Settings } from "lucide-react";
 import { DashboardTab } from "@/types/dashboard";
 
 interface DashboardSidebarProps {
   activeTab: DashboardTab;
   onTabChange: (tab: DashboardTab) => void;
+  unreadNotifications?: number;
 }
 
 export const DashboardSidebar = ({ 
   activeTab, 
-  onTabChange
+  onTabChange,
+  unreadNotifications = 0
 }: DashboardSidebarProps) => {
   const getButtonClass = (tab: DashboardTab) => 
     `w-full justify-start h-12 px-4 mb-2 transition-all duration-200 ease-in-out ${
@@ -24,6 +26,13 @@ export const DashboardSidebar = ({
       icon: CreditCard,
       label: "Préstamos",
       description: "Gestiona tus solicitudes"
+    },
+    {
+      tab: "notifications" as DashboardTab,
+      icon: Bell,
+      label: "Notificaciones",
+      description: "Historial de alertas",
+      badge: unreadNotifications > 0 ? unreadNotifications : undefined
     },
     {
       tab: "settings" as DashboardTab,
@@ -63,13 +72,29 @@ export const DashboardSidebar = ({
             {menuItems.map((item) => (
               <Button
                 key={item.tab}
-                startContent={<item.icon className="w-5 h-5" />}
+                startContent={
+                  <div className="relative">
+                    <item.icon className="w-5 h-5" />
+                    {item.badge && (
+                      <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 text-white rounded-full text-[10px] flex items-center justify-center font-bold">
+                        {item.badge > 9 ? '9+' : item.badge}
+                      </span>
+                    )}
+                  </div>
+                }
                 className={getButtonClass(item.tab)}
                 variant="light"
                 onPress={() => onTabChange(item.tab)}
               >
                 <div className="flex flex-col items-start flex-1 min-w-0">
-                  <span className="font-semibold text-sm">{item.label}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold text-sm">{item.label}</span>
+                    {item.badge && (
+                      <span className="px-1.5 py-0.5 bg-red-500 text-white rounded-full text-[10px] font-bold">
+                        {item.badge}
+                      </span>
+                    )}
+                  </div>
                   <span className="text-xs opacity-75 truncate w-full text-left">
                     {item.description}
                   </span>

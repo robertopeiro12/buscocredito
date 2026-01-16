@@ -21,6 +21,10 @@ service cloud.firestore {
       return getUserType() == 'b_admin';
     }
     
+    function isSuperAdmin() {
+      return getUserType() == 'super_admin';
+    }
+    
     function isLender() {
       return getUserType() == 'b_sale';
     }
@@ -33,6 +37,10 @@ service cloud.firestore {
       return isAdmin() || isLender();
     }
     
+    function isAdminOrSuperAdmin() {
+      return isAdmin() || isSuperAdmin();
+    }
+    
     // Función para verificar si el usuario es un usuario regular (incluso sin custom claims)
     function isUserOrUnauthenticated() {
       return getUserType() == 'user' || getUserType() == null;
@@ -43,7 +51,7 @@ service cloud.firestore {
       return request.resource.data.keys().hasAll(['name', 'email', 'type']) &&
              request.resource.data.email is string &&
              request.resource.data.name is string &&
-             request.resource.data.type in ['user', 'b_admin', 'b_sale'];
+             request.resource.data.type in ['user', 'b_admin', 'b_sale', 'super_admin'];
     }
     
     // Función más flexible para verificar datos de usuario en operaciones de lectura/escritura
@@ -83,6 +91,9 @@ service cloud.firestore {
       
       // Admins pueden leer y consultar todas las cuentas (para gestión)
       allow read, list: if isAdmin();
+      
+      // Super admins pueden leer y consultar todas las cuentas
+      allow read, list: if isSuperAdmin();
       
       // Admins pueden crear subcuentas (b_sale)
       allow create: if isAdmin() && 
@@ -131,6 +142,9 @@ service cloud.firestore {
       // Admins pueden leer todas las solicitudes
       allow read: if isAdmin();
       
+      // Super admins pueden leer y consultar todas las solicitudes
+      allow read, list: if isSuperAdmin();
+      
       // Solo admins pueden cambiar el status (approved/rejected)
       allow update: if isAdmin() && 
                        request.resource.data.diff(resource.data).affectedKeys()
@@ -167,6 +181,9 @@ service cloud.firestore {
                      exists(/databases/$(database)/documents/solicitudes/$(resource.data.loanId)) &&
                      get(/databases/$(database)/documents/solicitudes/$(resource.data.loanId)).data.userId == request.auth.uid;
       
+      // Usuarios pueden listar/query propuestas para sus solicitudes (para real-time listeners)
+      allow list: if request.auth != null;
+      
       // Usuarios pueden actualizar el status de propuestas (aceptar/rechazar) (incluso sin custom claims)
       allow update: if request.auth != null && 
                        exists(/databases/$(database)/documents/solicitudes/$(resource.data.loanId)) &&
@@ -176,6 +193,9 @@ service cloud.firestore {
       
       // Admins pueden leer y consultar todas las propuestas
       allow read, list: if isAdmin();
+      
+      // Super admins pueden leer y consultar todas las propuestas
+      allow read, list: if isSuperAdmin();
     }
     
     // ========================================
@@ -202,6 +222,9 @@ service cloud.firestore {
       
       // Admins pueden leer todas las notificaciones
       allow read: if isAdmin();
+      
+      // Super admins pueden leer todas las notificaciones
+      allow read, list: if isSuperAdmin();
     }
     
     // ========================================
@@ -211,6 +234,9 @@ service cloud.firestore {
     match /subcuentas/{subcuentaId} {
       // Solo admins pueden gestionar subcuentas
       allow read, write, create, delete: if isAdmin();
+      
+      // Super admins pueden leer todas las subcuentas
+      allow read, list: if isSuperAdmin();
       
       // Las subcuentas pueden leer su propia información
       allow read: if request.auth != null && 
@@ -224,6 +250,9 @@ service cloud.firestore {
     match /metrics/{document=**} {
       // Solo admins pueden acceder a métricas
       allow read, write: if isAdmin();
+      
+      // Super admins pueden leer métricas
+      allow read: if isSuperAdmin();
     }
     
     // ========================================

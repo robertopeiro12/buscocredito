@@ -1,6 +1,7 @@
 import "server-only"
 import { getFirestore, FieldValue } from "firebase-admin/firestore"
 import { initAdmin } from './FirebaseAdmin'
+import { sendEmailNotification, EmailNotificationData } from '@/services/email-service'
 
 // Helper function to get Firebase Admin Firestore instance
 function getAdminFirestore() {
@@ -106,11 +107,69 @@ export const add_propuesta = async (id: string, offer_data: any) => {
         return { error: error.message, status: 500 };
     }
   }
+
 export async function delete_subaccount_doc(userId: string) {
   try {
     const db = getFirestore()
+    
+    // Delete user document from cuentas
     await db.collection("cuentas").doc(userId).delete()
-    return { status: 200, message: "Documento eliminado correctamente" }
+    
+    // Delete related solicitudes and collect their IDs
+    const solicitudesSnapshot = await db.collection("solicitudes").where("userId", "==", userId).get();
+    const solicitudIds: string[] = [];
+    
+    if (!solicitudesSnapshot.empty) {
+      const solicitudesBatch = db.batch();
+      solicitudesSnapshot.docs.forEach(doc => {
+        solicitudIds.push(doc.id);
+        solicitudesBatch.delete(doc.ref);
+      });
+      await solicitudesBatch.commit();
+      console.log(`Deleted ${solicitudesSnapshot.size} solicitudes for user ${userId}`);
+    }
+
+    // Delete propuestas related to user's solicitudes (by loanId)
+    if (solicitudIds.length > 0) {
+      for (let i = 0; i < solicitudIds.length; i += 30) {
+        const batch = solicitudIds.slice(i, i + 30);
+        const propuestasSnapshot = await db.collection("propuestas").where("loanId", "in", batch).get();
+        
+        if (!propuestasSnapshot.empty) {
+          const propuestasBatch = db.batch();
+          propuestasSnapshot.docs.forEach(doc => propuestasBatch.delete(doc.ref));
+          await propuestasBatch.commit();
+          console.log(`Deleted ${propuestasSnapshot.size} propuestas for user ${userId}'s solicitudes`);
+        }
+      }
+    }
+
+    // Delete propuestas created by this user (if they're a lender)
+    const lenderPropuestasSnapshot = await db.collection("propuestas").where("lenderId", "==", userId).get();
+    if (!lenderPropuestasSnapshot.empty) {
+      const lenderBatch = db.batch();
+      lenderPropuestasSnapshot.docs.forEach(doc => lenderBatch.delete(doc.ref));
+      await lenderBatch.commit();
+      console.log(`Deleted ${lenderPropuestasSnapshot.size} propuestas created by lender ${userId}`);
+    }
+
+    // Delete notifications for this user
+    const notificationsSnapshot = await db.collection("notifications").where("recipientId", "==", userId).get();
+    if (!notificationsSnapshot.empty) {
+      const notificationsBatch = db.batch();
+      notificationsSnapshot.docs.forEach(doc => notificationsBatch.delete(doc.ref));
+      await notificationsBatch.commit();
+      console.log(`Deleted ${notificationsSnapshot.size} notifications for user ${userId}`);
+    }
+    
+    return { 
+      status: 200, 
+      message: "Usuario y datos relacionados eliminados correctamente",
+      deletedData: {
+        solicitudes: solicitudesSnapshot.size,
+        notifications: notificationsSnapshot.size,
+      }
+    }
   } catch (error: any) {
     console.error("Error al eliminar documento en Firestore:", error)
     return {
@@ -126,11 +185,22 @@ export const getLoanOffers = async (loanId: string) => {
   const propuestasRef = Firestore.collection("propuestas");
   
   try {
-    const snapshot = await propuestasRef
+    // Query by loanId
+    const snapshotByLoanId = await propuestasRef
       .where("loanId", "==", loanId)
       .get();
     
-    const offers = snapshot.docs.map(doc => {
+    // Also query by solicitudId for backward compatibility
+    const snapshotBySolicitudId = await propuestasRef
+      .where("solicitudId", "==", loanId)
+      .get();
+    
+    // Combine results and deduplicate by document ID
+    const docsMap = new Map();
+    snapshotByLoanId.docs.forEach(doc => docsMap.set(doc.id, doc));
+    snapshotBySolicitudId.docs.forEach(doc => docsMap.set(doc.id, doc));
+    
+    const offers = Array.from(docsMap.values()).map(doc => {
       const data = doc.data();
       
       // Calcular el pago basado en la frecuencia de amortización
@@ -259,25 +329,79 @@ export const getLenderProposals = async (lenderId: string) => {
     console.error("Error getting lender proposals:", error);
     return { error: error.message, status: 500 };
   }
-};// Notification functions
+};
+
+// Notification functions
 export const createNotification = async (notificationData: {
   recipientId: string;
   type: string;
   title: string;
   message: string;
   data?: any;
+  sendEmail?: boolean; // Optional flag to send email notification
 }) => {
   const Firestore = getAdminFirestore();
   const notificationsRef = Firestore.collection("notifications");
   
   try {
     const newNotification = {
-      ...notificationData,
+      recipientId: notificationData.recipientId,
+      type: notificationData.type,
+      title: notificationData.title,
+      message: notificationData.message,
+      data: notificationData.data,
       read: false,
+      emailSent: false,
       createdAt: new Date(),
     };
     
     const docRef = await notificationsRef.add(newNotification);
+    
+    // Send email notification (async, don't block)
+    // Default to sending email unless explicitly disabled
+    const shouldSendEmail = notificationData.sendEmail !== false;
+    
+    if (shouldSendEmail) {
+      // Get user data to retrieve email and name
+      try {
+        const userDoc = await Firestore.collection("cuentas").doc(notificationData.recipientId).get();
+        
+        if (userDoc.exists) {
+          const userData = userDoc.data();
+          const userEmail = userData?.email;
+          const userName = userData?.Nombre || userData?.name || 'Usuario';
+          
+          // Check if user has email notifications enabled (default: true)
+          const emailNotificationsEnabled = userData?.emailNotifications !== false;
+          
+          if (userEmail && emailNotificationsEnabled) {
+            const emailData: EmailNotificationData = {
+              recipientEmail: userEmail,
+              recipientName: userName,
+              type: notificationData.type as EmailNotificationData['type'],
+              title: notificationData.title,
+              message: notificationData.message,
+              data: notificationData.data,
+            };
+            
+            // Send email asynchronously (don't await to not block the response)
+            sendEmailNotification(emailData).then(result => {
+              if (result.success) {
+                // Update notification to mark email as sent
+                docRef.update({ emailSent: true, emailId: result.id }).catch(console.error);
+              } else {
+                console.warn(`⚠️ Failed to send email to ${userEmail}:`, result.error);
+              }
+            }).catch(error => {
+              console.error('❌ Error in email notification:', error);
+            });
+          }
+        }
+      } catch (emailError) {
+        console.warn('⚠️ Could not send email notification:', emailError);
+        // Don't fail the notification creation if email fails
+      }
+    }
     
     return { status: 200, notificationId: docRef.id };
   } catch (error: any) {
@@ -348,4 +472,3 @@ export const getUnreadNotificationCount = async (userId: string) => {
     return { error: error.message, status: 500 };
   }
 };
-

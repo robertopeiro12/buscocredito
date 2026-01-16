@@ -37,10 +37,14 @@ export const LoanRequestCard = ({
   };
 
   const getStatusText = () => {
+    if (solicitud.status === "approved") return "Propuesta aceptada";
     if (offerCount === 0) return "Sin propuestas";
     if (offerCount === 1) return "1 propuesta";
     return `${offerCount} propuestas`;
   };
+
+  // Check if the solicitud has an accepted offer
+  const hasAcceptedOffer = solicitud.status === "approved";
 
   return (
     <Card className="bg-white hover:shadow-lg transition-all duration-300 border border-gray-200">
@@ -115,26 +119,28 @@ export const LoanRequestCard = ({
 
       <CardFooter className="px-8 py-6 bg-gray-50 border-t border-gray-100">
         <div className="flex justify-between w-full gap-4">
-          <Button
-            color="danger"
-            variant="light"
-            size="md"
-            startContent={<Trash2 className="w-4 h-4" />}
-            onPress={() => onDelete(solicitud)}
-            className="text-red-600 hover:bg-red-50 flex-1"
-          >
-            Eliminar
-          </Button>
+          {!hasAcceptedOffer && (
+            <Button
+              color="danger"
+              variant="light"
+              size="md"
+              startContent={<Trash2 className="w-4 h-4" />}
+              onPress={() => onDelete(solicitud)}
+              className="text-red-600 hover:bg-red-50 flex-1"
+            >
+              Eliminar
+            </Button>
+          )}
           <Button
             color="success"
             variant="solid"
             size="md"
             endContent={<Eye className="w-4 h-4" />}
             onPress={() => onViewOffers(solicitud.id)}
-            className="bg-green-600 hover:bg-green-700 text-white flex-1"
-            isDisabled={offerCount === 0}
+            className={`bg-green-600 hover:bg-green-700 text-white ${hasAcceptedOffer ? "w-full" : "flex-1"}`}
+            isDisabled={offerCount === 0 && !hasAcceptedOffer}
           >
-            {offerCount === 0 ? "Sin propuestas" : "Ver Propuestas"}
+            {hasAcceptedOffer ? "Ver Propuesta Aceptada" : offerCount === 0 ? "Sin propuestas" : "Ver Propuestas"}
           </Button>
         </div>
       </CardFooter>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useUserGuard } from "@/hooks/useRoleGuard";
 import { useDashboardState } from "@/hooks/useDashboardState";
 import {
@@ -30,13 +30,14 @@ import { Pagination } from "@/components/features/dashboard/Pagination";
 import { UserSettings } from "@/components/features/dashboard/UserSettings";
 import { HelpCenter } from "@/components/features/dashboard/HelpCenter";
 import { ErrorFallback } from "@/components/features/dashboard/ErrorFallback";
+import NotificationHistory from "@/components/features/dashboard/NotificationHistory";
 import {
   AuthLoadingSkeleton,
   InitialLoadingSkeleton,
   LoanCardsSkeleton,
   SettingsLoadingSkeleton,
 } from "@/components/features/dashboard/LoadingSkeletons";
-import { doc, getFirestore, getDoc, updateDoc } from "firebase/firestore";
+import { doc, getFirestore, getDoc, updateDoc, collection, query, where, onSnapshot } from "firebase/firestore";
 import { useNotification } from "@/components/common/ui/NotificationProvider";
 
 export default function DashboardPage() {
@@ -57,6 +58,27 @@ export default function DashboardPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 4; // 4 solicitudes por página
 
+  // Unread notifications count
+  const [unreadNotifications, setUnreadNotifications] = useState(0);
+
+  // Real-time listener for notifications
+  useEffect(() => {
+    if (!dashboardState.user?.uid) return;
+
+    const db = getFirestore();
+    const notificationsQuery = query(
+      collection(db, "notifications"),
+      where("recipientId", "==", dashboardState.user.uid),
+      where("read", "==", false)
+    );
+
+    const unsubscribe = onSnapshot(notificationsQuery, (snapshot) => {
+      setUnreadNotifications(snapshot.docs.length);
+    });
+
+    return () => unsubscribe();
+  }, [dashboardState.user?.uid]);
+
   // Destructure dashboard state for easier access
   const {
     activeTab,
@@ -66,6 +88,7 @@ export default function DashboardPage() {
     errors,
     setErrors,
     userData,
+    setUserData,
     solicitudes,
     offerCounts,
     offer_data,
@@ -307,8 +330,15 @@ export default function DashboardPage() {
 
   const handleUpdateUserData = async (data: any) => {
     try {
-      // Placeholder para actualización de datos
-      console.log("Update user data:", data);
+      // Update local state with new user data
+      setUserData((prev) => ({
+        ...prev,
+        ...data,
+        address: {
+          ...prev.address,
+          ...(data.address || {}),
+        },
+      }));
     } catch (error) {
       console.error("Error updating user data:", error);
     }
@@ -364,6 +394,7 @@ export default function DashboardPage() {
             <DashboardSidebar
               activeTab={activeTab}
               onTabChange={setActiveTab}
+              unreadNotifications={unreadNotifications}
             />
 
             {/* Main Content - Scrollable with left margin to account for fixed sidebar on desktop */}
@@ -569,9 +600,16 @@ export default function DashboardPage() {
                       <UserSettings
                         userData={userData}
                         onUpdate={handleUpdateUserData}
+                        userId={dashboardState.user?.uid}
                       />
                     )}
                   </>
+                )}
+
+                {activeTab === "notifications" && dashboardState.user?.uid && (
+                  <NotificationHistory 
+                    userId={dashboardState.user.uid} 
+                  />
                 )}
 
                 {activeTab === "help" && <HelpCenter />}
