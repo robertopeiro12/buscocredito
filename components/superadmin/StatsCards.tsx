@@ -214,42 +214,6 @@ export function StatsCards({ stats, isLoading }: StatsCardsProps) {
           </CardBody>
         </Card>
       </div>
-
-      {/* Activity Summary */}
-      <Card className="bg-gradient-to-r from-purple-50 to-indigo-50">
-        <CardBody className="p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-lg font-semibold text-gray-800">
-                Actividad Reciente
-              </h3>
-              <p className="text-sm text-gray-500">
-                {stats.recentLogins} usuarios activos en las últimas 24 horas
-              </p>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-              <span className="text-sm text-green-600 font-medium">
-                Sistema Activo
-              </span>
-            </div>
-          </div>
-          <div className="mt-4 grid grid-cols-2 gap-4">
-            <div className="bg-white p-4 rounded-lg shadow-sm">
-              <p className="text-2xl font-bold text-indigo-600">
-                {stats.totalPropuestas}
-              </p>
-              <p className="text-sm text-gray-500">Total Propuestas</p>
-            </div>
-            <div className="bg-white p-4 rounded-lg shadow-sm">
-              <p className="text-2xl font-bold text-purple-600">
-                {stats.recentLogins}
-              </p>
-              <p className="text-sm text-gray-500">Logins Recientes (24h)</p>
-            </div>
-          </div>
-        </CardBody>
-      </Card>
     </div>
   );
 }

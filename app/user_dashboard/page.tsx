@@ -88,6 +88,7 @@ export default function DashboardPage() {
     errors,
     setErrors,
     userData,
+    setUserData,
     solicitudes,
     offerCounts,
     offer_data,
@@ -329,8 +330,15 @@ export default function DashboardPage() {
 
   const handleUpdateUserData = async (data: any) => {
     try {
-      // Placeholder para actualización de datos
-      console.log("Update user data:", data);
+      // Update local state with new user data
+      setUserData((prev) => ({
+        ...prev,
+        ...data,
+        address: {
+          ...prev.address,
+          ...(data.address || {}),
+        },
+      }));
     } catch (error) {
       console.error("Error updating user data:", error);
     }
