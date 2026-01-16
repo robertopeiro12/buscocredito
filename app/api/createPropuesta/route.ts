@@ -49,7 +49,9 @@ export async function POST(request: NextRequest) {
       .collection('propuestas')
       .add({
         ...propuestaData,
+        loanId: body.solicitudId, // Ensure loanId is set for getLoanOffers query
         estado: 'pendiente',
+        status: 'pending', // Add status field for consistency
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       });

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { useUserGuard } from "@/hooks/useRoleGuard";
 import { useDashboardState } from "@/hooks/useDashboardState";
 import {
@@ -37,7 +37,7 @@ import {
   LoanCardsSkeleton,
   SettingsLoadingSkeleton,
 } from "@/components/features/dashboard/LoadingSkeletons";
-import { doc, getFirestore, getDoc, updateDoc } from "firebase/firestore";
+import { doc, getFirestore, getDoc, updateDoc, collection, query, where, onSnapshot } from "firebase/firestore";
 import { useNotification } from "@/components/common/ui/NotificationProvider";
 
 export default function DashboardPage() {
@@ -61,32 +61,23 @@ export default function DashboardPage() {
   // Unread notifications count
   const [unreadNotifications, setUnreadNotifications] = useState(0);
 
-  // Fetch unread notifications count
-  const fetchUnreadCount = useCallback(async () => {
-    if (!dashboardState.user?.uid) return;
-    try {
-      const response = await fetch("/api/getUnreadCount", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: dashboardState.user.uid }),
-      });
-      if (response.ok) {
-        const data = await response.json();
-        if (data.status === 200) {
-          setUnreadNotifications(data.count || 0);
-        }
-      }
-    } catch (error) {
-      console.error("Error fetching unread count:", error);
-    }
-  }, [dashboardState.user?.uid]);
-
-  // Fetch unread count on mount and periodically
+  // Real-time listener for notifications
   useEffect(() => {
-    fetchUnreadCount();
-    const interval = setInterval(fetchUnreadCount, 30000); // Every 30 seconds
-    return () => clearInterval(interval);
-  }, [fetchUnreadCount]);
+    if (!dashboardState.user?.uid) return;
+
+    const db = getFirestore();
+    const notificationsQuery = query(
+      collection(db, "notifications"),
+      where("recipientId", "==", dashboardState.user.uid),
+      where("read", "==", false)
+    );
+
+    const unsubscribe = onSnapshot(notificationsQuery, (snapshot) => {
+      setUnreadNotifications(snapshot.docs.length);
+    });
+
+    return () => unsubscribe();
+  }, [dashboardState.user?.uid]);
 
   // Destructure dashboard state for easier access
   const {

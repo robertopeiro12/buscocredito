@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
+import { getFirestore, collection, query, where, onSnapshot, orderBy, limit } from "firebase/firestore";
 import {
   Button,
   Card,
@@ -29,7 +30,6 @@ import {
   Mail,
   MailOpen,
   MoreVertical,
-  RefreshCw,
   Trash2,
   X,
 } from "lucide-react";
@@ -78,44 +78,44 @@ export default function NotificationHistory({ userId }: NotificationHistoryProps
   const [actionLoading, setActionLoading] = useState(false);
   const [selectedNotification, setSelectedNotification] = useState<NotificationData | null>(null);
 
-  // Load notifications
-  const loadNotifications = useCallback(async () => {
+  // Real-time listener for notifications
+  useEffect(() => {
     if (!userId) return;
 
     setLoading(true);
-    try {
-      const response = await fetch("/api/notifications", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ userId }),
-      });
+    const db = getFirestore();
+    const notificationsQuery = query(
+      collection(db, "notifications"),
+      where("recipientId", "==", userId),
+      limit(50)
+    );
 
-      if (response.ok) {
-        const data = await response.json();
-        let notificationsList = [];
+    const unsubscribe = onSnapshot(
+      notificationsQuery,
+      (snapshot) => {
+        const notificationsList = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        })) as NotificationData[];
 
-        if (data.success && data.data?.notifications) {
-          notificationsList = data.data.notifications;
-        } else if (data.data && Array.isArray(data.data)) {
-          notificationsList = data.data;
-        } else if (Array.isArray(data)) {
-          notificationsList = data;
-        }
+        // Sort by createdAt (newest first)
+        notificationsList.sort((a, b) => {
+          const dateA = a.createdAt?.toDate ? a.createdAt.toDate() : new Date(a.createdAt);
+          const dateB = b.createdAt?.toDate ? b.createdAt.toDate() : new Date(b.createdAt);
+          return dateB.getTime() - dateA.getTime();
+        });
 
         setNotifications(notificationsList);
+        setLoading(false);
+      },
+      (error) => {
+        console.error("Error loading notifications:", error);
+        setLoading(false);
       }
-    } catch (error) {
-      console.error("Error loading notifications:", error);
-    } finally {
-      setLoading(false);
-    }
-  }, [userId]);
+    );
 
-  useEffect(() => {
-    loadNotifications();
-  }, [loadNotifications]);
+    return () => unsubscribe();
+  }, [userId]);
 
   // Mark notification as read
   const markAsRead = async (notificationId: string) => {
@@ -170,6 +170,7 @@ export default function NotificationHistory({ userId }: NotificationHistoryProps
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ userId }),
+        credentials: "include",
       });
 
       if (response.ok) {
@@ -194,6 +195,7 @@ export default function NotificationHistory({ userId }: NotificationHistoryProps
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ userId }),
+        credentials: "include",
       });
 
       if (response.ok) {
@@ -359,16 +361,6 @@ export default function NotificationHistory({ userId }: NotificationHistoryProps
 
             {/* Actions */}
             <div className="flex items-center gap-2">
-              <Button
-                size="sm"
-                variant="light"
-                isIconOnly
-                onPress={loadNotifications}
-                isLoading={loading}
-              >
-                <RefreshCw className="w-4 h-4" />
-              </Button>
-
               {unreadCount > 0 && (
                 <Button
                   size="sm"

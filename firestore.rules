@@ -181,6 +181,9 @@ service cloud.firestore {
                      exists(/databases/$(database)/documents/solicitudes/$(resource.data.loanId)) &&
                      get(/databases/$(database)/documents/solicitudes/$(resource.data.loanId)).data.userId == request.auth.uid;
       
+      // Usuarios pueden listar/query propuestas para sus solicitudes (para real-time listeners)
+      allow list: if request.auth != null;
+      
       // Usuarios pueden actualizar el status de propuestas (aceptar/rechazar) (incluso sin custom claims)
       allow update: if request.auth != null && 
                        exists(/databases/$(database)/documents/solicitudes/$(resource.data.loanId)) &&

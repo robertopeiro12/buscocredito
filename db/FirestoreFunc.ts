@@ -127,11 +127,22 @@ export const getLoanOffers = async (loanId: string) => {
   const propuestasRef = Firestore.collection("propuestas");
   
   try {
-    const snapshot = await propuestasRef
+    // Query by loanId
+    const snapshotByLoanId = await propuestasRef
       .where("loanId", "==", loanId)
       .get();
     
-    const offers = snapshot.docs.map(doc => {
+    // Also query by solicitudId for backward compatibility
+    const snapshotBySolicitudId = await propuestasRef
+      .where("solicitudId", "==", loanId)
+      .get();
+    
+    // Combine results and deduplicate by document ID
+    const docsMap = new Map();
+    snapshotByLoanId.docs.forEach(doc => docsMap.set(doc.id, doc));
+    snapshotBySolicitudId.docs.forEach(doc => docsMap.set(doc.id, doc));
+    
+    const offers = Array.from(docsMap.values()).map(doc => {
       const data = doc.data();
       
       // Calcular el pago basado en la frecuencia de amortización
