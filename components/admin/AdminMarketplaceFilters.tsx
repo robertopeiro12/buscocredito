@@ -98,7 +98,7 @@ const AdminMarketplaceFilters = ({
               }}
             >
               {statusOptions.map((option) => (
-                <SelectItem key={option.key} value={option.key}>
+                <SelectItem key={option.key}>
                   {option.label}
                 </SelectItem>
               ))}
@@ -118,7 +118,7 @@ const AdminMarketplaceFilters = ({
               }}
             >
               {amountRangeOptions.map((option) => (
-                <SelectItem key={option.key} value={option.key}>
+                <SelectItem key={option.key}>
                   {option.label}
                 </SelectItem>
               ))}
@@ -138,7 +138,7 @@ const AdminMarketplaceFilters = ({
               }}
             >
               {termOptions.map((option) => (
-                <SelectItem key={option.key} value={option.key}>
+                <SelectItem key={option.key}>
                   {option.label}
                 </SelectItem>
               ))}

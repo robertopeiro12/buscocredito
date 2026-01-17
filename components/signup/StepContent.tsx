@@ -289,7 +289,7 @@ const StepContent = ({
                     }}
                   >
                     {MEXICAN_STATES.map((state) => (
-                      <SelectItem key={state} value={state}>
+                      <SelectItem key={state}>
                         {state}
                       </SelectItem>
                     ))}

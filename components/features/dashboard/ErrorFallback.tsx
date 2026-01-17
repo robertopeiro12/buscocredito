@@ -13,8 +13,9 @@ export const ErrorFallback = ({ error, resetErrorBoundary }: FallbackProps) => {
           Algo salió mal
         </h2>
         <p className="text-gray-600 mb-6">
-          {error.message ||
-            "Ha ocurrido un error inesperado. Por favor, intenta recargar la página."}
+          {error instanceof Error
+            ? error.message
+            : "Ha ocurrido un error inesperado. Por favor, intenta recargar la página."}
         </p>
         <div className="space-y-3">
           <Button
