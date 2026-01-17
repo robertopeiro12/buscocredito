@@ -6,7 +6,7 @@ import {
   SelectItem,
   Button,
   Input,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import { Search, Filter, X } from "lucide-react";
 
 interface AdminMarketplaceFiltersProps {

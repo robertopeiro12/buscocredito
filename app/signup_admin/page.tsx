@@ -8,7 +8,7 @@ import {
   Input,
   Button,
   Spacer,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import { createUserWithEmailAndPassword, signOut } from "firebase/auth";
 import { auth } from "../firebase";
 import { useRouter } from "next/navigation";

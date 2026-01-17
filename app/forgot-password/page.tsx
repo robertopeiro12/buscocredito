@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
-import { Input, Button } from "@nextui-org/react";
+import { Input, Button } from "@heroui/react";
 import { auth } from "../firebase";
 import { sendPasswordResetEmail } from "firebase/auth";
 import { useRouter } from "next/navigation";

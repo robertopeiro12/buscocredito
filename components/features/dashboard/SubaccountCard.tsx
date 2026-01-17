@@ -12,7 +12,7 @@ import {
   ModalHeader,
   ModalBody,
   ModalFooter,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import { Eye, Edit, Trash } from "lucide-react";
 
 type Subaccount = {

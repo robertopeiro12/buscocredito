@@ -1,4 +1,4 @@
-import { Button, Card, CardBody, Chip, Tooltip } from "@nextui-org/react";
+import { Button, Card, CardBody, Chip, Tooltip } from "@heroui/react";
 import { CheckCircle2, Building, Info } from "lucide-react";
 import { Offer } from "@/types/dashboard";
 

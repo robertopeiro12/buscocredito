@@ -1,4 +1,4 @@
-import { Button } from "@nextui-org/react";
+import { Button } from "@heroui/react";
 import { RefreshCw } from "lucide-react";
 import { FallbackProps } from "react-error-boundary";
 

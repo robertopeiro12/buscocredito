@@ -1,5 +1,5 @@
 import React from "react";
-import { Input, Select, SelectItem, Button, Card } from "@nextui-org/react";
+import { Input, Select, SelectItem, Button, Card } from "@heroui/react";
 import {
   Search,
   SlidersHorizontal,

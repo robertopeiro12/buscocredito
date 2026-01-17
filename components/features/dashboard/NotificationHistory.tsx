@@ -18,7 +18,7 @@ import {
   ModalFooter,
   Tooltip,
   Spinner,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import {
   Bell,
   BellOff,

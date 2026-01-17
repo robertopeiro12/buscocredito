@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Spinner } from "@nextui-org/react";
+import { Button, Spinner } from "@heroui/react";
 import { Menu, Bell, LogOut, User } from "lucide-react";
 
 interface SuperAdminHeaderProps {

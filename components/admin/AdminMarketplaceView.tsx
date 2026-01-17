@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { Card, CardBody, Spinner } from "@nextui-org/react";
+import { Card, CardBody, Spinner } from "@heroui/react";
 import { Store, TrendingUp, Users, DollarSign } from "lucide-react";
 import { useAdminLoans } from "@/hooks/useAdminLoans";
 import { useAdminDashboard } from "@/hooks/useAdminDashboard";

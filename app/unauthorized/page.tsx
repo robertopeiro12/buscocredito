@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Button, Card, CardBody } from "@nextui-org/react";
+import { Button, Card, CardBody } from "@heroui/react";
 import { ShieldX, Home, ArrowLeft } from "lucide-react";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "../firebase";

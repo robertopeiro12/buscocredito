@@ -1,16 +1,14 @@
-import {nextui} from '@nextui-org/theme'
+const {heroui} = require('@heroui/theme')
 const { fontFamily } = require("tailwindcss/defaultTheme")
 
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  darkMode: ["class"],
+  darkMode: "class",
   content: [
     './pages/**/*.{js,ts,jsx,tsx,mdx}',
     './components/**/*.{js,ts,jsx,tsx,mdx}',
     './app/**/*.{js,ts,jsx,tsx,mdx}',
-    './node_modules/@nextui-org/theme/dist/**/*.{js,ts,jsx,tsx}',
-    'app/**/*.{ts,tsx}',
-    "components/**/*.{ts,tsx}"
+    './node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}',
   ],
   theme: {
     extend: {
@@ -73,11 +71,9 @@ module.exports = {
       },
       screens:{
         "2xl": "1400px",
-        'widescreen': { 'raw': '(min-aspect-ratio: 3/2)' },
-        'tallscreen': { 'raw': '(max-aspect-ratio: 13/20)' },
-        },
+      },
     },
   },
   darkMode: "class",
-  plugins: [require("tailwindcss-animate"), nextui()],
+  plugins: [require("tailwindcss-animate"), heroui()],
 }

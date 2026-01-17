@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Button, Card, Chip, CardBody } from "@nextui-org/react";
+import { Button, Card, Chip, CardBody } from "@heroui/react";
 import { User, ChevronRight, CreditCard } from "lucide-react";
 import { LenderStats } from "@/components/features/dashboard/LenderStats";
 import { MarketplacePagination } from "@/components/features/dashboard/MarketplacePagination";

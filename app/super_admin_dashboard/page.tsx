@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Card, CardBody, CardHeader, Button } from "@nextui-org/react";
+import { Card, CardBody, CardHeader, Button } from "@heroui/react";
 import { RefreshCw, AlertCircle } from "lucide-react";
 import { useSuperAdminDashboard } from "@/hooks/useSuperAdminDashboard";
 import {

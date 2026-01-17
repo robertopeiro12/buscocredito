@@ -2,7 +2,7 @@ import React from "react";
 import { CheckCircle, AlertCircle } from "lucide-react";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
-import { Select, SelectItem } from "@nextui-org/react";
+import { Select, SelectItem } from "@heroui/react";
 import InputField from "./InputField";
 import { SignupFormData, SignupErrors } from "@/types/signup";
 

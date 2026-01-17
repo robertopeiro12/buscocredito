@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Button } from "@nextui-org/react";
+import { Button } from "@heroui/react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 interface PaginationProps {

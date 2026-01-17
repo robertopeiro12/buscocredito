@@ -1,5 +1,5 @@
 import React from "react";
-import { Card, CardBody, Chip } from "@nextui-org/react";
+import { Card, CardBody, Chip } from "@heroui/react";
 import { CreditScore } from "@/types/creditScore";
 import { getCreditScoreColors } from "@/utils/creditScore";
 

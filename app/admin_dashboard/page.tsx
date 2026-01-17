@@ -12,7 +12,7 @@ import {
   ModalFooter,
   Spinner,
   Chip,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import {
   Search,
   PlusCircle,

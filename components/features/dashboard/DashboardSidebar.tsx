@@ -1,4 +1,4 @@
-import { Button } from "@nextui-org/react";
+import { Button } from "@heroui/react";
 import { Bell, CreditCard, HelpCircle, Settings } from "lucide-react";
 import { DashboardTab } from "@/types/dashboard";
 
