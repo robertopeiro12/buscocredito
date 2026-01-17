@@ -15,7 +15,7 @@ import {
   Progress,
   Chip,
   Tooltip,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import {
   Eye,
   Edit,

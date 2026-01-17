@@ -11,7 +11,7 @@ import {
   ModalBody,
   ModalFooter,
   Input,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import { User as UserIcon, Bell, Mail, Edit2, Save, X } from "lucide-react";
 import { UserData } from "@/types/dashboard";
 import { formatDate } from "@/utils/dashboard-utils";

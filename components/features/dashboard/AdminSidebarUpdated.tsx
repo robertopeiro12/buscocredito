@@ -1,4 +1,4 @@
-import { Button } from "@nextui-org/react";
+import { Button } from "@heroui/react";
 import { Users, Settings, HelpCircle, BarChart, CreditCard, Store } from "lucide-react";
 
 type AdminSidebarProps = {

@@ -1,4 +1,4 @@
-import { Button } from "@nextui-org/react";
+import { Button } from "@heroui/react";
 import { LogOut, CreditCard, Settings, HelpCircle } from "lucide-react";
 import { DashboardTab } from "@/types/dashboard";
 import NotificationCenter from "./NotificationCenter";

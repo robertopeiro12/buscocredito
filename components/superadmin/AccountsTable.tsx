@@ -16,7 +16,7 @@ import {
   DropdownItem,
   Pagination,
   Tooltip,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import {
   Search,
   Filter,

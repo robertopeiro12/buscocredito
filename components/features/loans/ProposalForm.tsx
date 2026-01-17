@@ -21,7 +21,7 @@ import {
   Chip,
   Tabs,
   Tab,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import { useState, useEffect } from "react";
 import type { ProposalData } from "@/app/lender/types/loan.types";
 

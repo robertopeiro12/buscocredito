@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from "framer-motion";
-import { Card, Button } from "@nextui-org/react";
+import { Card, Button } from "@heroui/react";
 import { CreditCard, ChevronRight, Store } from "lucide-react";
 import LenderFilters from './LenderFilters';
 import LoanRequestCard from './LoanRequestCard';

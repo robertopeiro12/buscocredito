@@ -1,4 +1,4 @@
-import { Button } from "@nextui-org/react";
+import { Button } from "@heroui/react";
 import { LogOut, Users, BarChart, Settings, HelpCircle, Store } from "lucide-react";
 
 interface AdminHeaderProps {

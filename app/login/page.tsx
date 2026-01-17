@@ -1,6 +1,6 @@
 // app/login/page.tsx
 "use client";
-import { Input, Button } from "@nextui-org/react";
+import { Input, Button } from "@heroui/react";
 import { useAuth } from "../../contexts/AuthContext";
 import { useForm } from "../../hooks/useForm";
 import { useState, useEffect, useRef, useCallback, Suspense } from "react";

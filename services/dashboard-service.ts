@@ -147,11 +147,22 @@ export const fetchOfferCount = async (loanId: string): Promise<number> => {
 };
 
 /**
- * Deletes a solicitud from Firestore
+ * Deletes a solicitud and all related propuestas via API
  */
 export const deleteSolicitud = async (solicitudId: string): Promise<void> => {
-  const db = getFirestore();
-  await deleteDoc(doc(db, "solicitudes", solicitudId));
+  const response = await fetch("/api/solicitudes/delete", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ solicitudId }),
+    credentials: "include",
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.error || "Error al eliminar la solicitud");
+  }
 };
 
 /**

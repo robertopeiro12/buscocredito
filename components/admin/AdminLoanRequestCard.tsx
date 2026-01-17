@@ -1,5 +1,5 @@
 import React from "react";
-import { Card, Chip, CardBody } from "@nextui-org/react";
+import { Card, Chip, CardBody } from "@heroui/react";
 import { DollarSign, Target, User, Eye } from "lucide-react";
 import type {
   LoanRequest,

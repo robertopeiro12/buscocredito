@@ -1,11 +1,18 @@
 import "@/styles/globals.css";
-import { Metadata } from "next";
+import { Metadata, Viewport } from "next";
 import { siteConfig } from "@/config/site";
 import { fontSans } from "@/config/fonts";
 import { Providers } from "./providers";
 import clsx from "clsx";
 import { ConditionalNavBar } from "@/components/common/layout/ConditionalNavBar";
 import { NotificationProvider } from "@/components/common/ui/NotificationProvider";
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  themeColor: "#2EA043",
+};
 
 export const metadata: Metadata = {
   title: {
@@ -18,9 +25,6 @@ export const metadata: Metadata = {
     shortcut: "/favicon-16x16.png",
     apple: "/apple-touch-icon.png",
   },
-  // Añadido metadatos adicionales para SEO
-  themeColor: "#2EA043", // Color principal de tu app
-  viewport: "width=device-width, initial-scale=1, maximum-scale=1",
   robots: "index, follow",
   openGraph: {
     type: "website",

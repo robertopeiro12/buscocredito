@@ -1,8 +1,9 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@config "../tailwind.config.js";
 
-
+/* Custom media queries for aspect ratio screens */
+@custom-media --widescreen (min-aspect-ratio: 3/2);
+@custom-media --tallscreen (max-aspect-ratio: 13/20);
 
 @layer utilities{
     .section-min-height{
@@ -105,10 +106,11 @@
    
   @layer base {
     * {
-      @apply border-border;
+      border-color: hsl(var(--border));
     }
     body {
-      @apply bg-background text-foreground;
+      background-color: hsl(var(--background));
+      color: hsl(var(--foreground));
       font-feature-settings: "rlig" 1, "calt" 1;
     }
   }

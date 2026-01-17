@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { Bell, X, Check, Clock, Info } from "lucide-react";
-import { Button, Card, Tooltip } from "@nextui-org/react";
+import { Button, Card, Tooltip } from "@heroui/react";
 
 interface NotificationData {
   id: string;

@@ -1,5 +1,5 @@
 import React from "react";
-import { Select, SelectProps } from "@nextui-org/react";
+import { Select, SelectProps } from "@heroui/react";
 
 // Componente Select personalizado con flechas más visibles
 export const CustomSelect = React.forwardRef<HTMLSelectElement, SelectProps>(

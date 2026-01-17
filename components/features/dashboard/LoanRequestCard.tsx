@@ -5,7 +5,7 @@ import {
   CardFooter,
   Progress,
   Chip,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import {
   ChevronRight,
   TrendingUp,

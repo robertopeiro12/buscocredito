@@ -1,4 +1,4 @@
-import { Card, CardBody } from "@nextui-org/react";
+import { Card, CardBody } from "@heroui/react";
 import { FileText, TrendingUp, CheckCircle2 } from "lucide-react";
 import { SolicitudData } from "@/types/dashboard";
 
