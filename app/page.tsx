@@ -1,7 +1,13 @@
 "use client";
 
-import Introduction from "@/components/features/landing/Introduction";
-import Acerca from "@/components/features/landing/Acerca";
+import HeroSection from "@/components/features/landing/HeroSection";
+import CTABanner from "@/components/features/landing/CTABanner";
+import ConfusionSection from "@/components/features/landing/ConfusionSection";
+import WhatIsBuscoCredito from "@/components/features/landing/WhatIsBuscoCredito";
+import HowItWorks from "@/components/features/landing/HowItWorks";
+import WhyUseBuscoCredito from "@/components/features/landing/WhyUseBuscoCredito";
+import StartEvaluatingCTA from "@/components/features/landing/StartEvaluatingCTA";
+import LenderSection from "@/components/features/landing/LenderSection";
 import Footer from "@/components/common/layout/Footer";
 import React, { useState, useEffect } from "react";
 
@@ -43,19 +49,28 @@ export default function Home() {
       />
 
       {/* Hero Section */}
-      <section
-        className="relative bg-gradient-to-b from-white via-white to-gray-50"
-        id="inicio"
-      >
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#0000000a_1px,transparent_1px),linear-gradient(to_bottom,#0000000a_1px,transparent_1px)] bg-[size:24px_24px] opacity-25" />
-        <Introduction />
-      </section>
+      <HeroSection />
 
-      {/* About Section */}
-      <section className="relative bg-white" id="acerca">
-        <div className="absolute top-0 left-0 right-0 h-24 bg-gradient-to-b from-gray-50 to-transparent" />
-        <Acerca />
-      </section>
+      {/* CTA Banner with Steps */}
+      <CTABanner />
+
+      {/* Confusion Section */}
+      <ConfusionSection />
+
+      {/* What is BuscoCredito */}
+      <WhatIsBuscoCredito />
+
+      {/* How It Works */}
+      <HowItWorks />
+
+      {/* Why Use BuscoCredito */}
+      <WhyUseBuscoCredito />
+
+      {/* Start Evaluating CTA */}
+      <StartEvaluatingCTA />
+
+      {/* Lender Section */}
+      <LenderSection />
 
       {/* Footer */}
       <Footer />

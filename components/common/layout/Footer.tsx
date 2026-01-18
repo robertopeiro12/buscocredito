@@ -1,150 +1,124 @@
 import React from "react";
 import Link from "next/link";
-import { Phone, Mail, Clock } from "lucide-react";
+import { Wallet } from "lucide-react";
 
 const Footer = () => {
   return (
     <footer
-      className="bg-gray-100 border-t border-gray-200 text-gray-600 py-12"
+      className="bg-white border-t border-gray-100 py-16"
       role="contentinfo"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {/* Sección de la empresa */}
-          <div>
-            <h2 className="text-2xl font-semibold text-green-600 mb-4">
-              BuscoCredito
-            </h2>
-            <p className="text-sm text-gray-600 leading-relaxed mb-4">
-              Tu plataforma confiable para encontrar las mejores opciones de
-              financiamiento. Conectamos prestatarios con instituciones
-              financieras verificadas.
-            </p>
-            <div className="flex items-center text-sm text-gray-500">
-              <Clock className="w-4 h-4 mr-2" />
-              <span>Lun - Vie: 9:00 - 18:00</span>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+          {/* Logo Section */}
+          <div className="col-span-2 md:col-span-1">
+            <div className="flex items-center gap-2 mb-6">
+              <Wallet className="w-8 h-8 text-green-600" />
+              <span className="font-display font-bold text-xl text-[#0e3a45]">
+                Busco<span className="text-green-600">Crédito</span>
+              </span>
             </div>
+            <p className="text-xs text-gray-500">
+              © BuscoCrédito 2026 - All Rights Reserved
+            </p>
           </div>
 
-          {/* Enlaces Principales */}
+          {/* Soluciones */}
           <div>
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">
-              Servicios
-            </h3>
-            <ul className="space-y-3">
+            <h4 className="font-bold text-gray-900 mb-4">Soluciones</h4>
+            <ul className="space-y-3 text-sm text-gray-600">
               <li>
                 <Link
-                  href="/prestamos-personales"
-                  className="text-gray-600 hover:text-green-600 transition-colors duration-300"
+                  href="/prestamos"
+                  className="hover:text-[#0e3a45] transition"
                 >
-                  Préstamos Personales
+                  Crédito personal
                 </Link>
               </li>
               <li>
                 <Link
-                  href="/prestamos-empresariales"
-                  className="text-gray-600 hover:text-green-600 transition-colors duration-300"
+                  href="/prestamos"
+                  className="hover:text-[#0e3a45] transition"
                 >
-                  Préstamos Empresariales
+                  Crédito hoy
                 </Link>
               </li>
               <li>
                 <Link
-                  href="/prestamistas"
-                  className="text-gray-600 hover:text-green-600 transition-colors duration-300"
+                  href="/prestamista"
+                  className="hover:text-[#0e3a45] transition"
                 >
-                  Para Prestamistas
+                  Otros servicios
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Nosotros */}
+          <div>
+            <h4 className="font-bold text-gray-900 mb-4">Nosotros</h4>
+            <ul className="space-y-3 text-sm text-gray-600">
+              <li>
+                <Link
+                  href="/acerca-de"
+                  className="hover:text-[#0e3a45] transition"
+                >
+                  Acerca de
                 </Link>
               </li>
               <li>
                 <Link
                   href="/como-funciona"
-                  className="text-gray-600 hover:text-green-600 transition-colors duration-300"
+                  className="hover:text-[#0e3a45] transition"
                 >
-                  Cómo Funciona
+                  Contacto
+                </Link>
+              </li>
+              <li>
+                <Link href="#" className="hover:text-[#0e3a45] transition">
+                  Bolsa de Trabajo
                 </Link>
               </li>
             </ul>
           </div>
 
-          {/* Legal y Regulatorio */}
+          {/* Ayuda */}
           <div>
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">Legal</h3>
-            <ul className="space-y-3">
+            <h4 className="font-bold text-gray-900 mb-4">Ayuda</h4>
+            <ul className="space-y-3 text-sm text-gray-600">
+              <li>
+                <Link
+                  href="/como-funciona"
+                  className="hover:text-[#0e3a45] transition"
+                >
+                  Centro de Ayuda
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/como-funciona"
+                  className="hover:text-[#0e3a45] transition"
+                >
+                  FAQs
+                </Link>
+              </li>
               <li>
                 <Link
                   href="/terminos"
-                  className="text-gray-600 hover:text-green-600 transition-colors duration-300"
+                  className="hover:text-[#0e3a45] transition"
                 >
-                  Términos y Condiciones
+                  Términos
                 </Link>
               </li>
               <li>
                 <Link
                   href="/politica-privacidad"
-                  className="text-gray-600 hover:text-green-600 transition-colors duration-300"
+                  className="hover:text-[#0e3a45] transition"
                 >
-                  Política de Privacidad
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/aviso-legal"
-                  className="text-gray-600 hover:text-green-600 transition-colors duration-300"
-                >
-                  Aviso Legal
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/transparencia"
-                  className="text-gray-600 hover:text-green-600 transition-colors duration-300"
-                >
-                  Transparencia
+                  Privacidad
                 </Link>
               </li>
             </ul>
-          </div>
-
-          {/* Contacto */}
-          <div>
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">
-              Contacto
-            </h3>
-            <address className="not-italic space-y-4">
-              <div className="flex items-center text-gray-600">
-                <Mail className="w-5 h-5 mr-3" />
-                <a
-                  href="mailto:contacto@buscocredito.com"
-                  className="text-sm hover:text-green-600 transition-colors duration-300"
-                >
-                  contacto@buscocredito.com
-                </a>
-              </div>
-              <div className="flex items-center text-gray-600">
-                <Phone className="w-5 h-5 mr-3" />
-                <a
-                  href="tel:+525512345678"
-                  className="text-sm hover:text-green-600 transition-colors duration-300"
-                >
-                  +52 (55) 1234-5678
-                </a>
-              </div>
-            </address>
-          </div>
-        </div>
-
-        {/* Footer Bottom */}
-        <div className="mt-12 pt-8 border-t border-gray-200">
-          <div className="flex flex-col md:flex-row justify-between items-center">
-            <p className="text-sm text-gray-500 mb-4 md:mb-0">
-              © {new Date().getFullYear()} BuscoCredito. Todos los derechos
-              reservados.
-            </p>
-            <p className="text-xs text-gray-400 text-center">
-              BuscoCredito es una plataforma de intermediación financiera
-              regulada. No somos una institución bancaria.
-            </p>
           </div>
         </div>
       </div>
