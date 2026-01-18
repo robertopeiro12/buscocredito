@@ -61,7 +61,7 @@ export const OfferCard = ({
 
               {offer.comision !== undefined && (
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Comisión:</span>
+                  <span className="text-gray-600">Comisión por apertura:</span>
                   <span className="font-semibold text-gray-900">
                     ${offer.comision?.toLocaleString()}
                   </span>
