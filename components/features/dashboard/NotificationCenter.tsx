@@ -16,6 +16,7 @@ interface NotificationData {
     amount?: number;
     interestRate?: number;
     amortizationFrequency?: string;
+    amortization?: number;
     term?: number;
     comision?: number;
     medicalBalance?: number;
@@ -23,6 +24,7 @@ interface NotificationData {
       amount?: number;
       interestRate?: number;
       amortizationFrequency?: string;
+      amortization?: number;
       term?: number;
       comision?: number;
       medicalBalance?: number;
@@ -351,6 +353,12 @@ export default function NotificationCenter({
                                 {notification.data.winningOffer?.term || "N/A"}{" "}
                                 meses
                               </div>
+                              {notification.data.winningOffer?.amortization !== undefined && notification.data.winningOffer?.amortization > 0 && (
+                                <div>
+                                  <span className="font-medium">Monto de amortización:</span> $
+                                  {notification.data.winningOffer?.amortization?.toLocaleString()}
+                                </div>
+                              )}
                               <div>
                                 <span className="font-medium">Comisión por apertura:</span> $
                                 {notification.data.winningOffer?.comision?.toLocaleString() ||
@@ -405,6 +413,12 @@ export default function NotificationCenter({
                                 {notification.data.amortizationFrequency ||
                                   "N/A"}
                               </div>
+                              {notification.data.amortization !== undefined && notification.data.amortization > 0 && (
+                                <div>
+                                  <span className="font-medium">Monto de amortización:</span> $
+                                  {notification.data.amortization?.toLocaleString()}
+                                </div>
+                              )}
                             </div>
                             <div className="border-t border-yellow-200 pt-2 mt-2">
                               <span className="font-medium text-yellow-700">
@@ -442,6 +456,13 @@ export default function NotificationCenter({
                                 <br />
                                 {notification.data.term} meses
                               </div>
+                              {notification.data.amortization !== undefined && notification.data.amortization > 0 && (
+                                <div>
+                                  <span className="font-medium">Monto de amortización:</span>
+                                  <br />$
+                                  {notification.data.amortization?.toLocaleString()}
+                                </div>
+                              )}
                               <div>
                                 <span className="font-medium">Comisión por apertura:</span>
                                 <br />$

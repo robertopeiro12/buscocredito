@@ -46,6 +46,7 @@ interface NotificationData {
     amount?: number;
     interestRate?: number;
     amortizationFrequency?: string;
+    amortization?: number;
     term?: number;
     comision?: number;
     medicalBalance?: number;
@@ -53,6 +54,7 @@ interface NotificationData {
       amount?: number;
       interestRate?: number;
       amortizationFrequency?: string;
+      amortization?: number;
       term?: number;
       comision?: number;
       medicalBalance?: number;
@@ -502,7 +504,7 @@ export default function NotificationHistory({ userId }: NotificationHistoryProps
 
                       {/* Quick info for proposals */}
                       {notification.type === "nueva_propuesta" && notification.data?.amount && (
-                        <div className="mt-2 flex items-center gap-3 text-xs text-gray-500">
+                        <div className="mt-2 flex items-center gap-3 text-xs text-gray-500 flex-wrap">
                           <span>
                             <strong>Monto:</strong> $
                             {notification.data.amount.toLocaleString("es-MX")}
@@ -515,6 +517,12 @@ export default function NotificationHistory({ userId }: NotificationHistoryProps
                           {notification.data.term && (
                             <span>
                               <strong>Plazo:</strong> {notification.data.term} meses
+                            </span>
+                          )}
+                          {notification.data.amortization !== undefined && notification.data.amortization > 0 && (
+                            <span>
+                              <strong>Monto de amortización:</strong> $
+                              {notification.data.amortization.toLocaleString("es-MX")}
                             </span>
                           )}
                         </div>
@@ -632,6 +640,14 @@ export default function NotificationHistory({ userId }: NotificationHistoryProps
                             <span className="text-gray-500">Frecuencia de pago:</span>
                             <p className="font-semibold capitalize">
                               {selectedNotification.data.amortizationFrequency}
+                            </p>
+                          </div>
+                        )}
+                        {selectedNotification.data.amortization !== undefined && selectedNotification.data.amortization > 0 && (
+                          <div>
+                            <span className="text-gray-500">Monto de amortización:</span>
+                            <p className="font-semibold">
+                              ${selectedNotification.data.amortization?.toLocaleString("es-MX")} MXN
                             </p>
                           </div>
                         )}

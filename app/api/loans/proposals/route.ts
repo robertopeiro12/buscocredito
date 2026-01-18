@@ -72,6 +72,7 @@ export async function POST(request: NextRequest) {
         amount: propuestaData.amount,
         interestRate: propuestaData.interest_rate,
         amortizationFrequency: propuestaData.amortization_frequency,
+        amortization: propuestaData.amortization,
         term: propuestaData.deadline,
         comision: propuestaData.comision,
         medicalBalance: propuestaData.medical_balance
