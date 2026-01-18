@@ -193,6 +193,56 @@ export async function DELETE(
       console.warn("User not found in Firebase Auth:", authError.message);
     }
 
+    // If this is an admin (b_admin), delete all worker subaccounts and their propuestas first
+    let deletedSubaccounts = 0;
+    let deletedWorkerPropuestas = 0;
+    
+    if (userData?.type === "b_admin") {
+      // Find all worker subaccounts belonging to this admin
+      const subaccountsSnapshot = await db.collection("cuentas").where("Empresa_id", "==", uid).get();
+      
+      if (!subaccountsSnapshot.empty) {
+        const workerIds = subaccountsSnapshot.docs.map(doc => doc.id);
+        console.log(`Found ${workerIds.length} worker subaccounts for admin ${uid}`);
+        
+        // Delete propuestas created by each worker (lenderId)
+        for (const workerId of workerIds) {
+          const workerPropuestasSnapshot = await db.collection("propuestas").where("lenderId", "==", workerId).get();
+          
+          if (!workerPropuestasSnapshot.empty) {
+            const workerPropuestasBatch = db.batch();
+            workerPropuestasSnapshot.docs.forEach(doc => workerPropuestasBatch.delete(doc.ref));
+            await workerPropuestasBatch.commit();
+            deletedWorkerPropuestas += workerPropuestasSnapshot.size;
+            console.log(`Deleted ${workerPropuestasSnapshot.size} propuestas created by worker ${workerId}`);
+          }
+          
+          // Delete notifications for this worker
+          const workerNotificationsSnapshot = await db.collection("notifications").where("recipientId", "==", workerId).get();
+          if (!workerNotificationsSnapshot.empty) {
+            const workerNotificationsBatch = db.batch();
+            workerNotificationsSnapshot.docs.forEach(doc => workerNotificationsBatch.delete(doc.ref));
+            await workerNotificationsBatch.commit();
+            console.log(`Deleted ${workerNotificationsSnapshot.size} notifications for worker ${workerId}`);
+          }
+          
+          // Delete the worker from Firebase Auth
+          try {
+            await auth.deleteUser(workerId);
+          } catch (authError: any) {
+            console.warn(`Worker ${workerId} not found in Firebase Auth:`, authError.message);
+          }
+        }
+        
+        // Delete all worker subaccounts from Firestore
+        const subaccountsBatch = db.batch();
+        subaccountsSnapshot.docs.forEach(doc => subaccountsBatch.delete(doc.ref));
+        await subaccountsBatch.commit();
+        deletedSubaccounts = subaccountsSnapshot.size;
+        console.log(`Deleted ${deletedSubaccounts} worker subaccounts for admin ${uid}`);
+      }
+    }
+
     // Delete from Firestore cuentas collection
     await db.collection("cuentas").doc(uid).delete();
 
@@ -211,6 +261,7 @@ export async function DELETE(
     }
 
     // Delete propuestas related to user's solicitudes (by loanId)
+    let deletedSolicitudPropuestas = 0;
     if (solicitudIds.length > 0) {
       // Firestore 'in' query is limited to 30 items, so we need to batch
       for (let i = 0; i < solicitudIds.length; i += 30) {
@@ -221,18 +272,21 @@ export async function DELETE(
           const propuestasBatch = db.batch();
           propuestasSnapshot.docs.forEach(doc => propuestasBatch.delete(doc.ref));
           await propuestasBatch.commit();
+          deletedSolicitudPropuestas += propuestasSnapshot.size;
           console.log(`Deleted ${propuestasSnapshot.size} propuestas for user ${uid}'s solicitudes`);
         }
       }
     }
 
-    // Also delete propuestas created by this user (if they're a lender)
+    // Also delete propuestas created by this user (if they're a lender/admin)
+    let deletedLenderPropuestas = 0;
     const lenderPropuestasSnapshot = await db.collection("propuestas").where("lenderId", "==", uid).get();
     if (!lenderPropuestasSnapshot.empty) {
       const lenderBatch = db.batch();
       lenderPropuestasSnapshot.docs.forEach(doc => lenderBatch.delete(doc.ref));
       await lenderBatch.commit();
-      console.log(`Deleted ${lenderPropuestasSnapshot.size} propuestas created by lender ${uid}`);
+      deletedLenderPropuestas = lenderPropuestasSnapshot.size;
+      console.log(`Deleted ${deletedLenderPropuestas} propuestas created by lender ${uid}`);
     }
 
     // Delete notifications for this user
@@ -249,8 +303,10 @@ export async function DELETE(
       message: "Account and all related data deleted successfully",
       deletedData: {
         solicitudes: solicitudesSnapshot.size,
-        propuestas: solicitudIds.length > 0 ? "deleted" : 0,
+        propuestas: deletedSolicitudPropuestas + deletedLenderPropuestas + deletedWorkerPropuestas,
         notifications: notificationsSnapshot.size,
+        subaccounts: deletedSubaccounts,
+        workerPropuestas: deletedWorkerPropuestas,
       }
     });
   } catch (error: any) {
