@@ -72,6 +72,7 @@ export async function POST(req: NextRequest) {
           amount: winningProposal.amount,
           interestRate: winningProposal.interest_rate,
           amortizationFrequency: winningProposal.amortization_frequency,
+          amortization: winningProposal.amortization,
           term: winningProposal.deadline,
           comision: winningProposal.comision,
           medicalBalance: winningProposal.medical_balance
@@ -98,6 +99,7 @@ export async function POST(req: NextRequest) {
                 amount: winningProposal.amount,
                 interestRate: winningProposal.interest_rate,
                 amortizationFrequency: winningProposal.amortization_frequency,
+                amortization: winningProposal.amortization,
                 term: winningProposal.deadline,
                 comision: winningProposal.comision,
                 medicalBalance: winningProposal.medical_balance
