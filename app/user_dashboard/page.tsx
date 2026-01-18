@@ -404,7 +404,6 @@ export default function DashboardPage() {
                   activeTab={activeTab}
                   onTabChange={setActiveTab}
                   onSignOut={handleSignOut}
-                  userId={dashboardState.user?.uid}
                 />
 
                 {activeTab === "loans" && (

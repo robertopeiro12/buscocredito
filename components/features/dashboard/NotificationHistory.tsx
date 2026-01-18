@@ -307,7 +307,7 @@ export default function NotificationHistory({ userId }: NotificationHistoryProps
           <div className="flex items-center gap-3">
             <Chip
               startContent={<Bell className="w-3 h-3" />}
-              color={unreadCount > 0 ? "danger" : "default"}
+              color={unreadCount > 0 ? "warning" : "default"}
               variant="flat"
               size="sm"
             >
@@ -315,7 +315,7 @@ export default function NotificationHistory({ userId }: NotificationHistoryProps
             </Chip>
             <Chip
               startContent={<CheckCheck className="w-3 h-3" />}
-              color="default"
+              color="success"
               variant="flat"
               size="sm"
             >
@@ -334,15 +334,16 @@ export default function NotificationHistory({ userId }: NotificationHistoryProps
               <Button
                 size="sm"
                 variant={filter === "all" ? "solid" : "flat"}
-                color={filter === "all" ? "primary" : "default"}
+                color={filter === "all" ? "success" : "default"}
                 onPress={() => setFilter("all")}
+                className={filter === "all" ? "bg-green-600" : ""}
               >
                 Todas ({notifications.length})
               </Button>
               <Button
                 size="sm"
                 variant={filter === "unread" ? "solid" : "flat"}
-                color={filter === "unread" ? "danger" : "default"}
+                color={filter === "unread" ? "warning" : "default"}
                 onPress={() => setFilter("unread")}
                 startContent={<Bell className="w-3 h-3" />}
               >
@@ -365,10 +366,11 @@ export default function NotificationHistory({ userId }: NotificationHistoryProps
                 <Button
                   size="sm"
                   variant="flat"
-                  color="primary"
+                  color="success"
                   onPress={markAllAsRead}
                   isLoading={actionLoading}
                   startContent={<CheckCheck className="w-4 h-4" />}
+                  className="text-green-700 hover:bg-green-100"
                 >
                   Marcar todas como leídas
                 </Button>
@@ -417,7 +419,7 @@ export default function NotificationHistory({ userId }: NotificationHistoryProps
       {/* Notifications List */}
       {loading ? (
         <div className="flex flex-col items-center justify-center py-12">
-          <Spinner size="lg" color="success" />
+          <Spinner size="lg" color="success" className="text-green-600" />
           <p className="text-gray-500 mt-4">Cargando notificaciones...</p>
         </div>
       ) : filteredNotifications.length === 0 ? (

@@ -1,7 +1,6 @@
 import React from 'react';
 import { Button } from "@heroui/react";
 import { LogOut, Store, FileText, Settings, HelpCircle, BarChart3 } from "lucide-react";
-import NotificationCenter from "@/components/features/dashboard/NotificationCenter";
 
 type LenderTab = "marketplace" | "myoffers" | "metrics" | "notifications" | "settings" | "help";
 
@@ -10,15 +9,13 @@ interface LenderHeaderProps {
   companyName: string;
   onTabChange?: (tab: LenderTab) => void;
   onSignOut?: () => void;
-  userId?: string;
 }
 
 const LenderHeader = ({ 
   activeTab, 
   companyName, 
   onTabChange, 
-  onSignOut,
-  userId 
+  onSignOut
 }: LenderHeaderProps) => {
   const getTitle = () => {
     switch (activeTab) {
@@ -148,11 +145,6 @@ const LenderHeader = ({
               <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
               <span className="text-sm text-gray-500">En línea</span>
             </div>
-            
-            {/* Notificaciones */}
-            {userId && (
-              <NotificationCenter userId={userId} compact />
-            )}
             
             {onSignOut && (
               <Button

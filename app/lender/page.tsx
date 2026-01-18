@@ -7,7 +7,7 @@ import { useLenderDashboard } from "@/hooks/useLenderDashboard";
 // Components
 import { LenderSidebar } from "@/components/features/dashboard/LenderSidebar";
 import { LenderStats } from "@/components/features/dashboard/LenderStats";
-import NotificationCenter from "@/components/features/dashboard/NotificationCenter";
+import NotificationHistory from "@/components/features/dashboard/NotificationHistory";
 import LenderHeader from "@/components/lender/LenderHeader";
 import MarketplaceView from "@/components/lender/MarketplaceView";
 import MyOffersView from "@/components/lender/MyOffersView";
@@ -90,7 +90,6 @@ export default function LenderPage() {
             companyName={partnerData.company}
             onTabChange={handleTabChange}
             onSignOut={handleSignOut}
-            userId={user}
           />
         </div>
 
@@ -154,15 +153,7 @@ export default function LenderPage() {
           )}
 
           {lenderState.activeTab === "notifications" && (
-            <div className="max-w-4xl mx-auto">
-              <div className="mb-6">
-                <h1 className="text-2xl font-bold text-gray-900 mb-2">Centro de Notificaciones</h1>
-                <p className="text-gray-600">
-                  Mantente al día con todas las actualizaciones importantes
-                </p>
-              </div>
-              <NotificationCenter userId={user} />
-            </div>
+            <NotificationHistory userId={user} />
           )}
 
           {lenderState.activeTab === "settings" && (
