@@ -1,6 +1,10 @@
+"use client";
+
 // components/LenderSidebar.tsx
 import { Button } from "@heroui/react";
-import { Store, FileText, Settings, HelpCircle, BarChart3 } from "lucide-react";
+import { Store, FileText, Settings, HelpCircle, BarChart3, Bell } from "lucide-react";
+import { useState, useEffect } from "react";
+import { getFirestore, collection, query, where, onSnapshot } from "firebase/firestore";
 
 type LenderSidebarProps = {
   activeTab: string;
@@ -15,6 +19,26 @@ export function LenderSidebar({
   companyName,
   userId,
 }: LenderSidebarProps) {
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  // Real-time listener for unread notifications
+  useEffect(() => {
+    if (!userId) return;
+
+    const db = getFirestore();
+    const notificationsQuery = query(
+      collection(db, "notifications"),
+      where("recipientId", "==", userId),
+      where("read", "==", false)
+    );
+
+    const unsubscribe = onSnapshot(notificationsQuery, (snapshot) => {
+      setUnreadCount(snapshot.docs.length);
+    });
+
+    return () => unsubscribe();
+  }, [userId]);
+
   const getButtonClass = (tab: string) => 
     `w-full justify-start h-14 px-4 mb-3 transition-all duration-200 ease-in-out ${
       activeTab === tab
@@ -40,6 +64,13 @@ export function LenderSidebar({
       label: "Métricas",
       id: "metrics",
       description: "Estadísticas y análisis"
+    },
+    {
+      icon: Bell,
+      label: "Notificaciones",
+      id: "notifications",
+      description: "Alertas y actualizaciones",
+      badge: unreadCount
     },
     {
       icon: Settings,
@@ -79,7 +110,16 @@ export function LenderSidebar({
             {navItems.map((item) => (
               <Button
                 key={item.id}
-                startContent={<item.icon className="w-5 h-5" />}
+                startContent={
+                  <div className="relative">
+                    <item.icon className="w-5 h-5" />
+                    {item.badge && item.badge > 0 && (
+                      <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+                        {item.badge > 9 ? '9+' : item.badge}
+                      </span>
+                    )}
+                  </div>
+                }
                 className={getButtonClass(item.id)}
                 variant="light"
                 onPress={() => setActiveTab(item.id)}

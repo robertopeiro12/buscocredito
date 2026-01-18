@@ -1,20 +1,17 @@
 import { Button } from "@heroui/react";
 import { LogOut, CreditCard, Settings, HelpCircle } from "lucide-react";
 import { DashboardTab } from "@/types/dashboard";
-import NotificationCenter from "./NotificationCenter";
 
 interface DashboardHeaderProps {
   activeTab: DashboardTab;
   onTabChange?: (tab: DashboardTab) => void;
   onSignOut?: () => void;
-  userId?: string;
 }
 
 export const DashboardHeader = ({
   activeTab,
   onTabChange,
   onSignOut,
-  userId,
 }: DashboardHeaderProps) => {
   const getTitle = () => {
     switch (activeTab) {
@@ -73,8 +70,6 @@ export const DashboardHeader = ({
               <h1 className="text-lg font-bold text-gray-900">BuscoCredito</h1>
             </div>
             <div className="flex items-center gap-2">
-              {/* Notificaciones móvil */}
-              {userId && <NotificationCenter userId={userId} compact />}
               {onSignOut && (
                 <Button
                   variant="light"
@@ -125,9 +120,6 @@ export const DashboardHeader = ({
               <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
               <span className="text-sm text-gray-500">En línea</span>
             </div>
-
-            {/* Notificaciones */}
-            {userId && <NotificationCenter userId={userId} compact />}
 
             {onSignOut && (
               <Button
