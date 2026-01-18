@@ -637,7 +637,7 @@ export default function NotificationHistory({ userId }: NotificationHistoryProps
                         )}
                         {selectedNotification.data.comision !== undefined && (
                           <div>
-                            <span className="text-gray-500">Comisión:</span>
+                            <span className="text-gray-500">Comisión por apertura:</span>
                             <p className="font-semibold">
                               ${selectedNotification.data.comision?.toLocaleString("es-MX")} MXN
                             </p>

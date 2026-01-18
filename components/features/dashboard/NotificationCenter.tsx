@@ -352,7 +352,7 @@ export default function NotificationCenter({
                                 meses
                               </div>
                               <div>
-                                <span className="font-medium">Comisión:</span> $
+                                <span className="font-medium">Comisión por apertura:</span> $
                                 {notification.data.winningOffer?.comision?.toLocaleString() ||
                                   "N/A"}
                               </div>
@@ -443,7 +443,7 @@ export default function NotificationCenter({
                                 {notification.data.term} meses
                               </div>
                               <div>
-                                <span className="font-medium">Comisión:</span>
+                                <span className="font-medium">Comisión por apertura:</span>
                                 <br />$
                                 {notification.data.comision?.toLocaleString()}
                               </div>

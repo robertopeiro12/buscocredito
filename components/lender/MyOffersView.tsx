@@ -197,7 +197,7 @@ const MyOffersView = ({
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-500 text-sm">Comisión:</span>
+                      <span className="text-gray-500 text-sm">Comisión por apertura:</span>
                       <span className="font-medium">
                         ${proposal.comision?.toLocaleString()}
                       </span>
