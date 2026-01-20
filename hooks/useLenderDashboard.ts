@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { onAuthStateChanged } from 'firebase/auth';
 import { doc, getFirestore, getDoc } from 'firebase/firestore';
 import { auth } from '@/app/firebase';
@@ -35,10 +35,22 @@ export const useLenderDashboard = () => {
   const { isAuthorized, isLoading: isCheckingAuth } = useLenderGuard();
   const { signOut } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  
+  // Read initial tab from URL query parameter
+  const initialTab = (() => {
+    const tabParam = searchParams?.get('tab');
+    if (tabParam === 'myoffers' || tabParam === 'marketplace' || 
+        tabParam === 'metrics' || tabParam === 'notifications' || 
+        tabParam === 'settings' || tabParam === 'help') {
+      return tabParam as LenderState['activeTab'];
+    }
+    return 'marketplace';
+  })();
   
   // Estados principales
   const [user, setUser] = useState<string>("");
-  const [activeTab, setActiveTab] = useState<LenderState['activeTab']>("marketplace");
+  const [activeTab, setActiveTab] = useState<LenderState['activeTab']>(initialTab);
   const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
   const [isCreatingOffer, setIsCreatingOffer] = useState(false);
   const [partnerData, setPartnerData] = useState<PartnerData>(initialPartnerData);
