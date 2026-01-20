@@ -46,6 +46,9 @@ export async function POST(request: NextRequest) {
       return ApiResponses.loanNotAvailable();
     }
 
+    // Get solicitud data for notification
+    const solicitudData = solicitudDoc.data();
+
     // Agregar lenderId del usuario autenticado
     const propuestaData = {
       ...body,
@@ -75,7 +78,10 @@ export async function POST(request: NextRequest) {
         amortization: propuestaData.amortization,
         term: propuestaData.deadline,
         comision: propuestaData.comision,
-        medicalBalance: propuestaData.medical_balance
+        medicalBalance: propuestaData.medical_balance,
+        lenderName: propuestaData.partner || propuestaData.lender_name,
+        purpose: solicitudData?.purpose,
+        loanType: solicitudData?.type
       },
     });
 
