@@ -20,6 +20,9 @@ interface NotificationData {
     term?: number;
     comision?: number;
     medicalBalance?: number;
+    lenderName?: string;
+    purpose?: string;
+    loanType?: string;
     winningOffer?: {
       amount?: number;
       interestRate?: number;

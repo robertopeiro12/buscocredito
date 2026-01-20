@@ -50,6 +50,9 @@ interface NotificationData {
     term?: number;
     comision?: number;
     medicalBalance?: number;
+    lenderName?: string;
+    purpose?: string;
+    loanType?: string;
     winningOffer?: {
       amount?: number;
       interestRate?: number;
@@ -610,7 +613,7 @@ export default function NotificationHistory({ userId }: NotificationHistoryProps
                       <h4 className="font-medium text-gray-800 mb-3">
                         {selectedNotification.type === "loan_assigned_other" 
                           ? "Detalles de la propuesta ganadora" 
-                          : "Detalles de la propuesta"}
+                          : "Información de la Propuesta"}
                       </h4>
                       {(() => {
                         // For loan_assigned_other, use winningOffer data; otherwise use direct data
@@ -621,64 +624,107 @@ export default function NotificationHistory({ userId }: NotificationHistoryProps
                         if (!proposalData) return null;
                         
                         return (
-                          <div className="grid grid-cols-2 gap-4 text-sm">
-                            {proposalData.amount && (
-                              <div>
-                                <span className="text-gray-500">Monto:</span>
-                                <p className="font-semibold">
-                                  ${proposalData.amount.toLocaleString("es-MX")} MXN
+                          <>
+                            <div className="space-y-3 text-sm">
+                              {proposalData.amount !== undefined && (
+                                <div className="flex justify-between">
+                                  <span className="text-gray-600">Cantidad que te prestan:</span>
+                                  <span className="font-semibold text-gray-900">
+                                    ${proposalData.amount?.toLocaleString("es-MX")}
+                                  </span>
+                                </div>
+                              )}
+                              {proposalData.comision !== undefined && (
+                                <div className="flex justify-between">
+                                  <span className="text-gray-600">Comisión por apertura:</span>
+                                  <span className="font-semibold text-gray-900">
+                                    ${proposalData.comision?.toLocaleString("es-MX")}
+                                  </span>
+                                </div>
+                              )}
+                              {selectedNotification.data.lenderName && (
+                                <div className="flex justify-between">
+                                  <span className="text-gray-600">Compañía:</span>
+                                  <span className="font-semibold text-gray-900">
+                                    {selectedNotification.data.lenderName}
+                                  </span>
+                                </div>
+                              )}
+                              {proposalData.interestRate !== undefined && (
+                                <div className="flex justify-between">
+                                  <span className="text-gray-600">Tasa de interés:</span>
+                                  <span className="font-semibold text-gray-900">
+                                    {proposalData.interestRate}% anual
+                                  </span>
+                                </div>
+                              )}
+                              {proposalData.term !== undefined && (
+                                <div className="flex justify-between">
+                                  <span className="text-gray-600">Plazo:</span>
+                                  <span className="font-semibold text-gray-900">
+                                    {proposalData.term} meses
+                                  </span>
+                                </div>
+                              )}
+                              {proposalData.amortizationFrequency && (
+                                <div className="flex justify-between">
+                                  <span className="text-gray-600">Frecuencia de pago:</span>
+                                  <span className="font-semibold text-gray-900 capitalize">
+                                    {proposalData.amortizationFrequency}
+                                  </span>
+                                </div>
+                              )}
+                              {proposalData.medicalBalance !== undefined && proposalData.medicalBalance > 0 && (
+                                <div className="flex justify-between">
+                                  <span className="text-gray-600">Seguro de vida saldo deudor:</span>
+                                  <span className="font-semibold text-gray-900">
+                                    ${proposalData.medicalBalance?.toLocaleString("es-MX")}
+                                  </span>
+                                </div>
+                              )}
+                              {selectedNotification.data.loanType && (
+                                <div className="flex justify-between">
+                                  <span className="text-gray-600">Tipo de préstamo:</span>
+                                  <span className="font-semibold text-gray-900">
+                                    {selectedNotification.data.loanType}
+                                  </span>
+                                </div>
+                              )}
+                              {selectedNotification.data.purpose && (
+                                <div className="flex justify-between">
+                                  <span className="text-gray-600">Propósito:</span>
+                                  <span className="font-semibold text-gray-900">
+                                    {selectedNotification.data.purpose}
+                                  </span>
+                                </div>
+                              )}
+                              {proposalData.amortization !== undefined && proposalData.amortization > 0 && (
+                                <div className="flex justify-between">
+                                  <span className="text-gray-600">Pago:</span>
+                                  <span className="font-semibold text-gray-900">
+                                    ${proposalData.amortization?.toLocaleString("es-MX")}
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+                            
+                            {/* Payment summary */}
+                            {proposalData.amortization !== undefined && proposalData.amortization > 0 && proposalData.amortizationFrequency && proposalData.term && (
+                              <div className="mt-4 bg-green-50 rounded-lg p-4 border border-green-200">
+                                <p className="text-gray-900 font-medium text-sm">
+                                  Pagarás{" "}
+                                  <span className="font-bold text-green-600">
+                                    ${proposalData.amortization?.toLocaleString("es-MX")}
+                                  </span>{" "}
+                                  de forma{" "}
+                                  <span className="font-bold capitalize">
+                                    {proposalData.amortizationFrequency}
+                                  </span>{" "}
+                                  durante <span className="font-bold">{proposalData.term} meses</span>
                                 </p>
                               </div>
                             )}
-                            {proposalData.interestRate && (
-                              <div>
-                                <span className="text-gray-500">Tasa de interés:</span>
-                                <p className="font-semibold">
-                                  {proposalData.interestRate}%
-                                </p>
-                              </div>
-                            )}
-                            {proposalData.term && (
-                              <div>
-                                <span className="text-gray-500">Plazo:</span>
-                                <p className="font-semibold">
-                                  {proposalData.term} meses
-                                </p>
-                              </div>
-                            )}
-                            {proposalData.amortizationFrequency && (
-                              <div>
-                                <span className="text-gray-500">Frecuencia de pago:</span>
-                                <p className="font-semibold capitalize">
-                                  {proposalData.amortizationFrequency}
-                                </p>
-                              </div>
-                            )}
-                            {proposalData.amortization !== undefined && proposalData.amortization > 0 && (
-                              <div>
-                                <span className="text-gray-500">Monto de amortización:</span>
-                                <p className="font-semibold">
-                                  ${proposalData.amortization?.toLocaleString("es-MX")} MXN
-                                </p>
-                              </div>
-                            )}
-                            {proposalData.comision !== undefined && (
-                              <div>
-                                <span className="text-gray-500">Comisión por apertura:</span>
-                                <p className="font-semibold">
-                                  ${proposalData.comision?.toLocaleString("es-MX")} MXN
-                                </p>
-                              </div>
-                            )}
-                            {proposalData.medicalBalance !== undefined && (
-                              <div>
-                                <span className="text-gray-500">Seguro vida saldo deudor:</span>
-                                <p className="font-semibold">
-                                  ${proposalData.medicalBalance?.toLocaleString("es-MX")} MXN
-                                </p>
-                              </div>
-                            )}
-                          </div>
+                          </>
                         );
                       })()}
                     </CardBody>

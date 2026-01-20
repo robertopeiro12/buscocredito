@@ -44,6 +44,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Get solicitud data for notification
+    const solicitudData = solicitudDoc.data();
+
     // Guardar propuesta en Firestore
     const propuestaRef = await adminFirestore
       .collection('propuestas')
@@ -71,7 +74,10 @@ export async function POST(request: NextRequest) {
         amortization: propuestaData.montoAmortizacion || propuestaData.amortization,
         term: propuestaData.plazo || propuestaData.deadline,
         comision: propuestaData.comision,
-        medicalBalance: propuestaData.seguroVida || propuestaData.medical_balance
+        medicalBalance: propuestaData.seguroVida || propuestaData.medical_balance,
+        lenderName: propuestaData.partner || propuestaData.lender_name,
+        purpose: solicitudData?.purpose,
+        loanType: solicitudData?.type
       },
     });
 
