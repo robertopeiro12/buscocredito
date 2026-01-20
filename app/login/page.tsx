@@ -280,6 +280,13 @@ function LoginForm() {
         >
           {getButtonText()}
         </Button>
+
+        <p className="text-center text-sm text-gray-600">
+          ¿No tienes cuenta?{" "}
+          <a href="/signup" className="text-[#55A555] hover:underline font-medium">
+            Regístrate
+          </a>
+        </p>
       </div>
     </div>
   );
