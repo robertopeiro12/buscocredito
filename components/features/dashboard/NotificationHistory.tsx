@@ -707,11 +707,21 @@ export default function NotificationHistory({ userId }: NotificationHistoryProps
                 <Button
                   color="success"
                   onPress={() => {
-                    // Navigate to dashboard loans tab
-                    window.location.href = "/user_dashboard";
+                    // Navigate based on notification type
+                    // loan_accepted and loan_assigned_other are for lenders/workers
+                    // nueva_propuesta is for regular users
+                    if (selectedNotification?.type === "loan_accepted" || 
+                        selectedNotification?.type === "loan_assigned_other") {
+                      window.location.href = "/lender?tab=myoffers";
+                    } else {
+                      window.location.href = "/user_dashboard";
+                    }
                   }}
                 >
-                  Ver en Dashboard
+                  {selectedNotification?.type === "loan_accepted" || 
+                   selectedNotification?.type === "loan_assigned_other" 
+                    ? "Ver Mis Ofertas" 
+                    : "Ver en Dashboard"}
                 </Button>
               </ModalFooter>
             </>
