@@ -70,11 +70,12 @@ interface NotificationData {
 
 interface NotificationHistoryProps {
   userId: string;
+  isLender?: boolean;
 }
 
 type FilterType = "all" | "unread" | "read";
 
-export default function NotificationHistory({ userId }: NotificationHistoryProps) {
+export default function NotificationHistory({ userId, isLender = false }: NotificationHistoryProps) {
   const [notifications, setNotifications] = useState<NotificationData[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<FilterType>("all");
@@ -698,7 +699,17 @@ export default function NotificationHistory({ userId }: NotificationHistoryProps
                                   </span>
                                 </div>
                               )}
+                              {/* Amortización field - shown for all users */}
                               {proposalData.amortization !== undefined && proposalData.amortization > 0 && (
+                                <div className="flex justify-between">
+                                  <span className="text-gray-600">Amortización:</span>
+                                  <span className="font-semibold text-gray-900">
+                                    ${proposalData.amortization?.toLocaleString("es-MX")}
+                                  </span>
+                                </div>
+                              )}
+                              {/* Pago field - only shown for regular users, not workers/lenders */}
+                              {!isLender && proposalData.amortization !== undefined && proposalData.amortization > 0 && (
                                 <div className="flex justify-between">
                                   <span className="text-gray-600">Pago:</span>
                                   <span className="font-semibold text-gray-900">
@@ -708,8 +719,8 @@ export default function NotificationHistory({ userId }: NotificationHistoryProps
                               )}
                             </div>
                             
-                            {/* Payment summary */}
-                            {proposalData.amortization !== undefined && proposalData.amortization > 0 && proposalData.amortizationFrequency && proposalData.term && (
+                            {/* Payment summary - only shown for regular users, not workers/lenders */}
+                            {!isLender && proposalData.amortization !== undefined && proposalData.amortization > 0 && proposalData.amortizationFrequency && proposalData.term && (
                               <div className="mt-4 bg-green-50 rounded-lg p-4 border border-green-200">
                                 <p className="text-gray-900 font-medium text-sm">
                                   Pagarás{" "}
