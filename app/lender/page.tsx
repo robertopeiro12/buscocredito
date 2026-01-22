@@ -153,7 +153,7 @@ export default function LenderPage() {
           )}
 
           {lenderState.activeTab === "notifications" && (
-            <NotificationHistory userId={user} />
+            <NotificationHistory userId={user} isLender={true} />
           )}
 
           {lenderState.activeTab === "settings" && (
