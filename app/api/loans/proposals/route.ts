@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
         term: propuestaData.deadline,
         comision: propuestaData.comision,
         medicalBalance: propuestaData.medical_balance,
-        lenderName: propuestaData.partner || propuestaData.lender_name,
+        lenderName: propuestaData.company || propuestaData.lender_name,
         purpose: solicitudData?.purpose,
         loanType: solicitudData?.type
       },
