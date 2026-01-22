@@ -4,7 +4,22 @@ import { Input, Button } from "@heroui/react";
 import { useAuth } from "../../contexts/AuthContext";
 import { useForm } from "../../hooks/useForm";
 import { useState, useEffect, useRef, useCallback, Suspense } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
+
+// Helper function to get redirect path based on user type
+const getRedirectPath = (userType: string): string => {
+  switch (userType) {
+    case "super_admin":
+      return "/super_admin_dashboard";
+    case "b_admin":
+      return "/admin_dashboard";
+    case "b_sale":
+      return "/lender";
+    case "user":
+    default:
+      return "/user_dashboard";
+  }
+};
 
 // Reglas de validación
 const validationRules = {
@@ -23,9 +38,18 @@ const validationRules = {
 };
 
 function LoginForm() {
-  const { signIn, loading, error: authError } = useAuth();
+  const { signIn, loading, error: authError, user } = useAuth();
   const searchParams = useSearchParams();
+  const router = useRouter();
   const resetMessage = searchParams?.get("message");
+
+  // Redirect already logged-in users to their respective dashboard
+  useEffect(() => {
+    if (user && user.type) {
+      const redirectPath = getRedirectPath(user.type);
+      router.push(redirectPath);
+    }
+  }, [user, router]);
 
   // Rate limiting state
   const [attemptCount, setAttemptCount] = useState(0);
