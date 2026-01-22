@@ -34,9 +34,25 @@ export default function Signup() {
     handleSubmit,
   } = useSignupForm();
 
+  // Redirect already logged-in users to their respective dashboard
   useEffect(() => {
-    if (user) {
-      router.push("/user_dashboard");
+    if (user && user.type) {
+      let redirectPath = "/user_dashboard";
+      switch (user.type) {
+        case "super_admin":
+          redirectPath = "/super_admin_dashboard";
+          break;
+        case "b_admin":
+          redirectPath = "/admin_dashboard";
+          break;
+        case "b_sale":
+          redirectPath = "/lender";
+          break;
+        case "user":
+        default:
+          redirectPath = "/user_dashboard";
+      }
+      router.push(redirectPath);
     }
   }, [user, router]);
 
