@@ -90,6 +90,9 @@ export async function POST(request: NextRequest) {
     const winningProposalDoc = await db.collection('propuestas').doc(proposalId).get();
     const winningProposal = winningProposalDoc.data();
     
+    // Obtener datos de la solicitud para purpose y loanType
+    const solicitudData = solicitudDoc.data();
+    
     console.log("Winning proposal data:", { 
       proposalId, 
       partner: winningProposal?.partner,
@@ -114,7 +117,9 @@ export async function POST(request: NextRequest) {
           amortization: winningProposal.amortization,
           term: winningProposal.deadline,
           comision: winningProposal.comision,
-          medicalBalance: winningProposal.medical_balance
+          medicalBalance: winningProposal.medical_balance,
+          purpose: solicitudData?.purpose,
+          loanType: solicitudData?.type
         }
       });
       console.log("Winner notification result:", winnerNotificationResult);
@@ -134,6 +139,8 @@ export async function POST(request: NextRequest) {
           message: "La solicitud fue asignada a otra propuesta",
           data: {
             loanId: loanId,
+            purpose: solicitudData?.purpose,
+            loanType: solicitudData?.type,
             winningOffer: {
               amount: winningProposal.amount,
               interestRate: winningProposal.interest_rate,

@@ -138,6 +138,30 @@ const MyOffersView = ({
                   <div className="space-y-3">
                     <div className="flex justify-between items-center">
                       <span className="text-gray-500 text-sm">
+                        Monto:
+                      </span>
+                      <span className="font-medium">
+                        ${proposal.amount?.toLocaleString()}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-500 text-sm">
+                        Propósito de préstamo:
+                      </span>
+                      <span className="font-medium">
+                        {proposal.requestInfo?.purpose || "Sin propósito"}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-500 text-sm">
+                        Tipo de préstamo:
+                      </span>
+                      <span className="font-medium">
+                        {proposal.requestInfo?.type || "Préstamo"}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-500 text-sm">
                         Tasa de interés:
                       </span>
                       <span className="font-medium">

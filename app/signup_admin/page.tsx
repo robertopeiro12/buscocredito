@@ -24,17 +24,29 @@ export default function SignUpAdmin() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  const verifyAccessToken = () => {
+  const verifyAccessToken = async () => {
     setLoading(true);
     setError("");
 
-    if (accessToken === "valid_token") {
-      setIsVerified(true);
-      setError("");
-    } else {
-      setError(
-        "Token de acceso inválido. Por favor verifica e intenta de nuevo."
-      );
+    try {
+      const response = await fetch("/api/auth/validate-bank-token", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token: accessToken }),
+      });
+      
+      const data = await response.json();
+      
+      if (data.valid) {
+        setIsVerified(true);
+        setError("");
+      } else {
+        setError(
+          data.error || "Token de acceso inválido. Por favor verifica e intenta de nuevo."
+        );
+      }
+    } catch (err) {
+      setError("Error al verificar el token. Intenta de nuevo.");
     }
     setLoading(false);
   };
@@ -64,6 +76,22 @@ export default function SignUpAdmin() {
         email: email,
         // Removed createdAt field
       });
+
+      // Mark the token as used
+      try {
+        await fetch("/api/auth/use-bank-token", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ 
+            token: accessToken, 
+            usedBy: userId,
+            companyName: b_name 
+          }),
+        });
+      } catch (tokenError) {
+        console.error("Error marking token as used:", tokenError);
+        // Continue even if marking fails - the account is already created
+      }
 
       await signOut(auth);
       router.push("/login");
