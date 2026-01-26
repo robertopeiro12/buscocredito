@@ -629,7 +629,7 @@ export default function NotificationHistory({ userId, isLender = false }: Notifi
                             <div className="space-y-3 text-sm">
                               {proposalData.amount !== undefined && (
                                 <div className="flex justify-between">
-                                  <span className="text-gray-600">Cantidad que te prestan:</span>
+                                  <span className="text-gray-600">{isLender ? "Monto:" : "Cantidad que te prestan:"}</span>
                                   <span className="font-semibold text-gray-900">
                                     ${proposalData.amount?.toLocaleString("es-MX")}
                                   </span>
@@ -699,8 +699,8 @@ export default function NotificationHistory({ userId, isLender = false }: Notifi
                                   </span>
                                 </div>
                               )}
-                              {/* Amortización field - shown for all users */}
-                              {proposalData.amortization !== undefined && proposalData.amortization > 0 && (
+                              {/* Amortización field - only shown for workers/lenders */}
+                              {isLender && proposalData.amortization !== undefined && proposalData.amortization > 0 && (
                                 <div className="flex justify-between">
                                   <span className="text-gray-600">Amortización:</span>
                                   <span className="font-semibold text-gray-900">

@@ -318,7 +318,11 @@ export const getLenderProposals = async (lenderId: string) => {
         term: data.deadline,
         status: data.status,
         createdAt: data.createdAt?.toDate ? data.createdAt.toDate().toISOString() : 
-                  data.createdAt instanceof Date ? data.createdAt.toISOString() : null,
+                  data.createdAt instanceof Date ? data.createdAt.toISOString() : 
+                  data.fechaCreacion?.toDate ? data.fechaCreacion.toDate().toISOString() :
+                  data.fechaCreacion instanceof Date ? data.fechaCreacion.toISOString() :
+                  typeof data.createdAt === 'string' ? data.createdAt :
+                  typeof data.fechaCreacion === 'string' ? data.fechaCreacion : null,
         requestInfo: data.requestInfo || {},
         contactInfo: contactInfo
       };
