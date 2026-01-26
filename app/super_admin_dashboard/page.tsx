@@ -13,6 +13,7 @@ import {
   AccountDetailModal,
   ConfirmActionModal,
   SystemInfoCards,
+  TokenManagement,
 } from "@/components/superadmin";
 import type { AccountInfo } from "@/types/superadmin";
 
@@ -137,6 +138,9 @@ export default function SuperAdminDashboard() {
             />
           </div>
         );
+
+      case "tokens":
+        return <TokenManagement />;
 
       case "stats":
         return (

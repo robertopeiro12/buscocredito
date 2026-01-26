@@ -10,6 +10,7 @@ import {
   Activity,
   LogOut,
   Home,
+  Key,
 } from "lucide-react";
 
 type SuperAdminSidebarProps = {
@@ -42,6 +43,12 @@ export function SuperAdminSidebar({
       label: "Cuentas",
       id: "accounts",
       description: "Gestionar usuarios",
+    },
+    {
+      icon: Key,
+      label: "Tokens Bancos",
+      id: "tokens",
+      description: "Tokens de registro",
     },
     {
       icon: BarChart,
