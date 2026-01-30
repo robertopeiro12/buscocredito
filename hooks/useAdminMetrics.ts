@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { getFirestore, collection, query, where, getDocs, Timestamp } from "firebase/firestore";
+import { getFirestore, collection, query, where, getDocs } from "firebase/firestore";
 import toast from "react-hot-toast";
 
 type MetricsData = {
@@ -401,17 +401,10 @@ export const useAdminMetrics = ({
         );
       }
 
-      const startTimestamp = Timestamp.fromDate(startDate);
-      const endTimestamp =
-        selectedTimeRange === "custom"
-          ? Timestamp.fromDate(new Date(customDateRange.endDate))
-          : Timestamp.fromDate(now);
-      const previousPeriodStartTimestamp = Timestamp.fromDate(
-        previousPeriodStartDate
-      );
-      const previousPeriodEndTimestamp = Timestamp.fromDate(
-        previousPeriodEndDate
-      );
+      // Set end date for custom range
+      const endDate = selectedTimeRange === "custom" 
+        ? new Date(customDateRange.endDate) 
+        : now;
 
       // Obtener todas las propuestas de los trabajadores (periodo actual)
       const proposalsRef = collection(db, "propuestas");
@@ -430,47 +423,72 @@ export const useAdminMetrics = ({
         workerIds.push(doc.id);
       });
 
+      // Helper function to parse date from various formats
+      const parseProposalDate = (proposal: any): Date | null => {
+        // Try createdAt first (could be Timestamp, Date, or string)
+        if (proposal.createdAt) {
+          if (proposal.createdAt.toDate) {
+            return proposal.createdAt.toDate();
+          }
+          if (proposal.createdAt instanceof Date) {
+            return proposal.createdAt;
+          }
+          if (typeof proposal.createdAt === 'string') {
+            const parsed = new Date(proposal.createdAt);
+            if (!isNaN(parsed.getTime())) return parsed;
+          }
+        }
+        // Try fechaCreacion (could be Timestamp, Date, or string)
+        if (proposal.fechaCreacion) {
+          if (proposal.fechaCreacion.toDate) {
+            return proposal.fechaCreacion.toDate();
+          }
+          if (proposal.fechaCreacion instanceof Date) {
+            return proposal.fechaCreacion;
+          }
+          if (typeof proposal.fechaCreacion === 'string') {
+            const parsed = new Date(proposal.fechaCreacion);
+            if (!isNaN(parsed.getTime())) return parsed;
+          }
+        }
+        return null;
+      };
+
       for (const workerId of workerIds) {
         try {
-          // Consultar propuestas del periodo actual
-          let currentQ;
-          if (selectedTimeRange === "custom") {
-            currentQ = query(
-              proposalsRef,
-              where("partner", "==", workerId),
-              where("createdAt", ">=", startTimestamp),
-              where("createdAt", "<=", endTimestamp)
-            );
-          } else {
-            currentQ = query(
-              proposalsRef,
-              where("partner", "==", workerId),
-              where("createdAt", ">=", startTimestamp)
-            );
-          }
-          const currentSnapshot = await getDocs(currentQ);
-
-          currentSnapshot.forEach((doc) => {
-            currentProposals.push({
-              id: doc.id,
-              ...doc.data(),
-            });
-          });
-
-          // Consultar propuestas del periodo anterior
-          const previousQ = query(
+          // Fetch all proposals for this worker (without date filter)
+          const proposalQ = query(
             proposalsRef,
-            where("partner", "==", workerId),
-            where("createdAt", ">=", previousPeriodStartTimestamp),
-            where("createdAt", "<=", previousPeriodEndTimestamp)
+            where("partner", "==", workerId)
           );
-          const previousSnapshot = await getDocs(previousQ);
+          const proposalSnapshot = await getDocs(proposalQ);
 
-          previousSnapshot.forEach((doc) => {
-            previousProposals.push({
-              id: doc.id,
-              ...doc.data(),
-            });
+          proposalSnapshot.forEach((doc) => {
+            const data = doc.data();
+            const proposalDate = parseProposalDate(data);
+            
+            if (proposalDate) {
+              // Check if in current period
+              if (proposalDate >= startDate && proposalDate <= endDate) {
+                currentProposals.push({
+                  id: doc.id,
+                  ...data,
+                });
+              }
+              // Check if in previous period
+              else if (proposalDate >= previousPeriodStartDate && proposalDate <= previousPeriodEndDate) {
+                previousProposals.push({
+                  id: doc.id,
+                  ...data,
+                });
+              }
+            } else {
+              // If no valid date, include in current proposals to avoid data loss
+              currentProposals.push({
+                id: doc.id,
+                ...data,
+              });
+            }
           });
         } catch (error) {
           console.error(
