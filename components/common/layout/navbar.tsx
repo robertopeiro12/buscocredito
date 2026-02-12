@@ -33,10 +33,11 @@ export default function NavBar() {
         <div className="flex justify-between items-center h-20">
           {/* Logo */}
           <Link href="/" className="flex-shrink-0 flex items-center gap-2 cursor-pointer">
-            <Wallet className="w-8 h-8 text-green-600" />
+            <p>Changing logo</p>
+            {/* <Wallet className="w-8 h-8 text-green-600" />
             <span className="font-display font-bold text-2xl text-[#0e3a45] tracking-tight">
               Busco<span className="text-green-600">Crédito</span>
-            </span>
+            </span> */}
           </Link>
 
           {/* Desktop Navigation */}

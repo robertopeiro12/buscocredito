@@ -11,12 +11,12 @@ const HeroSection = () => {
           {/* Left Content */}
           <div className="z-10 animate-fade-in-up">
             <h1 className="font-display text-4xl lg:text-6xl font-bold text-gray-900 leading-tight mb-6">
-              Cuando necesitas <br />
-              crédito <span className="text-green-600">ya</span>, no mañana:
+              Deja de dar vueltas<br />
+              por crédito:
             </h1>
-            <p className="text-lg text-gray-600 mb-8 max-w-lg leading-relaxed">
-              Una solicitud, varios prestamistas, ofertas claras para comparar.
-              Simplifica tus finanzas hoy mismo.
+            <p className="text-3xl text-gray-600 mb-8 max-w-lg leading-relaxed">
+              Con una sola solicitud recibes ofertas claras de varios prestamistas
+              en minutos.
             </p>
             <Link
               href="/como-funciona"

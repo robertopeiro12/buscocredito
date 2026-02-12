@@ -13,10 +13,8 @@ const Footer = () => {
           {/* Logo Section */}
           <div className="col-span-2 md:col-span-1">
             <div className="flex items-center gap-2 mb-6">
-              <Wallet className="w-8 h-8 text-green-600" />
-              <span className="font-display font-bold text-xl text-[#0e3a45]">
-                Busco<span className="text-green-600">Crédito</span>
-              </span>
+              <p>Changing logo</p>
+              {/* LOGO TO CHANGE */}
             </div>
             <p className="text-xs text-gray-500">
               © BuscoCrédito 2026 - All Rights Reserved
