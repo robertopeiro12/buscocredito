@@ -15,13 +15,27 @@ export interface EmailNotificationData {
     amount?: number;
     interestRate?: number;
     amortizationFrequency?: string;
+    amortization?: number;
     term?: number;
     comision?: number;
     medicalBalance?: number;
+    lenderName?: string;
+    purpose?: string;
+    loanType?: string;
     winningOffer?: {
       amount?: number;
       interestRate?: number;
       amortizationFrequency?: string;
+      amortization?: number;
+      term?: number;
+      comision?: number;
+      medicalBalance?: number;
+    };
+    competitorOffer?: {
+      amount?: number;
+      interestRate?: number;
+      amortizationFrequency?: string;
+      amortization?: number;
       term?: number;
       comision?: number;
       medicalBalance?: number;
@@ -64,7 +78,7 @@ function generateEmailTemplate(data: EmailNotificationData): EmailTemplate {
   switch (data.type) {
     case 'nueva_propuesta':
       return {
-        subject: `Nueva Propuesta de Préstamo - ${data.data?.amount?.toLocaleString('es-MX') || ''} MXN`,
+        subject: `Nueva Propuesta de Préstamo${data.data?.lenderName ? ` de ${data.data.lenderName}` : ''} - $${data.data?.amount?.toLocaleString('es-MX') || ''} MXN`,
         html: `
           <!DOCTYPE html>
           <html>
@@ -73,11 +87,12 @@ function generateEmailTemplate(data: EmailNotificationData): EmailTemplate {
             <div class="container">
               <div class="header">
                 <h1>Nueva Propuesta Recibida</h1>
+                ${data.data?.lenderName ? `<p style="color: #ffffff; margin: 8px 0 0; font-size: 16px; opacity: 0.9;">de <strong>${data.data.lenderName}</strong></p>` : ''}
               </div>
               <div class="content">
                 <h2>Estimado/a ${data.recipientName},</h2>
                 <p style="font-size: 16px; color: #374151; margin-bottom: 24px;">
-                  Has recibido una nueva propuesta de préstamo. A continuación encontrarás todos los detalles de la oferta:
+                  Has recibido una nueva propuesta de préstamo${data.data?.lenderName ? ` de <strong>${data.data.lenderName}</strong>` : ''}. A continuación encontrarás todos los detalles de la oferta:
                 </p>
                 
                 <div class="highlight-box">
@@ -97,6 +112,14 @@ function generateEmailTemplate(data: EmailNotificationData): EmailTemplate {
                       </td>
                       <td style="padding: 12px 0; border-bottom: 1px solid #e5e7eb; text-align: right; font-weight: 600; color: #1f2937; font-size: 16px;">
                         $${data.data?.comision?.toLocaleString('es-MX') || 'N/A'} MXN
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 12px 0; border-bottom: 1px solid #e5e7eb; color: #6b7280; font-size: 14px;">
+                        Compañía:
+                      </td>
+                      <td style="padding: 12px 0; border-bottom: 1px solid #e5e7eb; text-align: right; font-weight: 600; color: #1f2937; font-size: 16px;">
+                        ${data.data?.lenderName || 'N/A'}
                       </td>
                     </tr>
                     <tr>
@@ -124,19 +147,49 @@ function generateEmailTemplate(data: EmailNotificationData): EmailTemplate {
                       </td>
                     </tr>
                     <tr>
-                      <td style="padding: 12px 0; color: #6b7280; font-size: 14px;">
+                      <td style="padding: 12px 0; border-bottom: 1px solid #e5e7eb; color: #6b7280; font-size: 14px;">
                         Seguro de vida saldo deudor:
                       </td>
-                      <td style="padding: 12px 0; text-align: right; font-weight: 600; color: #1f2937; font-size: 16px;">
+                      <td style="padding: 12px 0; border-bottom: 1px solid #e5e7eb; text-align: right; font-weight: 600; color: #1f2937; font-size: 16px;">
                         $${data.data?.medicalBalance?.toLocaleString('es-MX') || 'N/A'} MXN
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 12px 0; border-bottom: 1px solid #e5e7eb; color: #6b7280; font-size: 14px;">
+                        Tipo de préstamo:
+                      </td>
+                      <td style="padding: 12px 0; border-bottom: 1px solid #e5e7eb; text-align: right; font-weight: 600; color: #1f2937; font-size: 16px;">
+                        ${data.data?.loanType || 'N/A'}
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 12px 0; border-bottom: 1px solid #e5e7eb; color: #6b7280; font-size: 14px;">
+                        Propósito:
+                      </td>
+                      <td style="padding: 12px 0; border-bottom: 1px solid #e5e7eb; text-align: right; font-weight: 600; color: #1f2937; font-size: 16px;">
+                        ${data.data?.purpose || 'N/A'}
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 12px 0; color: #6b7280; font-size: 14px;">
+                        Pago:
+                      </td>
+                      <td style="padding: 12px 0; text-align: right; font-weight: 600; color: #1f2937; font-size: 16px;">
+                        $${data.data?.amortization?.toLocaleString('es-MX') || 'N/A'} MXN
                       </td>
                     </tr>
                   </table>
                 </div>
                 
-                <div style="background-color: #f9fafb; padding: 16px; border-radius: 8px; margin: 24px 0;">
-                  <p style="margin: 0; color: #374151; font-size: 15px; text-align: center;">
-                    <strong>Monto del pago:</strong> Pagarás <span style="color: #10b981; font-weight: 700;">${data.data?.amortizationFrequency || 'N/A'}</span> durante <span style="color: #10b981; font-weight: 700;">${data.data?.term || 'N/A'} meses</span>
+                <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 24px; border-radius: 12px; margin: 28px 0; text-align: center;">
+                  <p style="margin: 0; color: #ffffff; font-size: 22px; font-weight: 700; line-height: 1.4;">
+                    VAS A PAGAR $${data.data?.amortization?.toLocaleString('es-MX') || 'N/A'} MXN
+                  </p>
+                  <p style="margin: 8px 0 0; color: #ffffff; font-size: 18px; font-weight: 600; opacity: 0.95;">
+                    DE FORMA ${(data.data?.amortizationFrequency || 'N/A').toUpperCase()}
+                  </p>
+                  <p style="margin: 8px 0 0; color: #ffffff; font-size: 18px; font-weight: 600; opacity: 0.95;">
+                    DURANTE ${data.data?.term || 'N/A'} MESES
                   </p>
                 </div>
                 
@@ -159,18 +212,22 @@ function generateEmailTemplate(data: EmailNotificationData): EmailTemplate {
         text: `
 Estimado/a ${data.recipientName},
 
-Has recibido una nueva propuesta de préstamo.
+Has recibido una nueva propuesta de préstamo${data.data?.lenderName ? ` de ${data.data.lenderName}` : ''}.
 
 INFORMACIÓN DE LA PROPUESTA
 
 Cantidad que te prestan: $${data.data?.amount?.toLocaleString('es-MX') || 'N/A'} MXN
 Comisión por apertura: $${data.data?.comision?.toLocaleString('es-MX') || 'N/A'} MXN
+Compañía: ${data.data?.lenderName || 'N/A'}
 Tasa de interés: ${data.data?.interestRate || 'N/A'}% anual
 Plazo: ${data.data?.term || 'N/A'} meses
 Frecuencia de pago: ${data.data?.amortizationFrequency || 'N/A'}
 Seguro de vida saldo deudor: $${data.data?.medicalBalance?.toLocaleString('es-MX') || 'N/A'} MXN
+Tipo de préstamo: ${data.data?.loanType || 'N/A'}
+Propósito: ${data.data?.purpose || 'N/A'}
+Pago: $${data.data?.amortization?.toLocaleString('es-MX') || 'N/A'} MXN
 
-Pagarás ${data.data?.amortizationFrequency || 'N/A'} durante ${data.data?.term || 'N/A'} meses
+VAS A PAGAR $${data.data?.amortization?.toLocaleString('es-MX') || 'N/A'} MXN DE FORMA ${(data.data?.amortizationFrequency || 'N/A').toUpperCase()} DURANTE ${data.data?.term || 'N/A'} MESES
 
 Ingresa a tu panel de control para revisar: ${dashboardUrl}
 
@@ -182,7 +239,7 @@ BuscoCredito
 
     case 'loan_accepted':
       return {
-        subject: `Propuesta Aceptada - ${data.data?.amount?.toLocaleString('es-MX') || ''} MXN`,
+        subject: `¡Propuesta Aceptada! - $${data.data?.amount?.toLocaleString('es-MX') || ''} MXN`,
         html: `
           <!DOCTYPE html>
           <html>
@@ -190,20 +247,20 @@ BuscoCredito
           <body>
             <div class="container">
               <div class="header" style="background: linear-gradient(135deg, #10b981 0%, #047857 100%);">
-                <h1>Propuesta Aceptada</h1>
+                <h1>🎉 ¡Propuesta Aceptada!</h1>
               </div>
               <div class="content">
                 <h2>Estimado/a ${data.recipientName},</h2>
                 <p style="font-size: 16px; color: #374151; margin-bottom: 24px;">
-                  Nos complace informarle que el solicitante ha seleccionado su oferta de <strong>$${data.data?.amount?.toLocaleString('es-MX') || 'N/A'} MXN</strong> con una tasa de interés del <strong>${data.data?.interestRate || 'N/A'}%</strong>.
+                  Nos complace informarle que el solicitante ha seleccionado su oferta. A continuación los detalles completos:
                 </p>
                 
                 <div class="success-box">
-                  <h3 style="margin-top: 0; color: #047857; font-size: 18px; margin-bottom: 20px;">Detalles de la Propuesta</h3>
+                  <h3 style="margin-top: 0; color: #047857; font-size: 18px; margin-bottom: 20px;">Información de la Propuesta Aceptada</h3>
                   <table style="width: 100%; border-collapse: collapse;">
                     <tr>
                       <td style="padding: 12px 0; border-bottom: 1px solid #d1fae5; color: #374151; font-size: 14px;">
-                        Monto:
+                        Cantidad que te prestan:
                       </td>
                       <td style="padding: 12px 0; border-bottom: 1px solid #d1fae5; text-align: right; font-weight: 600; color: #1f2937; font-size: 16px;">
                         $${data.data?.amount?.toLocaleString('es-MX') || 'N/A'} MXN
@@ -211,10 +268,18 @@ BuscoCredito
                     </tr>
                     <tr>
                       <td style="padding: 12px 0; border-bottom: 1px solid #d1fae5; color: #374151; font-size: 14px;">
+                        Comisión por apertura:
+                      </td>
+                      <td style="padding: 12px 0; border-bottom: 1px solid #d1fae5; text-align: right; font-weight: 600; color: #1f2937; font-size: 16px;">
+                        $${data.data?.comision?.toLocaleString('es-MX') || 'N/A'} MXN
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 12px 0; border-bottom: 1px solid #d1fae5; color: #374151; font-size: 14px;">
                         Tasa de interés:
                       </td>
                       <td style="padding: 12px 0; border-bottom: 1px solid #d1fae5; text-align: right; font-weight: 600; color: #1f2937; font-size: 16px;">
-                        ${data.data?.interestRate || 'N/A'}%
+                        ${data.data?.interestRate || 'N/A'}% anual
                       </td>
                     </tr>
                     <tr>
@@ -235,29 +300,49 @@ BuscoCredito
                     </tr>
                     <tr>
                       <td style="padding: 12px 0; border-bottom: 1px solid #d1fae5; color: #374151; font-size: 14px;">
-                        Monto de amortización:
+                        Seguro de vida saldo deudor:
                       </td>
                       <td style="padding: 12px 0; border-bottom: 1px solid #d1fae5; text-align: right; font-weight: 600; color: #1f2937; font-size: 16px;">
-                        $${data.data?.amount?.toLocaleString('es-MX') || 'N/A'} MXN
+                        $${data.data?.medicalBalance?.toLocaleString('es-MX') || 'N/A'} MXN
                       </td>
                     </tr>
                     <tr>
                       <td style="padding: 12px 0; border-bottom: 1px solid #d1fae5; color: #374151; font-size: 14px;">
-                        Comisión por apertura:
+                        Tipo de préstamo:
                       </td>
                       <td style="padding: 12px 0; border-bottom: 1px solid #d1fae5; text-align: right; font-weight: 600; color: #1f2937; font-size: 16px;">
-                        $${data.data?.comision?.toLocaleString('es-MX') || 'N/A'} MXN
+                        ${data.data?.loanType || 'N/A'}
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 12px 0; border-bottom: 1px solid #d1fae5; color: #374151; font-size: 14px;">
+                        Propósito:
+                      </td>
+                      <td style="padding: 12px 0; border-bottom: 1px solid #d1fae5; text-align: right; font-weight: 600; color: #1f2937; font-size: 16px;">
+                        ${data.data?.purpose || 'N/A'}
                       </td>
                     </tr>
                     <tr>
                       <td style="padding: 12px 0; color: #374151; font-size: 14px;">
-                        Seguro vida saldo deudor:
+                        Pago:
                       </td>
                       <td style="padding: 12px 0; text-align: right; font-weight: 600; color: #1f2937; font-size: 16px;">
-                        $${data.data?.medicalBalance?.toLocaleString('es-MX') || 'N/A'} MXN
+                        $${data.data?.amortization?.toLocaleString('es-MX') || 'N/A'} MXN
                       </td>
                     </tr>
                   </table>
+                </div>
+
+                <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 24px; border-radius: 12px; margin: 28px 0; text-align: center;">
+                  <p style="margin: 0; color: #ffffff; font-size: 22px; font-weight: 700; line-height: 1.4;">
+                    EL USUARIO PAGARÁ $${data.data?.amortization?.toLocaleString('es-MX') || 'N/A'} MXN
+                  </p>
+                  <p style="margin: 8px 0 0; color: #ffffff; font-size: 18px; font-weight: 600; opacity: 0.95;">
+                    DE FORMA ${(data.data?.amortizationFrequency || 'N/A').toUpperCase()}
+                  </p>
+                  <p style="margin: 8px 0 0; color: #ffffff; font-size: 18px; font-weight: 600; opacity: 0.95;">
+                    DURANTE ${data.data?.term || 'N/A'} MESES
+                  </p>
                 </div>
                 
                 <p style="text-align: center; margin: 32px 0;">
@@ -279,17 +364,21 @@ BuscoCredito
         text: `
 Estimado/a ${data.recipientName},
 
-Nos complace informarle que el solicitante ha seleccionado su oferta de $${data.data?.amount?.toLocaleString('es-MX') || 'N/A'} MXN con una tasa de interés del ${data.data?.interestRate || 'N/A'}%.
+¡Nos complace informarle que el solicitante ha seleccionado su oferta!
 
-DETALLES DE LA PROPUESTA
+INFORMACIÓN DE LA PROPUESTA ACEPTADA
 
-Monto: $${data.data?.amount?.toLocaleString('es-MX') || 'N/A'} MXN
-Tasa de interés: ${data.data?.interestRate || 'N/A'}%
+Cantidad que te prestan: $${data.data?.amount?.toLocaleString('es-MX') || 'N/A'} MXN
+Comisión por apertura: $${data.data?.comision?.toLocaleString('es-MX') || 'N/A'} MXN
+Tasa de interés: ${data.data?.interestRate || 'N/A'}% anual
 Plazo: ${data.data?.term || 'N/A'} meses
 Frecuencia de pago: ${data.data?.amortizationFrequency || 'N/A'}
-Monto de amortización: $${data.data?.amount?.toLocaleString('es-MX') || 'N/A'} MXN
-Comisión por apertura: $${data.data?.comision?.toLocaleString('es-MX') || 'N/A'} MXN
-Seguro vida saldo deudor: $${data.data?.medicalBalance?.toLocaleString('es-MX') || 'N/A'} MXN
+Seguro de vida saldo deudor: $${data.data?.medicalBalance?.toLocaleString('es-MX') || 'N/A'} MXN
+Tipo de préstamo: ${data.data?.loanType || 'N/A'}
+Propósito: ${data.data?.purpose || 'N/A'}
+Pago: $${data.data?.amortization?.toLocaleString('es-MX') || 'N/A'} MXN
+
+EL USUARIO PAGARÁ $${data.data?.amortization?.toLocaleString('es-MX') || 'N/A'} MXN DE FORMA ${(data.data?.amortizationFrequency || 'N/A').toUpperCase()} DURANTE ${data.data?.term || 'N/A'} MESES
 
 Acceda a su panel de control: ${dashboardUrl}
 
@@ -323,57 +412,90 @@ BuscoCredito
                   </p>
                 </div>
 
-                <h3 style="color: #1f2937; font-size: 18px; margin-top: 32px; margin-bottom: 16px;">La oferta ganadora fue:</h3>
+                <!-- PROPUESTA GANADORA -->
+                <h3 style="color: #047857; font-size: 18px; margin-top: 32px; margin-bottom: 16px;">✅ La propuesta que ganó fue:</h3>
                 
-                <div style="background-color: #f3f4f6; border-left: 4px solid #6b7280; padding: 20px; margin: 20px 0; border-radius: 4px;">
+                <div style="background-color: #ecfdf5; border-left: 4px solid #10b981; padding: 20px; margin: 20px 0; border-radius: 4px;">
                   <table style="width: 100%; border-collapse: collapse;">
                     <tr>
-                      <td style="padding: 10px 0; border-bottom: 1px solid #d1d5db; color: #4b5563; font-size: 14px;">
-                        Monto:
-                      </td>
-                      <td style="padding: 10px 0; border-bottom: 1px solid #d1d5db; text-align: right; font-weight: 600; color: #374151; font-size: 15px;">
-                        $${data.data?.winningOffer?.amount?.toLocaleString('es-MX') || 'N/A'} MXN
-                      </td>
+                      <td style="padding: 10px 0; border-bottom: 1px solid #d1fae5; color: #4b5563; font-size: 14px;">Cantidad que prestan:</td>
+                      <td style="padding: 10px 0; border-bottom: 1px solid #d1fae5; text-align: right; font-weight: 600; color: #1f2937; font-size: 15px;">$${data.data?.winningOffer?.amount?.toLocaleString('es-MX') || 'N/A'} MXN</td>
                     </tr>
                     <tr>
-                      <td style="padding: 10px 0; border-bottom: 1px solid #d1d5db; color: #4b5563; font-size: 14px;">
-                        Tasa de interés:
-                      </td>
-                      <td style="padding: 10px 0; border-bottom: 1px solid #d1d5db; text-align: right; font-weight: 600; color: #374151; font-size: 15px;">
-                        ${data.data?.winningOffer?.interestRate || 'N/A'}%
-                      </td>
+                      <td style="padding: 10px 0; border-bottom: 1px solid #d1fae5; color: #4b5563; font-size: 14px;">Comisión por apertura:</td>
+                      <td style="padding: 10px 0; border-bottom: 1px solid #d1fae5; text-align: right; font-weight: 600; color: #1f2937; font-size: 15px;">$${data.data?.winningOffer?.comision?.toLocaleString('es-MX') || 'N/A'} MXN</td>
                     </tr>
                     <tr>
-                      <td style="padding: 10px 0; border-bottom: 1px solid #d1d5db; color: #4b5563; font-size: 14px;">
-                        Plazo:
-                      </td>
-                      <td style="padding: 10px 0; border-bottom: 1px solid #d1d5db; text-align: right; font-weight: 600; color: #374151; font-size: 15px;">
-                        ${data.data?.winningOffer?.term || 'N/A'} meses
-                      </td>
+                      <td style="padding: 10px 0; border-bottom: 1px solid #d1fae5; color: #4b5563; font-size: 14px;">Tasa de interés:</td>
+                      <td style="padding: 10px 0; border-bottom: 1px solid #d1fae5; text-align: right; font-weight: 600; color: #1f2937; font-size: 15px;">${data.data?.winningOffer?.interestRate || 'N/A'}% anual</td>
                     </tr>
                     <tr>
-                      <td style="padding: 10px 0; border-bottom: 1px solid #d1d5db; color: #4b5563; font-size: 14px;">
-                        Frecuencia de pago:
-                      </td>
-                      <td style="padding: 10px 0; border-bottom: 1px solid #d1d5db; text-align: right; font-weight: 600; color: #374151; font-size: 15px;">
-                        ${data.data?.winningOffer?.amortizationFrequency || 'N/A'}
-                      </td>
+                      <td style="padding: 10px 0; border-bottom: 1px solid #d1fae5; color: #4b5563; font-size: 14px;">Plazo:</td>
+                      <td style="padding: 10px 0; border-bottom: 1px solid #d1fae5; text-align: right; font-weight: 600; color: #1f2937; font-size: 15px;">${data.data?.winningOffer?.term || 'N/A'} meses</td>
                     </tr>
                     <tr>
-                      <td style="padding: 10px 0; border-bottom: 1px solid #d1d5db; color: #4b5563; font-size: 14px;">
-                        Comisión por apertura:
-                      </td>
-                      <td style="padding: 10px 0; border-bottom: 1px solid #d1d5db; text-align: right; font-weight: 600; color: #374151; font-size: 15px;">
-                        $${data.data?.winningOffer?.comision?.toLocaleString('es-MX') || 'N/A'} MXN
-                      </td>
+                      <td style="padding: 10px 0; border-bottom: 1px solid #d1fae5; color: #4b5563; font-size: 14px;">Frecuencia de pago:</td>
+                      <td style="padding: 10px 0; border-bottom: 1px solid #d1fae5; text-align: right; font-weight: 600; color: #1f2937; font-size: 15px;">${data.data?.winningOffer?.amortizationFrequency || 'N/A'}</td>
                     </tr>
                     <tr>
-                      <td style="padding: 10px 0; color: #4b5563; font-size: 14px;">
-                        Seguro vida saldo deudor:
-                      </td>
-                      <td style="padding: 10px 0; text-align: right; font-weight: 600; color: #374151; font-size: 15px;">
-                        $${data.data?.winningOffer?.medicalBalance?.toLocaleString('es-MX') || 'N/A'} MXN
-                      </td>
+                      <td style="padding: 10px 0; border-bottom: 1px solid #d1fae5; color: #4b5563; font-size: 14px;">Seguro de vida saldo deudor:</td>
+                      <td style="padding: 10px 0; border-bottom: 1px solid #d1fae5; text-align: right; font-weight: 600; color: #1f2937; font-size: 15px;">$${data.data?.winningOffer?.medicalBalance?.toLocaleString('es-MX') || 'N/A'} MXN</td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 10px 0; border-bottom: 1px solid #d1fae5; color: #4b5563; font-size: 14px;">Tipo de préstamo:</td>
+                      <td style="padding: 10px 0; border-bottom: 1px solid #d1fae5; text-align: right; font-weight: 600; color: #1f2937; font-size: 15px;">${data.data?.loanType || 'N/A'}</td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 10px 0; border-bottom: 1px solid #d1fae5; color: #4b5563; font-size: 14px;">Propósito:</td>
+                      <td style="padding: 10px 0; border-bottom: 1px solid #d1fae5; text-align: right; font-weight: 600; color: #1f2937; font-size: 15px;">${data.data?.purpose || 'N/A'}</td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 10px 0; color: #4b5563; font-size: 14px;">Pago:</td>
+                      <td style="padding: 10px 0; text-align: right; font-weight: 600; color: #1f2937; font-size: 15px;">$${data.data?.winningOffer?.amortization?.toLocaleString('es-MX') || 'N/A'} MXN</td>
+                    </tr>
+                  </table>
+                </div>
+
+                <!-- TU PROPUESTA -->
+                <h3 style="color: #1d4ed8; font-size: 18px; margin-top: 32px; margin-bottom: 16px;">📋 La propuesta que tú hiciste fue:</h3>
+                
+                <div style="background-color: #eff6ff; border-left: 4px solid #3b82f6; padding: 20px; margin: 20px 0; border-radius: 4px;">
+                  <table style="width: 100%; border-collapse: collapse;">
+                    <tr>
+                      <td style="padding: 10px 0; border-bottom: 1px solid #bfdbfe; color: #4b5563; font-size: 14px;">Cantidad que prestan:</td>
+                      <td style="padding: 10px 0; border-bottom: 1px solid #bfdbfe; text-align: right; font-weight: 600; color: #1f2937; font-size: 15px;">$${data.data?.competitorOffer?.amount?.toLocaleString('es-MX') || 'N/A'} MXN</td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 10px 0; border-bottom: 1px solid #bfdbfe; color: #4b5563; font-size: 14px;">Comisión por apertura:</td>
+                      <td style="padding: 10px 0; border-bottom: 1px solid #bfdbfe; text-align: right; font-weight: 600; color: #1f2937; font-size: 15px;">$${data.data?.competitorOffer?.comision?.toLocaleString('es-MX') || 'N/A'} MXN</td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 10px 0; border-bottom: 1px solid #bfdbfe; color: #4b5563; font-size: 14px;">Tasa de interés:</td>
+                      <td style="padding: 10px 0; border-bottom: 1px solid #bfdbfe; text-align: right; font-weight: 600; color: #1f2937; font-size: 15px;">${data.data?.competitorOffer?.interestRate || 'N/A'}% anual</td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 10px 0; border-bottom: 1px solid #bfdbfe; color: #4b5563; font-size: 14px;">Plazo:</td>
+                      <td style="padding: 10px 0; border-bottom: 1px solid #bfdbfe; text-align: right; font-weight: 600; color: #1f2937; font-size: 15px;">${data.data?.competitorOffer?.term || 'N/A'} meses</td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 10px 0; border-bottom: 1px solid #bfdbfe; color: #4b5563; font-size: 14px;">Frecuencia de pago:</td>
+                      <td style="padding: 10px 0; border-bottom: 1px solid #bfdbfe; text-align: right; font-weight: 600; color: #1f2937; font-size: 15px;">${data.data?.competitorOffer?.amortizationFrequency || 'N/A'}</td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 10px 0; border-bottom: 1px solid #bfdbfe; color: #4b5563; font-size: 14px;">Seguro de vida saldo deudor:</td>
+                      <td style="padding: 10px 0; border-bottom: 1px solid #bfdbfe; text-align: right; font-weight: 600; color: #1f2937; font-size: 15px;">$${data.data?.competitorOffer?.medicalBalance?.toLocaleString('es-MX') || 'N/A'} MXN</td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 10px 0; border-bottom: 1px solid #bfdbfe; color: #4b5563; font-size: 14px;">Tipo de préstamo:</td>
+                      <td style="padding: 10px 0; border-bottom: 1px solid #bfdbfe; text-align: right; font-weight: 600; color: #1f2937; font-size: 15px;">${data.data?.loanType || 'N/A'}</td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 10px 0; border-bottom: 1px solid #bfdbfe; color: #4b5563; font-size: 14px;">Propósito:</td>
+                      <td style="padding: 10px 0; border-bottom: 1px solid #bfdbfe; text-align: right; font-weight: 600; color: #1f2937; font-size: 15px;">${data.data?.purpose || 'N/A'}</td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 10px 0; color: #4b5563; font-size: 14px;">Pago:</td>
+                      <td style="padding: 10px 0; text-align: right; font-weight: 600; color: #1f2937; font-size: 15px;">$${data.data?.competitorOffer?.amortization?.toLocaleString('es-MX') || 'N/A'} MXN</td>
                     </tr>
                   </table>
                 </div>
@@ -401,14 +523,29 @@ Le informamos que el solicitante ha seleccionado otra oferta para su préstamo.
 
 EL USUARIO HA SELECCIONADO OTRA OFERTA
 
-LA OFERTA GANADORA FUE:
+--- LA PROPUESTA QUE GANÓ FUE ---
 
-Monto: $${data.data?.winningOffer?.amount?.toLocaleString('es-MX') || 'N/A'} MXN
-Tasa de interés: ${data.data?.winningOffer?.interestRate || 'N/A'}%
+Cantidad que prestan: $${data.data?.winningOffer?.amount?.toLocaleString('es-MX') || 'N/A'} MXN
+Comisión por apertura: $${data.data?.winningOffer?.comision?.toLocaleString('es-MX') || 'N/A'} MXN
+Tasa de interés: ${data.data?.winningOffer?.interestRate || 'N/A'}% anual
 Plazo: ${data.data?.winningOffer?.term || 'N/A'} meses
 Frecuencia de pago: ${data.data?.winningOffer?.amortizationFrequency || 'N/A'}
-Comisión por apertura: $${data.data?.winningOffer?.comision?.toLocaleString('es-MX') || 'N/A'} MXN
-Seguro vida saldo deudor: $${data.data?.winningOffer?.medicalBalance?.toLocaleString('es-MX') || 'N/A'} MXN
+Seguro de vida saldo deudor: $${data.data?.winningOffer?.medicalBalance?.toLocaleString('es-MX') || 'N/A'} MXN
+Tipo de préstamo: ${data.data?.loanType || 'N/A'}
+Propósito: ${data.data?.purpose || 'N/A'}
+Pago: $${data.data?.winningOffer?.amortization?.toLocaleString('es-MX') || 'N/A'} MXN
+
+--- LA PROPUESTA QUE TÚ HICISTE FUE ---
+
+Cantidad que prestan: $${data.data?.competitorOffer?.amount?.toLocaleString('es-MX') || 'N/A'} MXN
+Comisión por apertura: $${data.data?.competitorOffer?.comision?.toLocaleString('es-MX') || 'N/A'} MXN
+Tasa de interés: ${data.data?.competitorOffer?.interestRate || 'N/A'}% anual
+Plazo: ${data.data?.competitorOffer?.term || 'N/A'} meses
+Frecuencia de pago: ${data.data?.competitorOffer?.amortizationFrequency || 'N/A'}
+Seguro de vida saldo deudor: $${data.data?.competitorOffer?.medicalBalance?.toLocaleString('es-MX') || 'N/A'} MXN
+Tipo de préstamo: ${data.data?.loanType || 'N/A'}
+Propósito: ${data.data?.purpose || 'N/A'}
+Pago: $${data.data?.competitorOffer?.amortization?.toLocaleString('es-MX') || 'N/A'} MXN
 
 Agradecemos su participación. Le invitamos a revisar nuevas solicitudes disponibles.
 
