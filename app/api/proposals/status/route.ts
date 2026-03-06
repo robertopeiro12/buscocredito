@@ -149,6 +149,15 @@ export async function POST(request: NextRequest) {
               term: winningProposal.deadline,
               comision: winningProposal.comision,
               medicalBalance: winningProposal.medical_balance
+            },
+            competitorOffer: {
+              amount: competitorProposal.amount || competitorProposal.montoOfrecido,
+              interestRate: competitorProposal.interest_rate || competitorProposal.tasaInteres,
+              amortizationFrequency: competitorProposal.amortization_frequency || competitorProposal.frecuenciaPago,
+              amortization: competitorProposal.amortization || competitorProposal.montoAmortizacion,
+              term: competitorProposal.deadline || competitorProposal.plazo,
+              comision: competitorProposal.comision,
+              medicalBalance: competitorProposal.medical_balance || competitorProposal.seguroVida
             }
           }
         });
