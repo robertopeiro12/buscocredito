@@ -24,6 +24,7 @@ export interface SignupFormData {
   email: string;
   password: string;
   confirmPassword: string;
+  acceptedTerms: boolean;
 }
 
 export interface SignupErrors {
@@ -36,6 +37,7 @@ export interface SignupErrors {
   email?: string;
   password?: string;
   confirmPassword?: string;
+  acceptedTerms?: string;
   'address.street'?: string;
   'address.exteriorNumber'?: string;
   'address.interiorNumber'?: string;

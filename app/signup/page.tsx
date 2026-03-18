@@ -6,8 +6,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useEffect } from "react";
-import NavBar from "@/components/common/layout/navbar";
-
 // Importar componentes extraídos
 import StepIndicator from "@/components/signup/StepIndicator";
 import StepHeaderWithStep from "@/components/signup/StepHeaderWithStep";
@@ -29,6 +27,7 @@ export default function Signup() {
     handleAddressChange,
     handlePhoneChange,
     handleStateChange,
+    handleTermsChange,
     handleNextStep,
     handlePrevStep,
     handleSubmit,
@@ -58,7 +57,6 @@ export default function Signup() {
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-green-50 to-blue-50">
-      <NavBar />
       <main className="flex-grow flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
         <div className="w-full max-w-4xl">
           <div className="bg-white shadow-2xl rounded-2xl overflow-hidden">
@@ -87,6 +85,7 @@ export default function Signup() {
                   handleAddressChange={handleAddressChange}
                   handlePhoneChange={handlePhoneChange}
                   handleStateChange={handleStateChange}
+                  handleTermsChange={handleTermsChange}
                 />
 
                 <div className="mt-8 flex justify-between">

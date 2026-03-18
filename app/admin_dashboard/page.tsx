@@ -21,6 +21,7 @@ import {
   Activity,
   TrendingUp,
   Users,
+  Download,
 } from "lucide-react";
 import { AdminSidebarUpdated } from "@/components/features/dashboard/AdminSidebarUpdated";
 import { AdminHeader } from "@/components/features/dashboard/AdminHeader";
@@ -36,7 +37,13 @@ import { InterestRateCard } from "@/components/admin/metrics/InterestRateCard";
 import { AverageAmountCard } from "@/components/admin/metrics/AverageAmountCard";
 import { MarketplaceMetricsCards } from "@/components/admin/metrics/MarketplaceMetricsCards";
 import AdminMarketplaceView from "@/components/admin/AdminMarketplaceView";
+import { AmortizationComparisonChart } from "@/components/admin/metrics/AmortizationComparisonChart";
+import { InterestRateComparisonChart } from "@/components/admin/metrics/InterestRateComparisonChart";
+import { ProposalDetailsTable } from "@/components/admin/metrics/ProposalDetailsTable";
+import { ComparisonSummaryCards } from "@/components/admin/metrics/ComparisonSummaryCards";
 import { useAdminDashboard } from "@/hooks/useAdminDashboard";
+import { useProposalComparison } from "@/hooks/useProposalComparison";
+import { exportMetricsSummary, exportProposalsData, exportWorkerStats } from "@/utils/exportCsv";
 import { useAdminLoans } from "@/hooks/useAdminLoans";
 import { useWorkerStats } from "@/hooks/useWorkerStats";
 
@@ -75,6 +82,7 @@ export default function AdminDashboard() {
     // Metrics data
     metricsData,
     isLoadingMetrics,
+    rawProposals,
     getMonthName,
     getTopDistributionItems,
 
@@ -107,6 +115,17 @@ export default function AdminDashboard() {
     getActiveWorkers,
     formatLastActivity,
   } = useWorkerStats();
+
+  // Hook para comparación de propuestas
+  const {
+    comparisons,
+    summary: comparisonSummary,
+    isLoading: isLoadingComparisons,
+  } = useProposalComparison({
+    rawProposals,
+    companyName: adminData.Empresa,
+    isLoadingMetrics,
+  });
 
   // Funciones de utilidad para el dashboard
   const getActiveWorkersCount = () => summary?.activeWorkers || 0;
@@ -492,6 +511,49 @@ export default function AdminDashboard() {
                   handleOpenDateRangeModal={handleOpenDateRangeModal}
                 />
 
+                {/* Export buttons */}
+                {!isLoadingMetrics && metricsData.totalProposals > 0 && (
+                  <div className="flex flex-wrap gap-3 mb-6">
+                    <Button
+                      size="sm"
+                      variant="bordered"
+                      startContent={<Download className="w-4 h-4" />}
+                      onPress={() =>
+                        exportMetricsSummary(
+                          metricsData,
+                          adminData.Empresa,
+                          selectedTimeRange
+                        )
+                      }
+                      className="border-green-600 text-green-700 hover:bg-green-50"
+                    >
+                      Exportar Resumen CSV
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="bordered"
+                      startContent={<Download className="w-4 h-4" />}
+                      onPress={() =>
+                        exportProposalsData(rawProposals, adminData.Empresa)
+                      }
+                      className="border-blue-600 text-blue-700 hover:bg-blue-50"
+                    >
+                      Exportar Propuestas CSV
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="bordered"
+                      startContent={<Download className="w-4 h-4" />}
+                      onPress={() =>
+                        exportWorkerStats(workers, adminData.Empresa)
+                      }
+                      className="border-purple-600 text-purple-700 hover:bg-purple-50"
+                    >
+                      Exportar Trabajadores CSV
+                    </Button>
+                  </div>
+                )}
+
                 {isLoadingMetrics ? (
                   <AdminLoadingSkeletons.MetricsCards />
                 ) : metricsData.totalProposals === 0 ? (
@@ -617,6 +679,58 @@ export default function AdminDashboard() {
                       loanRequests={marketplaceLoans}
                       loading={marketplaceLoading}
                     />
+
+                    {/* Comparison Analysis Section */}
+                    <div className="mt-12 mb-8">
+                      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                        <div className="flex items-center gap-4">
+                          <div className="p-3 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl shadow-sm">
+                            <TrendingUp className="w-6 h-6 text-white" />
+                          </div>
+                          <div className="flex-1">
+                            <h3 className="text-xl font-bold text-gray-900">
+                              Análisis Competitivo de Propuestas
+                            </h3>
+                            <p className="text-sm text-gray-500 mt-1">
+                              Comparación de tus propuestas vs las propuestas aceptadas por los clientes
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {isLoadingComparisons ? (
+                      <div className="flex items-center justify-center py-12">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mr-3"></div>
+                        <span className="text-gray-500">Cargando análisis competitivo...</span>
+                      </div>
+                    ) : comparisons.length > 0 ? (
+                      <div className="space-y-6">
+                        {/* Summary cards */}
+                        <ComparisonSummaryCards summary={comparisonSummary} />
+
+                        {/* Comparison charts */}
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                          <AmortizationComparisonChart comparisons={comparisons} />
+                          <InterestRateComparisonChart
+                            comparisons={comparisons}
+                            companyName={adminData.Empresa}
+                          />
+                        </div>
+
+                        {/* Detailed table */}
+                        <ProposalDetailsTable
+                          comparisons={comparisons}
+                          companyName={adminData.Empresa}
+                        />
+                      </div>
+                    ) : (
+                      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8 text-center">
+                        <p className="text-gray-500">
+                          No hay datos de comparación para el período seleccionado.
+                        </p>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

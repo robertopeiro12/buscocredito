@@ -78,6 +78,7 @@ export const useAdminMetrics = ({
     previousPeriodMetrics: {},
   });
   const [isLoadingMetrics, setIsLoadingMetrics] = useState(false);
+  const [rawProposals, setRawProposals] = useState<any[]>([]);
 
   // Función para calcular métricas a partir de propuestas
   const calculateMetrics = (proposals: any[]) => {
@@ -498,6 +499,9 @@ export const useAdminMetrics = ({
         }
       }
 
+      // Store raw proposals for export
+      setRawProposals(currentProposals);
+
       // Procesar los datos para las métricas
       const metrics = calculateMetrics(currentProposals);
       const previousMetrics = calculateMetrics(previousProposals);
@@ -772,6 +776,7 @@ export const useAdminMetrics = ({
   return {
     metricsData,
     isLoadingMetrics,
+    rawProposals,
     getMonthName,
     getTopDistributionItems,
     calculatePercentage,

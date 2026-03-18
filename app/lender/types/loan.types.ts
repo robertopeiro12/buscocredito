@@ -36,6 +36,7 @@ export interface PartnerData {
 
 export interface LenderProposal {
   id: string;
+  loanId?: string | null;
   amortization: number;
   amortization_frequency: string;
   medical_balance: number;

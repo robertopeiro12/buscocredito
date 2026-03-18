@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useState } from "react";
 import { usePathname } from "next/navigation";
-import { Wallet, Menu } from "lucide-react";
+import { Menu } from "lucide-react";
 
 export default function NavBar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -32,12 +33,14 @@ export default function NavBar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-20">
           {/* Logo */}
-          <Link href="/" className="flex-shrink-0 flex items-center gap-2 cursor-pointer">
-            <p>Changing logo</p>
-            {/* <Wallet className="w-8 h-8 text-green-600" />
-            <span className="font-display font-bold text-2xl text-[#0e3a45] tracking-tight">
-              Busco<span className="text-green-600">Crédito</span>
-            </span> */}
+          <Link href="/" className="flex-shrink-0 flex items-center cursor-pointer">
+            <Image
+              src="/img/logo-buscocredito.png"
+              alt="Busco Crédito"
+              width={160}
+              height={45}
+              className="h-11 w-auto"
+            />
           </Link>
 
           {/* Desktop Navigation */}
@@ -59,7 +62,7 @@ export default function NavBar() {
           {!shouldHideAuthButtons && (
             <div className="hidden md:block">
               <Link
-                href="/prestamos"
+                href="/login"
                 className="bg-[#0e3a45] hover:bg-[#082830] text-white px-6 py-2.5 rounded-full font-semibold text-sm transition shadow-lg transform hover:-translate-y-0.5"
               >
                 SOLICITA TU CRÉDITO
@@ -112,7 +115,7 @@ export default function NavBar() {
                   Iniciar sesión
                 </Link>
                 <Link
-                  href="/prestamos"
+                  href="/login"
                   className="w-full text-center px-5 py-2 rounded-full bg-[#0e3a45] text-white font-medium hover:bg-[#082830] transition-all duration-200"
                   onClick={() => setIsOpen(false)}
                 >

@@ -1,4 +1,5 @@
 import React from "react";
+import Link from "next/link";
 import { CheckCircle, AlertCircle } from "lucide-react";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
@@ -15,6 +16,7 @@ interface StepContentProps {
   handleAddressChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   handlePhoneChange: (phone: string) => void;
   handleStateChange?: (state: string) => void;
+  handleTermsChange?: (checked: boolean) => void;
 }
 
 // Lista completa de estados de México
@@ -62,6 +64,7 @@ const StepContent = ({
   handleAddressChange,
   handlePhoneChange,
   handleStateChange,
+  handleTermsChange,
 }: StepContentProps) => {
   const renderStepContent = () => {
     switch (step) {
@@ -358,6 +361,42 @@ const StepContent = ({
                 error={errors.confirmPassword}
                 placeholder="••••••••"
               />
+
+              {/* Terms and Conditions */}
+              <div className="pt-2">
+                <label className="flex items-start gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.acceptedTerms}
+                    onChange={(e) => handleTermsChange?.(e.target.checked)}
+                    className="mt-1 h-4 w-4 rounded border-gray-300 text-green-600 focus:ring-green-500"
+                  />
+                  <span className="text-sm text-gray-600">
+                    Acepto los{" "}
+                    <Link
+                      href="/terminos"
+                      target="_blank"
+                      className="text-green-600 underline hover:text-green-700"
+                    >
+                      Términos y Condiciones
+                    </Link>{" "}
+                    y la{" "}
+                    <Link
+                      href="/politica-privacidad"
+                      target="_blank"
+                      className="text-green-600 underline hover:text-green-700"
+                    >
+                      Política de Privacidad
+                    </Link>
+                  </span>
+                </label>
+                {errors.acceptedTerms && (
+                  <div className="mt-1 ml-7 text-sm text-red-600 flex items-center gap-1">
+                    <AlertCircle className="h-4 w-4" />
+                    <span>{errors.acceptedTerms}</span>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         );

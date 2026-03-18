@@ -1,5 +1,4 @@
 "use client";
-import NavBar from "@/components/common/layout/navbar";
 import { useEffect, useState } from "react";
 
 export default function LoginLayout({
@@ -21,8 +20,6 @@ export default function LoginLayout({
         <div className="absolute bottom-1/4 -right-1/4 w-[500px] h-[500px] bg-[#55A555] rounded-full mix-blend-multiply blur-3xl opacity-10" />
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-[#55A555] rounded-full mix-blend-multiply blur-3xl opacity-5" />
       </div>
-
-      <NavBar />
 
       <div
         className={`

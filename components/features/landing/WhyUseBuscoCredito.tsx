@@ -1,27 +1,27 @@
 "use client";
 
-import { Clock, GitFork, ThumbsUp, ShieldCheck } from "lucide-react";
+import Image from "next/image";
 
 const WhyUseBuscoCredito = () => {
   const benefits = [
     {
-      icon: Clock,
+      icon: "/img/landing/icon-time.png",
       title: "Ahorro de tiempo",
       description: "Centraliza tu búsqueda de crédito en un solo lugar.",
     },
     {
-      icon: GitFork,
+      icon: "/img/landing/icon-directions.png",
       title: "Opciones claras",
       description:
         "Evalúa las condiciones de todas las propuestas antes de tomar una decisión.",
     },
     {
-      icon: ThumbsUp,
+      icon: "/img/landing/icon-partnership.png",
       title: "Sin compromiso",
       description: "Tú decides si continúas con alguna opción.",
     },
     {
-      icon: ShieldCheck,
+      icon: "/img/landing/icon-hand.png",
       title: "Plataforma confiable",
       description:
         "Diseñada para operar de forma transparente en el mercado mexicano.",
@@ -45,8 +45,14 @@ const WhyUseBuscoCredito = () => {
               key={index}
               className="bg-white p-8 rounded-xl shadow-sm flex gap-6 items-start hover:shadow-md transition"
             >
-              <div className="flex-shrink-0">
-                <benefit.icon className="w-10 h-10 text-[#0e3a45]" />
+              <div className="flex-shrink-0 w-12 h-12 bg-green-50 rounded-full flex items-center justify-center">
+                <Image
+                  src={benefit.icon}
+                  alt={benefit.title}
+                  width={28}
+                  height={28}
+                  className="w-7 h-7 object-contain"
+                />
               </div>
               <div>
                 <h3 className="font-bold text-gray-900 mb-2">{benefit.title}</h3>

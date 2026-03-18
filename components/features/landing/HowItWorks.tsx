@@ -6,22 +6,25 @@ import Link from "next/link";
 const HowItWorks = () => {
   const steps = [
     {
-      image: "https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=600&h=400&fit=crop",
+      image: "/img/landing/woman-tablet.jpg",
       title: "Completa tu Solicitud",
       description:
         "Indica el tipo de crédito que necesitas y proporciona tu información básica.",
+      borderColor: "border-t-green-500",
     },
     {
-      image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&h=400&fit=crop",
+      image: "/img/landing/magnifying-glass.jpg",
       title: "Revisión por Prestamistas",
       description:
         "Los prestamistas registrados revisan tu solicitud según sus propios criterios.",
+      borderColor: "border-t-yellow-500",
     },
     {
-      image: "https://images.unsplash.com/photo-1533750349088-cd871a92f312?w=600&h=400&fit=crop",
+      image: "/img/landing/excited-woman.jpg",
       title: "Conoce tus Opciones",
       description:
         "Recibe todas las alternativas disponibles y decide si alguna se ajusta a lo que buscas.",
+      borderColor: "border-t-red-500",
     },
   ];
 
@@ -35,7 +38,7 @@ const HowItWorks = () => {
         <div className="grid md:grid-cols-3 gap-8 mb-12">
           {steps.map((step, index) => (
             <div key={index} className="group text-left">
-              <div className="overflow-hidden rounded-xl mb-6 shadow-lg h-64 relative">
+              <div className={`overflow-hidden rounded-xl mb-6 shadow-lg h-64 relative border-t-4 ${step.borderColor}`}>
                 <Image
                   src={step.image}
                   alt={step.title}

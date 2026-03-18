@@ -11,8 +11,8 @@ const LenderSection = () => {
           {/* Image */}
           <div className="rounded-3xl overflow-hidden shadow-2xl h-[400px] md:h-[500px] relative">
             <Image
-              src="https://images.unsplash.com/photo-1560250097-0b93528c311a?w=600&h=800&fit=crop"
-              alt="Hombre de negocios sonriendo"
+              src="/img/landing/smiling-broker.jpg"
+              alt="Prestamista sonriendo"
               fill
               className="object-cover object-top"
             />

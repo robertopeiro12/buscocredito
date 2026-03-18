@@ -14,38 +14,46 @@ const HeroSection = () => {
               Deja de dar vueltas<br />
               por crédito:
             </h1>
-            <p className="text-3xl text-gray-600 mb-8 max-w-lg leading-relaxed">
+            <p className="text-xl lg:text-2xl text-gray-600 mb-8 max-w-lg leading-relaxed">
               Con una sola solicitud recibes ofertas claras de varios prestamistas
               en minutos.
             </p>
             <Link
               href="/como-funciona"
-              className="inline-flex items-center justify-center px-8 py-3 border border-transparent text-base font-semibold rounded-full text-green-900 bg-green-100 hover:bg-green-200 transition duration-300 shadow-sm"
+              className="inline-flex items-center justify-center px-8 py-3 border-2 border-gray-900 text-base font-semibold rounded-full text-gray-900 bg-transparent hover:bg-gray-100 transition duration-300"
             >
               CONOCE MÁS
             </Link>
           </div>
 
-          {/* Right Images */}
-          <div className="relative h-[400px] lg:h-[500px] w-full hidden md:block">
-            {/* Decorative blobs */}
-            <div className="absolute top-0 right-0 w-64 h-64 bg-yellow-100 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob"></div>
-            <div className="absolute -bottom-8 left-20 w-72 h-72 bg-green-100 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000"></div>
-
-            {/* Images */}
-            <div className="absolute top-0 right-0 w-3/4 rounded-2xl shadow-2xl z-10 border-4 border-white overflow-hidden h-64">
+          {/* Right Images - 3 overlapping */}
+          <div className="relative h-[400px] lg:h-[520px] w-full hidden md:block">
+            {/* Image 1: Credit card on chart paper (back-left) */}
+            <div className="absolute top-12 left-0 w-[55%] rounded-2xl shadow-xl z-10 border-4 border-white overflow-hidden h-72">
               <Image
-                src="https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=600&h=400&fit=crop"
-                alt="Persona revisando documentos financieros"
+                src="/img/landing/credit-card-chart.jpg"
+                alt="Tarjeta de crédito sobre gráficos financieros"
                 fill
                 className="object-cover"
                 priority
               />
             </div>
-            <div className="absolute bottom-10 left-0 w-2/3 rounded-2xl shadow-2xl z-20 border-4 border-white overflow-hidden h-60 transform hover:scale-105 transition duration-500">
+
+            {/* Image 2: Credit card model on graph spreadsheet (center-top) */}
+            <div className="absolute -top-2 right-8 w-[50%] rounded-2xl shadow-2xl z-20 border-4 border-white overflow-hidden h-80">
               <Image
-                src="https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=600&h=400&fit=crop"
-                alt="Tarjeta de crédito en primer plano"
+                src="/img/landing/hero-credit-card.jpg"
+                alt="Modelo de tarjeta de crédito sobre hoja de cálculo"
+                fill
+                className="object-cover"
+              />
+            </div>
+
+            {/* Image 3: Groups businessman and credit cards (front-right-bottom) */}
+            <div className="absolute bottom-0 right-0 w-[55%] rounded-2xl shadow-2xl z-30 border-4 border-white overflow-hidden h-64">
+              <Image
+                src="/img/landing/hero-credit-cards-group.jpg"
+                alt="Grupo de tarjetas de crédito"
                 fill
                 className="object-cover"
               />

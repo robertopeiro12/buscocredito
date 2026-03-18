@@ -142,6 +142,12 @@ export const validateField = (
       }
       break;
 
+    case "acceptedTerms":
+      if (value !== "true") {
+        return "Debes aceptar los términos y condiciones";
+      }
+      break;
+
     case "address.zipCode":
       if (!value.trim()) {
         return "Código postal es requerido";
@@ -191,19 +197,29 @@ export const validateStep = (
       ].map((field) => `address.${field}`);
       break;
     case 4:
-      fieldsToValidate = ["email", "password", "confirmPassword"];
+      fieldsToValidate = ["email", "password", "confirmPassword", "acceptedTerms"];
       break;
   }
 
   // Validate all fields in current step
   fieldsToValidate.forEach((field) => {
+    // Handle boolean fields separately
+    if (field === "acceptedTerms") {
+      const boolValue = formData.acceptedTerms;
+      const fieldError = validateField(field, String(boolValue), formData);
+      if (fieldError) {
+        stepErrors[field] = fieldError;
+      }
+      return;
+    }
+
     const value = field.includes("address.")
       ? formData.address[field.split(".")[1] as keyof typeof formData.address]
       : formData[field as keyof SignupFormData] as string;
 
     // Campos opcionales - no validar si están vacíos
     const optionalFields = ["secondLastName", "address.interiorNumber"];
-    
+
     // Validate empty fields (skip optional fields)
     if ((!value || !value.trim()) && !optionalFields.includes(field)) {
       stepErrors[field] = `Este campo es requerido`;

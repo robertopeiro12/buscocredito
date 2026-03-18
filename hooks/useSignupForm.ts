@@ -27,6 +27,7 @@ const initialFormData: SignupFormData = {
   email: "",
   password: "",
   confirmPassword: "",
+  acceptedTerms: false,
 };
 
 export const useSignupForm = () => {
@@ -124,6 +125,24 @@ export const useSignupForm = () => {
     });
   };
 
+  const handleTermsChange = (checked: boolean) => {
+    setFormData((prev) => ({
+      ...prev,
+      acceptedTerms: checked,
+    }));
+
+    const error = validateField("acceptedTerms", String(checked), formData);
+    setErrors((prev) => {
+      const newErrors = { ...prev };
+      if (error) {
+        newErrors.acceptedTerms = error;
+      } else {
+        delete newErrors.acceptedTerms;
+      }
+      return newErrors;
+    });
+  };
+
   const handleNextStep = () => {
     const validation = validateStep(step, formData, errors);
     if (validation.isValid) {
@@ -181,6 +200,8 @@ export const useSignupForm = () => {
         email: formData.email,
         type: "user",
         creditScore: creditScore,
+        acceptedTerms: true,
+        acceptedTermsAt: Timestamp.now(),
         created_at: Timestamp.now(),
       });
 
@@ -229,6 +250,7 @@ export const useSignupForm = () => {
     handleAddressChange,
     handlePhoneChange,
     handleStateChange,
+    handleTermsChange,
     handleNextStep,
     handlePrevStep,
     handleSubmit,

@@ -54,8 +54,8 @@ const WhatIsBuscoCredito = () => {
       {/* Right Image */}
       <div className="w-full lg:w-1/2 relative bg-yellow-400 min-h-[400px]">
         <Image
-          src="https://images.unsplash.com/photo-1607863680198-23d4b2565df0?w=800&h=600&fit=crop"
-          alt="Mujer feliz con tarjeta"
+          src="/img/landing/excited-woman.jpg"
+          alt="Mujer feliz con tarjeta de crédito"
           fill
           className="object-cover mix-blend-multiply opacity-90"
         />

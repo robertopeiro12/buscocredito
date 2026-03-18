@@ -308,6 +308,7 @@ export const getLenderProposals = async (lenderId: string) => {
       
       return {
         id: doc.id,
+        loanId: data.loanId || data.solicitudId || null,
         amortization: data.amortization,
         amortization_frequency: data.amortization_frequency,
         medical_balance: data.medical_balance,

@@ -1,10 +1,21 @@
 import React, { useState } from "react";
-import { Button, Card, Chip, CardBody } from "@heroui/react";
-import { User, ChevronRight, CreditCard } from "lucide-react";
+import { Button, Card, Chip, CardBody, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Tooltip } from "@heroui/react";
+import { User, ChevronRight, CreditCard, Eye, Info, X } from "lucide-react";
 import { LenderStats } from "@/components/features/dashboard/LenderStats";
 import { MarketplacePagination } from "@/components/features/dashboard/MarketplacePagination";
 import { LenderLoadingSkeletons } from "@/components/features/dashboard/LenderLoadingSkeletons";
+import { getFirestore, collection, query, where, getDocs } from "firebase/firestore";
 import type { LenderProposal } from "@/app/lender/types/loan.types";
+
+interface WinningOffer {
+  amount?: number;
+  interestRate?: number;
+  amortizationFrequency?: string;
+  amortization?: number;
+  term?: number;
+  comision?: number;
+  medicalBalance?: number;
+}
 
 interface MyOffersViewProps {
   lenderProposals: LenderProposal[];
@@ -20,6 +31,61 @@ const MyOffersView = ({
   onGoToMarketplace,
   allRequests = [],
 }: MyOffersViewProps) => {
+  // Winning offer modal state
+  const [showReasonModal, setShowReasonModal] = useState(false);
+  const [winningOffer, setWinningOffer] = useState<WinningOffer | null>(null);
+  const [loadingReason, setLoadingReason] = useState(false);
+  const [selectedProposalId, setSelectedProposalId] = useState<string | null>(null);
+
+  const fetchWinningOffer = async (proposal: LenderProposal) => {
+    const loanId = proposal.loanId;
+    if (!loanId) return;
+
+    setLoadingReason(true);
+    setSelectedProposalId(proposal.id);
+    setShowReasonModal(true);
+
+    try {
+      const db = getFirestore();
+      const proposalsRef = collection(db, "propuestas");
+      const q = query(proposalsRef, where("loanId", "==", loanId), where("status", "==", "accepted"));
+      const snapshot = await getDocs(q);
+
+      let accepted: any = null;
+      snapshot.forEach((docSnap) => {
+        accepted = docSnap.data();
+      });
+
+      // Also try solicitudId for legacy data
+      if (!accepted) {
+        const legacyQ = query(proposalsRef, where("solicitudId", "==", loanId), where("status", "==", "accepted"));
+        const legacySnapshot = await getDocs(legacyQ);
+        legacySnapshot.forEach((docSnap) => {
+          accepted = docSnap.data();
+        });
+      }
+
+      if (accepted) {
+        setWinningOffer({
+          amount: accepted.amount,
+          interestRate: accepted.interest_rate,
+          amortizationFrequency: accepted.amortization_frequency,
+          amortization: accepted.amortization,
+          term: accepted.deadline,
+          comision: accepted.comision,
+          medicalBalance: accepted.medical_balance,
+        });
+      } else {
+        setWinningOffer(null);
+      }
+    } catch (error) {
+      console.error("Error fetching winning offer:", error);
+      setWinningOffer(null);
+    } finally {
+      setLoadingReason(false);
+    }
+  };
+
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 9; // 9 ofertas por página
@@ -228,6 +294,22 @@ const MyOffersView = ({
                     </div>
                   </div>
 
+                  {proposal.status === "rejected" && proposal.loanId && (
+                    <div className="pt-4 border-t border-gray-100">
+                      <Button
+                        size="sm"
+                        variant="flat"
+                        color="danger"
+                        startContent={<Eye className="w-4 h-4" />}
+                        onClick={() => fetchWinningOffer(proposal)}
+                        isLoading={loadingReason && selectedProposalId === proposal.id}
+                        className="w-full"
+                      >
+                        Ver Razón
+                      </Button>
+                    </div>
+                  )}
+
                   {(proposal as any).message && (
                     <div className="pt-4 border-t border-gray-100">
                       <p className="text-sm text-gray-600 italic">
@@ -282,6 +364,98 @@ const MyOffersView = ({
           )}
         </>
       )}
+      {/* Modal: Ver Razón (Winning Offer Details) */}
+      <Modal isOpen={showReasonModal} onClose={() => setShowReasonModal(false)} size="lg">
+        <ModalContent>
+          <ModalHeader className="flex flex-col gap-1">
+            <h3 className="text-lg font-bold text-gray-900">
+              Detalles de la propuesta ganadora
+            </h3>
+            <p className="text-sm text-gray-500 font-normal">
+              Esta es la propuesta que fue aceptada por el solicitante
+            </p>
+          </ModalHeader>
+          <ModalBody>
+            {loadingReason ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-500" />
+                <span className="ml-3 text-gray-500">Cargando detalles...</span>
+              </div>
+            ) : winningOffer ? (
+              <div className="space-y-1 text-sm">
+                <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                  <span className="text-gray-500">Monto:</span>
+                  <span className="font-medium text-gray-900">
+                    ${winningOffer.amount?.toLocaleString() || "N/A"}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                  <span className="text-gray-500">Tasa de interés:</span>
+                  <span className="font-medium text-gray-900">
+                    {winningOffer.interestRate || "N/A"}%
+                  </span>
+                </div>
+                <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                  <span className="text-gray-500">Frecuencia de pago:</span>
+                  <span className="font-medium text-gray-900 capitalize">
+                    {winningOffer.amortizationFrequency || "N/A"}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                  <span className="text-gray-500">Plazo:</span>
+                  <span className="font-medium text-gray-900">
+                    {winningOffer.term || "N/A"} meses
+                  </span>
+                </div>
+                {winningOffer.amortization !== undefined && winningOffer.amortization > 0 && (
+                  <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                    <span className="text-gray-500">Monto de amortización:</span>
+                    <span className="font-medium text-gray-900">
+                      ${winningOffer.amortization?.toLocaleString()}
+                    </span>
+                  </div>
+                )}
+                <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                  <span className="text-gray-500">Comisión por apertura:</span>
+                  <span className="font-medium text-gray-900">
+                    ${winningOffer.comision?.toLocaleString() || "N/A"}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center py-2">
+                  <div className="flex items-center gap-1">
+                    <span className="text-gray-500">Seguro de vida saldo deudor:</span>
+                    <Tooltip
+                      content="Seguro que cubre el adeudo en caso de una situación fatal"
+                      placement="top"
+                      className="max-w-xs"
+                    >
+                      <Info className="w-3 h-3 text-gray-400 hover:text-gray-600 cursor-help" />
+                    </Tooltip>
+                  </div>
+                  <span className="font-medium text-gray-900">
+                    ${winningOffer.medicalBalance?.toLocaleString() || "N/A"}
+                  </span>
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-gray-500">
+                  No se encontraron detalles de la propuesta ganadora.
+                </p>
+              </div>
+            )}
+          </ModalBody>
+          <ModalFooter>
+            <Button
+              color="danger"
+              variant="light"
+              onClick={() => setShowReasonModal(false)}
+            >
+              Cerrar
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
     </div>
   );
 };

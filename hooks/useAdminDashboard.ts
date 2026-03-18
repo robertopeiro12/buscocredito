@@ -77,12 +77,13 @@ export function useAdminDashboard() {
   });
 
   // Hook de métricas
-  const { 
-    metricsData, 
-    isLoadingMetrics, 
-    getMonthName, 
-    getTopDistributionItems, 
-    calculatePercentage 
+  const {
+    metricsData,
+    isLoadingMetrics,
+    rawProposals,
+    getMonthName,
+    getTopDistributionItems,
+    calculatePercentage
   } = useAdminMetrics({
     user,
     activeTab,
@@ -380,6 +381,7 @@ export function useAdminDashboard() {
     // Metrics data from useAdminMetrics
     metricsData,
     isLoadingMetrics,
+    rawProposals,
     getMonthName,
     getTopDistributionItems,
     calculatePercentage,
