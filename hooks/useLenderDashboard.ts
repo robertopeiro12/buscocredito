@@ -23,6 +23,7 @@ const initialFilters: LenderFilters = {
   city: "",
   purpose: "all",
   type: "all",
+  amountRange: "all",
 };
 
 const initialPartnerData: PartnerData = {
@@ -128,7 +129,30 @@ export const useLenderDashboard = () => {
         typeMatch = request.type === mappedType;
       }
 
-      return searchMatch && stateMatch && cityMatch && purposeMatch && typeMatch;
+      // Filtro de rango de monto
+      let amountMatch = true;
+      if (filters.amountRange !== "all") {
+        const amount = request.amount;
+        switch (filters.amountRange) {
+          case "0-50000":
+            amountMatch = amount >= 0 && amount <= 50000;
+            break;
+          case "50000-100000":
+            amountMatch = amount > 50000 && amount <= 100000;
+            break;
+          case "100000-250000":
+            amountMatch = amount > 100000 && amount <= 250000;
+            break;
+          case "250000-500000":
+            amountMatch = amount > 250000 && amount <= 500000;
+            break;
+          case "500000+":
+            amountMatch = amount > 500000;
+            break;
+        }
+      }
+
+      return searchMatch && stateMatch && cityMatch && purposeMatch && typeMatch && amountMatch;
     });
   }, [requests, filters, userDataMap]);
 

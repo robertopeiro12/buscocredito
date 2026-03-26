@@ -206,15 +206,18 @@ export const useDashboardState = () => {
   const refreshSolicitudes = async () => {
     if (!user?.uid) return;
     try {
+      setIsLoading((prev) => ({ ...prev, loans: true }));
       const solicitudesData = await fetchSolicitudes(user.uid);
       setSolicitudes(solicitudesData);
-      
+
       // Refresh offer counts
       solicitudesData.forEach((solicitud) => {
         fetchOfferCountForSolicitud(solicitud.id);
       });
     } catch (error) {
       console.error("Error refreshing solicitudes:", error);
+    } finally {
+      setIsLoading((prev) => ({ ...prev, loans: false }));
     }
   };
 

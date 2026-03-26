@@ -37,8 +37,8 @@ export interface SolicitudData {
   income: number;
   status: "pending" | "approved" | "rejected";
   createdAt: string;
-  updatedAt?: string;
-  comision?: number;
+  updatedAt: string | null;
+  comision: number | null;
 }
 
 export type NewSolicitudData = Omit<SolicitudData, "id">;
@@ -51,23 +51,23 @@ export interface Offer {
   term: number; // deadline de Firebase (en meses)
   monthly_payment: number; // calculado basado en amortization_frequency
   amortization_frequency: string; // "quincenal", "semanal", "mensual"
-  amortization?: number; // amortization de Firebase
-  medical_balance?: number; // medical_balance de Firebase
-  comision?: number; // comision de Firebase
-  deadline?: number; // deadline de Firebase (en meses)
-  partner?: string; // partner de Firebase
-  status?: "accepted" | "rejected" | "pending";
-  requestInfo?: {
+  amortization: number | null; // amortization de Firebase
+  medical_balance: number | null; // medical_balance de Firebase
+  comision: number | null; // comision de Firebase
+  deadline: number | null; // deadline de Firebase (en meses)
+  partner: string | null; // partner de Firebase
+  status: "accepted" | "rejected" | "pending" | null;
+  requestInfo: {
     originalAmount: number;
     originalPayment: string;
     originalTerm: string;
-    purpose: string; // Solo esto de la solicitud original
-    type: string; // Solo esto de la solicitud original
-  };
+    purpose: string;
+    type: string;
+  } | null;
 }
 
 export interface CreditFormProps {
-  addSolicitud: (data: CreditFormData) => void;
+  addSolicitud: (data: CreditFormData) => Promise<boolean | void>;
   resetForm: () => void;
 }
 

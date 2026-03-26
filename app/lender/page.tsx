@@ -1,6 +1,8 @@
 // app/lender/page.tsx
 "use client";
 
+import { Suspense } from "react";
+
 // Hook personalizado
 import { useLenderDashboard } from "@/hooks/useLenderDashboard";
 
@@ -12,7 +14,7 @@ import LenderHeader from "@/components/lender/LenderHeader";
 import MarketplaceView from "@/components/lender/MarketplaceView";
 import MyOffersView from "@/components/lender/MyOffersView";
 
-export default function LenderPage() {
+function LenderPageContent() {
   // Usar el hook personalizado para toda la lógica
   const {
     // Estados
@@ -194,5 +196,22 @@ export default function LenderPage() {
         </main>
       </div>
     </div>
+  );
+}
+
+export default function LenderPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Cargando panel de prestamista...</p>
+          </div>
+        </div>
+      }
+    >
+      <LenderPageContent />
+    </Suspense>
   );
 }

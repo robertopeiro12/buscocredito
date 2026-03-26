@@ -311,20 +311,17 @@ export default function DashboardPage() {
 
   const handleSolicitudSubmit = async (data: any) => {
     try {
-      console.log("Creating solicitud with data:", data);
-
-      // Use the createSolicitud function instead of just refreshing
       const success = await createSolicitud(data);
 
       if (success) {
         setShowForm(false);
-        // Switch to loans tab to show the new solicitation
         setActiveTab("loans");
-        // Reset pagination to first page to see the new solicitation
         setCurrentPage(1);
       }
+      return success;
     } catch (error) {
       console.error("Error creating solicitud:", error);
+      return false;
     }
   };
 
@@ -667,13 +664,13 @@ export default function DashboardPage() {
             {(onClose) => (
               <>
                 <ModalHeader className="flex flex-col gap-1">
-                  ¿Aceptar esta propuesta?
+                  Estás a punto de informar a {offerToAccept?.offer.lender_name} que te interesa su oferta
                 </ModalHeader>
                 <ModalBody>
                   {offerToAccept && (
                     <div className="space-y-4">
                       <p>
-                        Estás a punto de aceptar la propuesta de{" "}
+                        Quieres expresar tu interés en la propuesta de{" "}
                         <span className="font-semibold">
                           {offerToAccept.offer.lender_name}
                         </span>{" "}
@@ -682,22 +679,28 @@ export default function DashboardPage() {
                           ${offerToAccept.offer.amount.toLocaleString()}
                         </span>
                       </p>
+                      <div className="bg-blue-50 p-3 rounded-md border border-blue-200">
+                        <p className="text-blue-800 text-sm font-medium">
+                          Información importante
+                        </p>
+                        <p className="text-sm text-blue-700 mt-2">
+                          Esto no implica una aceptación formal del crédito ni
+                          ningún compromiso. Solo se notifica a la institución
+                          tu interés en continuar el proceso.
+                        </p>
+                      </div>
                       <div className="bg-amber-50 p-3 rounded-md border border-amber-200">
                         <p className="text-amber-800 text-sm font-medium">
-                          Importante
+                          Ten en cuenta
                         </p>
                         <ul className="text-sm text-amber-700 list-disc pl-5 mt-2 space-y-1">
                           <li>
-                            Al aceptar esta propuesta, las demás propuestas para
-                            esta solicitud se marcarán como rechazadas.
+                            Las demás propuestas para esta solicitud se
+                            marcarán como no seleccionadas.
                           </li>
                           <li>
-                            Solo el prestamista de la propuesta aceptada podrá
-                            ver tu solicitud.
-                          </li>
-                          <li>
-                            Tu solicitud ya no será visible para otros
-                            prestamistas.
+                            Solo el prestamista seleccionado podrá ver tu
+                            información de contacto.
                           </li>
                           <li>
                             No podrás deshacer esta acción después de confirmar.
@@ -721,7 +724,7 @@ export default function DashboardPage() {
                     onPress={handleAcceptOffer}
                     isLoading={isLoading.offers}
                   >
-                    Confirmar y Aceptar
+                    Sí, informar mi interés
                   </Button>
                 </ModalFooter>
               </>

@@ -106,6 +106,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               type:
                 (customClaims.userType as "user" | "b_admin" | "b_sale") ||
                 "user",
+              Empresa: undefined,
+              Empresa_id: undefined,
             });
           }
         } catch (error) {

@@ -53,7 +53,7 @@ export function AccountDetailModal({
 }: AccountDetailModalProps) {
   if (!account) return null;
 
-  const formatDate = (dateString?: string) => {
+  const formatDate = (dateString: string | null) => {
     if (!dateString) return "No disponible";
     return new Date(dateString).toLocaleDateString("es-ES", {
       year: "numeric",

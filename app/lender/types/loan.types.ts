@@ -26,6 +26,7 @@ export interface LenderFilters {
   city: string; // Ciudad
   purpose: 'all' | 'Personal' | 'Negocio'; // Basado en tus propósitos definidos
   type: 'all' | 'consumo' | 'deudas' | 'capital' | 'maquinaria'; // Basado en tus tipos definidos
+  amountRange: 'all' | '0-50000' | '50000-100000' | '100000-250000' | '250000-500000' | '500000+';
 }
 
 export interface PartnerData {

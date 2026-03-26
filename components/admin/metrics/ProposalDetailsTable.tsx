@@ -164,7 +164,7 @@ export function ProposalDetailsTable({ comparisons, companyName }: Props) {
                     {item.adminWon ? (
                       <span className="text-green-600 font-medium">{companyName}</span>
                     ) : item.hasAccepted ? (
-                      <span className="text-gray-900">{item.acceptedCompany || "Otra empresa"}</span>
+                      <span className="text-gray-900">Otra institución</span>
                     ) : (
                       <span className="text-gray-400">Sin resolver</span>
                     )}
@@ -215,7 +215,7 @@ export function ProposalDetailsTable({ comparisons, companyName }: Props) {
                             {item.adminWon
                               ? "Propuesta Ganadora (Tuya)"
                               : item.hasAccepted
-                              ? `Propuesta Aceptada (${item.acceptedCompany || "Otra empresa"})`
+                              ? "Propuesta Aceptada (Otra institución)"
                               : "Sin propuesta aceptada aún"}
                           </h4>
                           {item.hasAccepted && !item.adminWon ? (

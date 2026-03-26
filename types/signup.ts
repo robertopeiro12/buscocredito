@@ -27,27 +27,8 @@ export interface SignupFormData {
   acceptedTerms: boolean;
 }
 
-export interface SignupErrors {
-  name?: string;
-  lastName?: string;
-  secondLastName?: string;
-  rfc?: string;
-  birthday?: string;
-  phone?: string;
-  email?: string;
-  password?: string;
-  confirmPassword?: string;
-  acceptedTerms?: string;
-  'address.street'?: string;
-  'address.exteriorNumber'?: string;
-  'address.interiorNumber'?: string;
-  'address.colony'?: string;
-  'address.city'?: string;
-  'address.state'?: string;
-  'address.zipCode'?: string;
-  submit?: string;
-  [key: string]: string | undefined;
-}
+// Error map — los campos son opcionales por naturaleza (solo existen si hay error)
+export type SignupErrors = Record<string, string | undefined>;
 
 export interface ValidationResult {
   isValid: boolean;

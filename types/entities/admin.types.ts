@@ -4,7 +4,7 @@ export interface AdminAccount {
     Nombre: string
     email: string
     type: "b_sale" | "b_admin"
-    id?: string
+    id: string | null
   }
   
   export interface Notification {

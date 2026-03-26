@@ -79,7 +79,7 @@ export function AccountsTable({
     return accounts.slice(start, end);
   }, [accounts, page]);
 
-  const formatDate = (dateString?: string) => {
+  const formatDate = (dateString: string | null) => {
     if (!dateString) return "N/A";
     return new Date(dateString).toLocaleDateString("es-ES", {
       year: "numeric",

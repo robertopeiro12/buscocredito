@@ -3,21 +3,20 @@
 export interface AccountInfo {
   uid: string;
   email: string | null;
-  name?: string;
+  name: string | null;
   type: 'super_admin' | 'b_admin' | 'b_sale' | 'user';
-  Empresa?: string;
-  Empresa_id?: string;
-  createdAt?: string;
-  lastLoginAt?: string;
+  Empresa: string | null;
+  Empresa_id: string | null;
+  createdAt: string | null;
+  lastLoginAt: string | null;
   isActive: boolean;
-  disabled?: boolean;
-  // Additional user data
-  phone?: string;
-  address?: {
-    country?: string;
-    state?: string;
-    city?: string;
-  };
+  disabled: boolean;
+  phone: string | null;
+  address: {
+    country: string | null;
+    state: string | null;
+    city: string | null;
+  } | null;
 }
 
 export interface SystemStats {
@@ -35,8 +34,8 @@ export interface SystemStats {
   pendingSolicitudes: number;
   approvedSolicitudes: number;
   rejectedSolicitudes: number;
-  recentSignups: number; // Last 7 days
-  recentLogins: number; // Last 24 hours
+  recentSignups: number;
+  recentLogins: number;
 }
 
 export interface ActivityLog {
@@ -44,10 +43,10 @@ export interface ActivityLog {
   userId: string;
   userEmail: string;
   action: 'login' | 'logout' | 'create' | 'update' | 'delete' | 'signup';
-  resource?: string;
-  details?: string;
+  resource: string | null;
+  details: string | null;
   timestamp: string;
-  ipAddress?: string;
+  ipAddress: string | null;
 }
 
 export interface SuperAdminDashboardState {
@@ -74,14 +73,14 @@ export interface DatabaseInfo {
     documentCount: number;
   }[];
   totalDocuments: number;
-  lastBackup?: string;
+  lastBackup: string | null;
 }
 
 export interface ServerHealth {
   status: 'healthy' | 'degraded' | 'down';
   uptime: number;
-  memoryUsage?: number;
-  cpuUsage?: number;
+  memoryUsage: number | null;
+  cpuUsage: number | null;
   lastChecked: string;
 }
 

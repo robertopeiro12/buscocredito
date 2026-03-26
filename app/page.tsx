@@ -7,6 +7,7 @@ import WhatIsBuscoCredito from "@/components/features/landing/WhatIsBuscoCredito
 import HowItWorks from "@/components/features/landing/HowItWorks";
 import WhyUseBuscoCredito from "@/components/features/landing/WhyUseBuscoCredito";
 import StartEvaluatingCTA from "@/components/features/landing/StartEvaluatingCTA";
+import CompareCreditsCTA from "@/components/features/landing/CompareCreditsCTA";
 import LenderSection from "@/components/features/landing/LenderSection";
 import Footer from "@/components/common/layout/Footer";
 import React, { useState, useEffect } from "react";
@@ -56,6 +57,9 @@ export default function Home() {
 
       {/* Confusion Section */}
       <ConfusionSection />
+
+      {/* Compare Credits CTA */}
+      <CompareCreditsCTA />
 
       {/* What is BuscoCredito */}
       <WhatIsBuscoCredito />

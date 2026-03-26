@@ -1,9 +1,9 @@
 export interface User {
   uid: string;
   email: string | null;
-  type?: 'super_admin' | 'b_admin' | 'b_sale' | 'user';
-  Empresa?: string;
-  Empresa_id?: string;
+  type: 'super_admin' | 'b_admin' | 'b_sale' | 'user' | undefined;
+  Empresa: string | undefined;
+  Empresa_id: string | undefined;
 }
 
 export interface AuthContextType {

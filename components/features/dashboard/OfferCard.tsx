@@ -45,10 +45,26 @@ export const OfferCard = ({
             )}
           </div>
 
+          {/* Resumen de pago — dato principal */}
+          <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl p-6 text-center">
+            <p className="text-xl text-gray-900 font-bold mb-1">Vas a pagar</p>
+            <p className="text-4xl sm:text-5xl font-extrabold text-green-700">
+              ${offer.amortization?.toLocaleString()}
+            </p>
+            <p className="text-lg text-gray-700 mt-2">
+              de forma{" "}
+              <span className="font-bold capitalize">
+                {offer.amortization_frequency}
+              </span>{" "}
+              durante{" "}
+              <span className="font-bold">{offer.deadline} meses</span>
+            </p>
+          </div>
+
           {/* Información de la Propuesta */}
           <div>
             <h5 className="text-lg font-semibold text-gray-900 mb-4">
-              Información de la Propuesta
+              Detalles de la Propuesta
             </h5>
 
             <div className="space-y-3">
@@ -96,7 +112,7 @@ export const OfferCard = ({
                 </span>
               </div>
 
-              {offer.medical_balance !== undefined &&
+              {offer.medical_balance != null &&
                 offer.medical_balance > 0 && (
                   <div className="flex justify-between">
                     <div className="flex items-center gap-1">
@@ -134,31 +150,7 @@ export const OfferCard = ({
                   </span>
                 </div>
               )}
-
-              {offer.amortization !== undefined && offer.amortization > 0 && (
-                <div className="flex justify-between">
-                  <span className="text-gray-600 text-base">Pago:</span>
-                  <span className="font-semibold text-gray-900 text-base">
-                    ${offer.amortization?.toLocaleString()}
-                  </span>
-                </div>
-              )}
             </div>
-          </div>
-
-          {/* Información de pago */}
-          <div className="bg-gray-50 rounded-lg p-4">
-            <p className="text-gray-900 font-medium">
-              Pagarás{" "}
-              <span className="font-bold text-green-600">
-                ${offer.amortization?.toLocaleString()}
-              </span>{" "}
-              de forma{" "}
-              <span className="font-bold capitalize">
-                {offer.amortization_frequency}
-              </span>{" "}
-              durante <span className="font-bold">{offer.deadline} meses</span>
-            </p>
           </div>
 
           {/* Botón de acción */}

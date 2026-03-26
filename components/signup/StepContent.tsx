@@ -1,11 +1,12 @@
-import React from "react";
-import Link from "next/link";
+import React, { useState } from "react";
 import { CheckCircle, AlertCircle } from "lucide-react";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
-import { Select, SelectItem } from "@heroui/react";
+import { Select, SelectItem, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button } from "@heroui/react";
 import InputField from "./InputField";
 import { SignupFormData, SignupErrors } from "@/types/signup";
+import TermsContent from "./TermsContent";
+import PrivacyContent from "./PrivacyContent";
 
 interface StepContentProps {
   step: number;
@@ -66,6 +67,9 @@ const StepContent = ({
   handleStateChange,
   handleTermsChange,
 }: StepContentProps) => {
+  const [showTermsModal, setShowTermsModal] = useState(false);
+  const [showPrivacyModal, setShowPrivacyModal] = useState(false);
+
   const renderStepContent = () => {
     switch (step) {
       case 1:
@@ -373,21 +377,21 @@ const StepContent = ({
                   />
                   <span className="text-sm text-gray-600">
                     Acepto los{" "}
-                    <Link
-                      href="/terminos"
-                      target="_blank"
+                    <button
+                      type="button"
+                      onClick={() => setShowTermsModal(true)}
                       className="text-green-600 underline hover:text-green-700"
                     >
                       Términos y Condiciones
-                    </Link>{" "}
+                    </button>{" "}
                     y la{" "}
-                    <Link
-                      href="/politica-privacidad"
-                      target="_blank"
+                    <button
+                      type="button"
+                      onClick={() => setShowPrivacyModal(true)}
                       className="text-green-600 underline hover:text-green-700"
                     >
                       Política de Privacidad
-                    </Link>
+                    </button>
                   </span>
                 </label>
                 {errors.acceptedTerms && (
@@ -397,6 +401,58 @@ const StepContent = ({
                   </div>
                 )}
               </div>
+
+              {/* Modal de Términos y Condiciones */}
+              <Modal
+                isOpen={showTermsModal}
+                onClose={() => setShowTermsModal(false)}
+                size="3xl"
+                scrollBehavior="inside"
+              >
+                <ModalContent>
+                  <ModalHeader className="flex flex-col gap-1">
+                    Términos y Condiciones de Uso de BuscoCredito
+                  </ModalHeader>
+                  <ModalBody>
+                    <TermsContent />
+                  </ModalBody>
+                  <ModalFooter>
+                    <Button
+                      color="primary"
+                      onPress={() => setShowTermsModal(false)}
+                      className="bg-green-600 hover:bg-green-700"
+                    >
+                      Cerrar
+                    </Button>
+                  </ModalFooter>
+                </ModalContent>
+              </Modal>
+
+              {/* Modal de Política de Privacidad */}
+              <Modal
+                isOpen={showPrivacyModal}
+                onClose={() => setShowPrivacyModal(false)}
+                size="3xl"
+                scrollBehavior="inside"
+              >
+                <ModalContent>
+                  <ModalHeader className="flex flex-col gap-1">
+                    Política de Privacidad
+                  </ModalHeader>
+                  <ModalBody>
+                    <PrivacyContent />
+                  </ModalBody>
+                  <ModalFooter>
+                    <Button
+                      color="primary"
+                      onPress={() => setShowPrivacyModal(false)}
+                      className="bg-green-600 hover:bg-green-700"
+                    >
+                      Cerrar
+                    </Button>
+                  </ModalFooter>
+                </ModalContent>
+              </Modal>
             </div>
           </div>
         );

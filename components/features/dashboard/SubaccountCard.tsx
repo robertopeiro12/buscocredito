@@ -79,7 +79,7 @@ export function SubaccountCard({ subaccount, onDelete }: SubaccountCardProps) {
               <p className="text-sm text-gray-500">{subaccount.email}</p>
             </div>
             <span className="text-sm font-medium text-green-600 bg-green-100 px-2 py-1 rounded-full">
-              #{subaccount.id}
+              Trabajador
             </span>
           </div>
         </CardBody>

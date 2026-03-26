@@ -961,7 +961,7 @@ const CreditForm = ({
     term: string;
     payment: string;
     income: string;
-  }) => void;
+  }) => Promise<boolean | void>;
   resetForm: () => void;
 }) => {
   const [formData, setFormData] = useState({
@@ -998,8 +998,10 @@ const CreditForm = ({
   const handleSubmit = async () => {
     setIsSubmitting(true);
     try {
-      await addSolicitud(formData);
-      resetForm();
+      const result = await addSolicitud(formData);
+      if (result !== false) {
+        resetForm();
+      }
     } catch (error) {
       setError(true);
     } finally {
@@ -1010,7 +1012,7 @@ const CreditForm = ({
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50">
       <div
-        className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm"
+        className="fixed inset-0 bg-black/20 backdrop-blur-sm"
         onClick={resetForm}
       />
       <motion.div

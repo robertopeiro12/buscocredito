@@ -28,13 +28,12 @@ export interface PublicUserData {
   country: string;
   state: string;
   city: string;
-  birthday?: string | null;
-  purpose?: string;
-  creditScore?: {
+  birthday: string | null;
+  purpose: string | null;
+  creditScore: {
     score: number;
     classification: string;
-  };
-  // Podemos agregar más campos si son necesarios
+  } | null;
 }
 
 export interface PartnerData {

@@ -29,7 +29,7 @@ const Introduction = () => {
             height={400}
             src="/img/logo.png"
             alt="BuscoCredito Logo"
-            className={`w-full h-full object-contain transition-opacity duration-500 ${
+            className={`w-full h-full object-contain transition-opacity duration-500 mix-blend-multiply ${
               imageLoaded ? "opacity-100" : "opacity-0"
             }`}
             priority
