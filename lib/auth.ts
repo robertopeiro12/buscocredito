@@ -2,8 +2,10 @@ import { NextRequest } from 'next/server';
 import { cookies } from 'next/headers';
 import { getAdminAuth } from '@/db/FirebaseAdmin';
 
-// Tipos de usuario del sistema
-export type UserRole = 'b_admin' | 'b_sale' | 'user';
+import type { UserRole } from '@/types/entities/account.types';
+
+// Re-export para que consumidores de lib/auth no necesiten cambiar imports
+export type { UserRole };
 
 // Interfaz para datos del usuario autenticado
 export interface AuthenticatedUser {
@@ -27,34 +29,34 @@ export async function verifyAuthToken(request: NextRequest): Promise<AuthResult>
   try {
     // Obtener token del header Authorization o cookies
     let token: string | undefined;
-    
+
     // Prioridad 1: Header Authorization
     const authHeader = request.headers.get('authorization');
     if (authHeader && authHeader.startsWith('Bearer ')) {
       token = authHeader.substring(7);
     }
-    
+
     // Prioridad 2: Cookie auth-token
     if (!token) {
       const cookieStore = await cookies();
       const authCookie = cookieStore.get('auth-token');
       token = authCookie?.value;
     }
-    
+
     if (!token) {
       return {
         success: false,
         error: 'No authentication token provided'
       };
     }
-    
+
     // Verificar token con Firebase Admin
     const auth = getAdminAuth();
     const decodedToken = await auth.verifyIdToken(token);
-    
+
     // Obtener rol del usuario (desde custom claims o default)
-    const role = (decodedToken.role as UserRole) || 'user';
-    
+    const role = (decodedToken.role as UserRole) || 'borrower';
+
     return {
       success: true,
       user: {
@@ -64,7 +66,7 @@ export async function verifyAuthToken(request: NextRequest): Promise<AuthResult>
         isVerified: decodedToken.email_verified || false
       }
     };
-    
+
   } catch (error) {
     console.error('Error verifying auth token:', error);
     return {
@@ -80,11 +82,11 @@ export async function verifyAuthToken(request: NextRequest): Promise<AuthResult>
 export function requireAuth(allowedRoles?: UserRole[]) {
   return async (request: NextRequest): Promise<AuthResult> => {
     const authResult = await verifyAuthToken(request);
-    
+
     if (!authResult.success || !authResult.user) {
       return authResult;
     }
-    
+
     // Si se especifican roles permitidos, verificar autorización
     if (allowedRoles && !allowedRoles.includes(authResult.user.role)) {
       return {
@@ -92,25 +94,25 @@ export function requireAuth(allowedRoles?: UserRole[]) {
         error: `Insufficient permissions. Required roles: ${allowedRoles.join(', ')}`
       };
     }
-    
+
     return authResult;
   };
 }
 
 /**
- * Helper para endpoints que requieren rol de lender (b_sale)
+ * Helper para endpoints que requieren rol de lender
  */
-export const requireLenderAuth = requireAuth(['b_sale']);
+export const requireLenderAuth = requireAuth(['lender']);
 
 /**
- * Helper para endpoints que requieren rol de admin (b_admin)
+ * Helper para endpoints que requieren rol de admin de empresa
  */
-export const requireAdminAuth = requireAuth(['b_admin']);
+export const requireAdminAuth = requireAuth(['companyAdmin']);
 
 /**
- * Helper para endpoints que requieren rol de usuario (user)
+ * Helper para endpoints que requieren rol de solicitante
  */
-export const requireUserAuth = requireAuth(['user']);
+export const requireUserAuth = requireAuth(['borrower']);
 
 /**
  * Helper para endpoints que requieren cualquier usuario autenticado
@@ -144,20 +146,20 @@ export function hasResourceAccess(
   resourceOwnerId: string,
   allowedRoles: UserRole[] = []
 ): boolean {
-  // Los admins tienen acceso a todo
-  if (user.role === 'b_admin') {
+  // Los admins de empresa tienen acceso a todo dentro de su empresa
+  if (user.role === 'companyAdmin') {
     return true;
   }
-  
+
   // Si el usuario es dueño del recurso
   if (user.uid === resourceOwnerId) {
     return true;
   }
-  
+
   // Si el usuario tiene un rol permitido
   if (allowedRoles.includes(user.role)) {
     return true;
   }
-  
+
   return false;
 }

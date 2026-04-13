@@ -150,14 +150,14 @@ export function exportProposalsData(
     id: string;
     company?: string;
     amount?: number;
-    interest_rate?: number;
+    interestRate?: number;
     comision?: number;
     commission?: number;
     deadline?: number;
-    amortization_frequency?: string;
+    amortizationFrequency?: string;
     amortization?: number;
     status?: string;
-    partner?: string;
+    lenderId?: string;
     createdAt?: any;
     requestInfo?: {
       type?: string;
@@ -165,7 +165,8 @@ export function exportProposalsData(
       originalPayment?: string;
     };
   }>,
-  companyName: string
+  companyName: string,
+  workerNameMap?: Record<string, string>
 ) {
   const rows = proposals.map((p) => {
     let dateStr = "";
@@ -176,14 +177,20 @@ export function exportProposalsData(
       }
     }
 
+    // Resolver nombre del trabajador a partir del ID
+    const workerName = p.lenderId && workerNameMap
+      ? workerNameMap[p.lenderId] || p.lenderId
+      : p.lenderId || "";
+
     return {
       ID: p.id,
+      Trabajador: workerName,
       Empresa: p.company || companyName,
       Monto: p.amount || 0,
-      "Tasa de Interés (%)": p.interest_rate || 0,
+      "Tasa de Interés (%)": p.interestRate || 0,
       "Comisión ($)": p.comision || p.commission || 0,
       "Plazo (meses)": p.deadline || "",
-      "Frecuencia de Pago": p.amortization_frequency || "",
+      "Frecuencia de Pago": p.amortizationFrequency || "",
       Amortización: p.amortization || "",
       Estado: p.status || "",
       "Tipo de Préstamo": p.requestInfo?.type || "",

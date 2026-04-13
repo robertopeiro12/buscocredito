@@ -49,7 +49,7 @@ export async function verifyAuthentication(request: NextRequest): Promise<Authen
         return {
           uid: decodedToken.uid,
           email: decodedToken.email || '',
-          userType: 'user' // Default para Bearer tokens legacy
+          userType: 'borrower' // Default para Bearer tokens legacy
         };
       } catch (bearerError) {
         console.log('Bearer auth failed');

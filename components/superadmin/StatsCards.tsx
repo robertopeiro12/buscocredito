@@ -110,22 +110,22 @@ export function StatsCards({ stats, isLoading }: StatsCardsProps) {
   const userTypeStats = [
     {
       title: "Super Admins",
-      value: stats.accountsByType.super_admin,
+      value: stats.accountsByType.superAdmin,
       color: "bg-purple-600",
     },
     {
-      title: "Administradores",
-      value: stats.accountsByType.b_admin,
+      title: "Admin Empresa",
+      value: stats.accountsByType.companyAdmin,
       color: "bg-blue-600",
     },
     {
-      title: "Vendedores",
-      value: stats.accountsByType.b_sale,
+      title: "Prestamistas",
+      value: stats.accountsByType.lender,
       color: "bg-cyan-600",
     },
     {
-      title: "Usuarios",
-      value: stats.accountsByType.user,
+      title: "Solicitantes",
+      value: stats.accountsByType.borrower,
       color: "bg-green-600",
     },
   ];

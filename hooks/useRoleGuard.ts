@@ -1,12 +1,10 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../contexts/AuthContext";
-import type { User } from "../types/entities/user.types";
-
-type UserType = 'b_admin' | 'b_sale' | 'user';
+import type { AuthUser, UserRole } from "../types/entities/account.types";
 
 interface UseRoleGuardOptions {
-  allowedRoles: UserType[];
+  allowedRoles: UserRole[];
   redirectTo?: string;
   fallbackRoute?: string;
 }
@@ -14,8 +12,8 @@ interface UseRoleGuardOptions {
 interface UseRoleGuardReturn {
   isAuthorized: boolean;
   isLoading: boolean;
-  user: User | null;
-  userType: UserType | null;
+  user: AuthUser | null;
+  userType: UserRole | null;
 }
 
 export const useRoleGuard = (options: UseRoleGuardOptions): UseRoleGuardReturn => {
@@ -49,8 +47,8 @@ export const useRoleGuard = (options: UseRoleGuardOptions): UseRoleGuardReturn =
     }
 
     // Verificar si el usuario tiene el rol adecuado
-    const hasPermission = allowedRoles.includes(user.type as UserType);
-    
+    const hasPermission = allowedRoles.includes(user.type as UserRole);
+
     if (!hasPermission) {
       // Usuario no autorizado
       if (fallbackRoute) {
@@ -58,13 +56,13 @@ export const useRoleGuard = (options: UseRoleGuardOptions): UseRoleGuardReturn =
       } else {
         // Redirigir al dashboard correcto según su rol
         switch (user.type) {
-          case 'b_admin':
+          case 'companyAdmin':
             router.push('/admin_dashboard');
             break;
-          case 'b_sale':
+          case 'lender':
             router.push('/lender');
             break;
-          case 'user':
+          case 'borrower':
             router.push('/user_dashboard');
             break;
           default:
@@ -75,7 +73,7 @@ export const useRoleGuard = (options: UseRoleGuardOptions): UseRoleGuardReturn =
     } else {
       setIsAuthorized(true);
     }
-    
+
     setIsChecking(false);
   }, [user, loading, allowedRoles, redirectTo, fallbackRoute, router]);
 
@@ -83,34 +81,34 @@ export const useRoleGuard = (options: UseRoleGuardOptions): UseRoleGuardReturn =
     isAuthorized,
     isLoading: loading || isChecking,
     user,
-    userType: user?.type as UserType || null,
+    userType: user?.type as UserRole || null,
   };
 };
 
 // Hook específico para diferentes tipos de dashboards
 export const useAdminGuard = () => {
   return useRoleGuard({
-    allowedRoles: ['b_admin'],
+    allowedRoles: ['companyAdmin'],
     fallbackRoute: '/unauthorized'
   });
 };
 
 export const useLenderGuard = () => {
   return useRoleGuard({
-    allowedRoles: ['b_sale'],
+    allowedRoles: ['lender'],
     fallbackRoute: '/unauthorized'
   });
 };
 
 export const useUserGuard = () => {
   return useRoleGuard({
-    allowedRoles: ['user'],
+    allowedRoles: ['borrower'],
     fallbackRoute: '/unauthorized'
   });
 };
 
 // Hook para verificar múltiples roles
-export const useMultiRoleGuard = (roles: UserType[]) => {
+export const useMultiRoleGuard = (roles: UserRole[]) => {
   return useRoleGuard({
     allowedRoles: roles,
     fallbackRoute: '/unauthorized'

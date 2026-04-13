@@ -8,7 +8,7 @@ import {
 } from "firebase/auth";
 import { doc, getDoc, getFirestore } from "firebase/firestore";
 import { useRouter } from "next/navigation";
-import type { User, AuthContextType } from "../types/entities/user.types";
+import type { AuthUser, AuthContextType } from "../types/entities/account.types";
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -30,7 +30,7 @@ const clearAuthCookies = () => {
 };
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
@@ -57,8 +57,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               uid: firebaseUser.uid,
               email: firebaseUser.email,
               type: userType,
-              Empresa: customClaims.empresa || userData.Empresa,
-              Empresa_id: customClaims.empresaId || userData.Empresa_id,
+              companyName: customClaims.companyName || userData.companyName,
+              adminId: customClaims.adminId || userData.adminId,
             };
 
             setUser(userInfo);
@@ -83,11 +83,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                   body: JSON.stringify({
                     userId: firebaseUser.uid,
                     userData: {
-                      name: userData.Nombre || userData.name || "Usuario",
+                      name: userData.name || "Usuario",
                       email: userData.email,
                       type: userData.type,
-                      Empresa: userData.Empresa,
-                      Empresa_id: userData.Empresa_id,
+                      companyName: userData.companyName,
+                      adminId: userData.adminId,
                     },
                   }),
                   credentials: "include",
@@ -104,10 +104,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               uid: firebaseUser.uid,
               email: firebaseUser.email,
               type:
-                (customClaims.userType as "user" | "b_admin" | "b_sale") ||
-                "user",
-              Empresa: undefined,
-              Empresa_id: undefined,
+                (customClaims.userType as "borrower" | "companyAdmin" | "lender") ||
+                "borrower",
+              companyName: undefined,
+              adminId: undefined,
             });
           }
         } catch (error) {
@@ -177,22 +177,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         // Redirección basada en el tipo de usuario
         switch (userData.type) {
-          case "super_admin":
+          case "superAdmin":
             router.push("/super_admin_dashboard");
             break;
-          case "b_admin":
-            if (!userData.Empresa) {
+          case "companyAdmin":
+            if (!userData.companyName) {
               throw new Error("Cuenta de administrador no válida");
             }
             router.push("/admin_dashboard");
             break;
-          case "b_sale":
-            if (!userData.Empresa_id) {
-              throw new Error("Cuenta de vendedor no válida");
+          case "lender":
+            if (!userData.adminId) {
+              throw new Error("Cuenta de prestamista no válida");
             }
             router.push("/lender");
             break;
-          case "user":
+          case "borrower":
             router.push("/user_dashboard");
             break;
           default:

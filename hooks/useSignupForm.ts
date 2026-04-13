@@ -191,18 +191,18 @@ export const useSignupForm = () => {
 
       await setDoc(userRef, {
         name: formData.name,
-        last_name: formData.lastName,
-        second_last_name: formData.secondLastName,
+        lastName: formData.lastName,
+        secondLastName: formData.secondLastName,
         rfc: formData.rfc,
         birthday: Timestamp.fromDate(new Date(formData.birthday)),
         phone: formData.phone,
         address: formData.address,
         email: formData.email,
-        type: "user",
+        type: "borrower",
         creditScore: creditScore,
         acceptedTerms: true,
         acceptedTermsAt: Timestamp.now(),
-        created_at: Timestamp.now(),
+        createdAt: Timestamp.now(),
       });
 
       // El AuthContext detectará al usuario y redirigirá automáticamente

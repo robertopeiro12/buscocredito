@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Solo administradores pueden crear subcuentas
-    if (user.userType !== 'b_admin') {
+    if (user.userType !== 'companyAdmin') {
       return new Response(
         JSON.stringify({ error: 'Acceso denegado - Solo administradores' }), 
         { 
@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { name, email, password, userId, Empresa } = await req.json();
+    const { name, email, password, userId, companyName } = await req.json();
     
     // Verificar que el userId coincida con el usuario autenticado
     if (userId !== user.uid) {
@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    if (!name || !email || !password || !userId || !Empresa) {
+    if (!name || !email || !password || !userId || !companyName) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
     }
     
     if (newUser.userId) {
-      const account = await create_subaccount_doc(name, email, userId, newUser.userId, Empresa);
+      const account = await create_subaccount_doc(name, email, userId, newUser.userId, companyName);
       if (account.status !== 200) {
         return NextResponse.json({ error: account.error }, { status: 500 });
       }

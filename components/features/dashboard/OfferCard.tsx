@@ -54,7 +54,7 @@ export const OfferCard = ({
             <p className="text-lg text-gray-700 mt-2">
               de forma{" "}
               <span className="font-bold capitalize">
-                {offer.amortization_frequency}
+                {offer.amortizationFrequency}
               </span>{" "}
               durante{" "}
               <span className="font-bold">{offer.deadline} meses</span>
@@ -94,7 +94,7 @@ export const OfferCard = ({
               <div className="flex justify-between">
                 <span className="text-gray-600">Tasa de interés:</span>
                 <span className="font-semibold text-gray-900">
-                  {offer.interest_rate}% anual
+                  {offer.interestRate}% anual
                 </span>
               </div>
 
@@ -108,12 +108,12 @@ export const OfferCard = ({
               <div className="flex justify-between">
                 <span className="text-gray-600">Frecuencia de pago:</span>
                 <span className="font-semibold text-gray-900 capitalize">
-                  {offer.amortization_frequency}
+                  {offer.amortizationFrequency}
                 </span>
               </div>
 
-              {offer.medical_balance != null &&
-                offer.medical_balance > 0 && (
+              {offer.medicalBalance != null &&
+                offer.medicalBalance > 0 && (
                   <div className="flex justify-between">
                     <div className="flex items-center gap-1">
                       <span className="text-gray-600">
@@ -128,7 +128,7 @@ export const OfferCard = ({
                       </Tooltip>
                     </div>
                     <span className="font-semibold text-gray-900">
-                      ${offer.medical_balance?.toLocaleString()}
+                      ${offer.medicalBalance?.toLocaleString()}
                     </span>
                   </div>
                 )}

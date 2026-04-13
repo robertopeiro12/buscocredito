@@ -38,16 +38,16 @@ export default function Signup() {
     if (user && user.type) {
       let redirectPath = "/user_dashboard";
       switch (user.type) {
-        case "super_admin":
+        case "superAdmin":
           redirectPath = "/super_admin_dashboard";
           break;
-        case "b_admin":
+        case "companyAdmin":
           redirectPath = "/admin_dashboard";
           break;
-        case "b_sale":
+        case "lender":
           redirectPath = "/lender";
           break;
-        case "user":
+        case "borrower":
         default:
           redirectPath = "/user_dashboard";
       }

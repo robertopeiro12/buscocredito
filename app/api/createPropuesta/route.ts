@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Solo lenders (b_sale) pueden crear propuestas
-    if (user.userType !== 'b_sale') {
+    if (user.userType !== 'lender') {
       return createForbiddenResponse('Solo los lenders pueden crear propuestas');
     }
 
@@ -64,18 +64,18 @@ export async function POST(request: NextRequest) {
       recipientId: body.userId,
       type: 'nueva_propuesta',
       title: 'Nueva propuesta recibida',
-      message: `Has recibido una nueva propuesta para tu solicitud de préstamo de $${propuestaData.montoOfrecido?.toLocaleString() || propuestaData.amount?.toLocaleString() || 'N/A'}`,
+      message: `Has recibido una nueva propuesta para tu solicitud de préstamo de $${propuestaData.amount?.toLocaleString() || 'N/A'}`,
       data: {
         loanId: body.solicitudId,
         proposalId: propuestaRef.id,
-        amount: propuestaData.montoOfrecido || propuestaData.amount,
-        interestRate: propuestaData.tasaInteres || propuestaData.interest_rate,
-        amortizationFrequency: propuestaData.frecuenciaPago || propuestaData.amortization_frequency,
-        amortization: propuestaData.montoAmortizacion || propuestaData.amortization,
-        term: propuestaData.plazo || propuestaData.deadline,
+        amount: propuestaData.amount,
+        interestRate: propuestaData.interestRate,
+        amortizationFrequency: propuestaData.amortizationFrequency,
+        amortization: propuestaData.amortization,
+        term: propuestaData.deadline,
         comision: propuestaData.comision,
-        medicalBalance: propuestaData.seguroVida || propuestaData.medical_balance,
-        lenderName: propuestaData.company || propuestaData.lender_name,
+        medicalBalance: propuestaData.medicalBalance,
+        lenderName: propuestaData.company,
         purpose: solicitudData?.purpose,
         loanType: solicitudData?.type
       },

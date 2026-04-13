@@ -23,7 +23,7 @@ async function verifySuperAdmin(request: NextRequest): Promise<{ authorized: boo
     }
 
     const userData = userDoc.data();
-    if (userData?.type !== "super_admin") {
+    if (userData?.type !== "superAdmin") {
       return { authorized: false, error: "Insufficient permissions. Super admin access required." };
     }
 
@@ -65,10 +65,10 @@ export async function GET(request: NextRequest) {
       accounts.push({
         uid: doc.id,
         email: data.email || authUser?.email || null,
-        name: data.Nombre || data.name || "Sin nombre",
-        type: data.type || "user",
-        Empresa: data.Empresa,
-        Empresa_id: data.Empresa_id,
+        name: data.name || "Sin nombre",
+        type: data.type || "borrower",
+        companyName: data.companyName,
+        adminId: data.adminId,
         createdAt: authUser?.metadata?.creationTime || data.createdAt,
         lastLoginAt: authUser?.metadata?.lastSignInTime || data.lastLoginAt,
         isActive: !authUser?.disabled,
@@ -110,10 +110,10 @@ export async function GET(request: NextRequest) {
       activeAccounts: accounts.filter(acc => !acc.disabled).length,
       disabledAccounts: accounts.filter(acc => acc.disabled).length,
       accountsByType: {
-        super_admin: accounts.filter(acc => acc.type === "super_admin").length,
-        b_admin: accounts.filter(acc => acc.type === "b_admin").length,
-        b_sale: accounts.filter(acc => acc.type === "b_sale").length,
-        user: accounts.filter(acc => acc.type === "user").length,
+        superAdmin: accounts.filter(acc => acc.type === "superAdmin").length,
+        companyAdmin: accounts.filter(acc => acc.type === "companyAdmin").length,
+        lender: accounts.filter(acc => acc.type === "lender").length,
+        borrower: accounts.filter(acc => acc.type === "borrower").length,
       },
       totalSolicitudes: solicitudesSnapshot.size,
       totalPropuestas: propuestasSnapshot.size,

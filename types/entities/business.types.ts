@@ -1,29 +1,14 @@
-// Tipos centralizados de entidades de negocio
-export interface LoanRequest {
-  id: string;
-  userId: string;
-  amount: number;
-  income: number;
-  term: string;
-  payment: 'mensual' | 'quincenal' | 'semanal';
-  status: 'pending' | 'approved' | 'rejected';
-  createdAt: Date | string;
-  purpose: string;
-  type: string;
-}
+// Re-exports para compatibilidad — los tipos originales se movieron a archivos dedicados
+export type { LoanRequest, LoanStatus, LoanPurpose, LoanType } from './loan.types';
+export type { Proposal, ProposalStatus, RequestSnapshot } from './proposal.types';
+export type {
+  Address,
+  CreditScore,
+  PaymentFrequency,
+  CreditClassification,
+} from './account.types';
 
-export interface ProposalData {
-  company: string;
-  amount: number;
-  comision: number; // En pesos (MXN)
-  amortization_frequency: '' | 'mensual' | 'quincenal' | 'semanal'; // Frecuencia de pago
-  amortization: number; // Monto de amortización en pesos (MXN), puede incluir hasta 2 decimales
-  partner: string;
-  deadline: number; // En meses
-  interest_rate: number; // En porcentaje
-  medical_balance: number; // En pesos (MXN)
-}
-
+// PublicUserData se mantiene aquí ya que es un DTO específico del lender
 export interface PublicUserData {
   country: string;
   state: string;
@@ -36,8 +21,9 @@ export interface PublicUserData {
   } | null;
 }
 
-export interface PartnerData {
+// PartnerData renombrado a LenderInfo
+export interface LenderInfo {
   name: string;
   company: string;
-  company_id: string;
+  adminId: string;
 }

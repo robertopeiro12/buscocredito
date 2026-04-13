@@ -66,20 +66,20 @@ export async function POST(req: NextRequest) {
     if (winningProposal) {
       // Notification for the winner
       await createNotification({
-        recipientId: winningProposal.partner,
+        recipientId: winningProposal.lenderId,
         type: "loan_accepted",
         title: "Propuesta Aceptada",
-        message: `El solicitante ha seleccionado tu oferta de $${winningProposal.amount?.toLocaleString()} con una tasa de interés del ${winningProposal.interest_rate}%.`,
+        message: `El solicitante ha seleccionado tu oferta de $${winningProposal.amount?.toLocaleString()} con una tasa de interés del ${winningProposal.interestRate}%.`,
         data: {
           loanId: loanId,
           proposalId: proposalId,
           amount: winningProposal.amount,
-          interestRate: winningProposal.interest_rate,
-          amortizationFrequency: winningProposal.amortization_frequency,
+          interestRate: winningProposal.interestRate,
+          amortizationFrequency: winningProposal.amortizationFrequency,
           amortization: winningProposal.amortization,
           term: winningProposal.deadline,
           comision: winningProposal.comision,
-          medicalBalance: winningProposal.medical_balance,
+          medicalBalance: winningProposal.medicalBalance,
           purpose: loanData?.purpose,
           loanType: loanData?.type
         }
@@ -91,7 +91,7 @@ export async function POST(req: NextRequest) {
         .map(async (doc) => {
           const competitorProposal = doc.data();
           return createNotification({
-            recipientId: competitorProposal.partner,
+            recipientId: competitorProposal.lenderId,
             type: "loan_assigned_other",
             title: "El Usuario ha aceptado otra propuesta",
             message: "La solicitud fue asignada a otra propuesta",
@@ -101,21 +101,21 @@ export async function POST(req: NextRequest) {
               loanType: loanData?.type,
               winningOffer: {
                 amount: winningProposal.amount,
-                interestRate: winningProposal.interest_rate,
-                amortizationFrequency: winningProposal.amortization_frequency,
+                interestRate: winningProposal.interestRate,
+                amortizationFrequency: winningProposal.amortizationFrequency,
                 amortization: winningProposal.amortization,
                 term: winningProposal.deadline,
                 comision: winningProposal.comision,
-                medicalBalance: winningProposal.medical_balance
+                medicalBalance: winningProposal.medicalBalance
               },
               competitorOffer: {
-                amount: competitorProposal.amount || competitorProposal.montoOfrecido,
-                interestRate: competitorProposal.interest_rate || competitorProposal.tasaInteres,
-                amortizationFrequency: competitorProposal.amortization_frequency || competitorProposal.frecuenciaPago,
-                amortization: competitorProposal.amortization || competitorProposal.montoAmortizacion,
-                term: competitorProposal.deadline || competitorProposal.plazo,
+                amount: competitorProposal.amount,
+                interestRate: competitorProposal.interestRate,
+                amortizationFrequency: competitorProposal.amortizationFrequency,
+                amortization: competitorProposal.amortization,
+                term: competitorProposal.deadline,
                 comision: competitorProposal.comision,
-                medicalBalance: competitorProposal.medical_balance || competitorProposal.seguroVida
+                medicalBalance: competitorProposal.medicalBalance
               }
             }
           });

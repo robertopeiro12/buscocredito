@@ -1,16 +1,17 @@
+// Tipos para el panel de administración de empresa
+
 export interface AdminAccount {
-    Empresa: string
-    Empresa_id: string
-    Nombre: string
-    email: string
-    type: "b_sale" | "b_admin"
-    id: string | null
-  }
-  
-  export interface Notification {
-    type: "success" | "error"
-    message: string
-    show: boolean
-  }
-  
-  
+  companyName: string;
+  adminId: string;
+  name: string;
+  email: string;
+  type: 'lender' | 'companyAdmin';
+  id: string | null;
+}
+
+// Toast de UI (no confundir con AppNotification de DB)
+export interface ToastNotification {
+  type: 'success' | 'error';
+  message: string;
+  show: boolean;
+}

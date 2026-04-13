@@ -41,13 +41,13 @@ export default function UnauthorizedPage() {
 
     // Redirigir al dashboard correspondiente según el tipo de usuario
     switch (userType) {
-      case "b_admin":
+      case "companyAdmin":
         router.push("/admin_dashboard");
         break;
-      case "b_sale":
+      case "lender":
         router.push("/lender");
         break;
-      case "user":
+      case "borrower":
         router.push("/user_dashboard");
         break;
       default:
@@ -57,11 +57,11 @@ export default function UnauthorizedPage() {
 
   const getDashboardName = () => {
     switch (userType) {
-      case "b_admin":
+      case "companyAdmin":
         return "Panel de Administración";
-      case "b_sale":
+      case "lender":
         return "Panel de Prestamista";
-      case "user":
+      case "borrower":
         return "Panel de Usuario";
       default:
         return "Tu Dashboard";

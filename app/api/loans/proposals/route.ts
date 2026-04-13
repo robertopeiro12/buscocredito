@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Solo lenders (b_sale) pueden crear propuestas
-    if (user.userType !== 'b_sale') {
+    if (user.userType !== 'lender') {
       return ApiResponses.onlyLendersAllowed();
     }
 
@@ -73,13 +73,13 @@ export async function POST(request: NextRequest) {
         loanId: body.solicitudId,
         proposalId: propuestaRef.id,
         amount: propuestaData.amount,
-        interestRate: propuestaData.interest_rate,
-        amortizationFrequency: propuestaData.amortization_frequency,
+        interestRate: propuestaData.interestRate,
+        amortizationFrequency: propuestaData.amortizationFrequency,
         amortization: propuestaData.amortization,
         term: propuestaData.deadline,
         comision: propuestaData.comision,
-        medicalBalance: propuestaData.medical_balance,
-        lenderName: propuestaData.company || propuestaData.lender_name,
+        medicalBalance: propuestaData.medicalBalance,
+        lenderName: propuestaData.company,
         purpose: solicitudData?.purpose,
         loanType: solicitudData?.type
       },

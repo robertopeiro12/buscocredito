@@ -104,15 +104,15 @@ export const useAdminMetrics = ({
 
       // Distribución por frecuencia de pago
       const paymentFrequency =
-        proposal.amortization_frequency ||
+        proposal.amortizationFrequency ||
         proposal.requestInfo?.originalPayment ||
         "Desconocido";
       paymentFrequencies[paymentFrequency] =
         (paymentFrequencies[paymentFrequency] || 0) + 1;
 
       // Sumar interés, monto y comisiones
-      if (proposal.interest_rate) {
-        const interestRateValue = parseFloat(proposal.interest_rate.toString());
+      if (proposal.interestRate) {
+        const interestRateValue = parseFloat(proposal.interestRate.toString());
         if (!isNaN(interestRateValue)) {
           totalInterestRate += interestRateValue;
           validInterestRateCount++;
@@ -415,7 +415,7 @@ export const useAdminMetrics = ({
       const subaccountsRef = collection(db, "cuentas");
       const subQ = query(
         subaccountsRef,
-        where("Empresa_id", "==", userId)
+        where("adminId", "==", userId)
       );
       const subSnapshot = await getDocs(subQ);
 
@@ -460,7 +460,7 @@ export const useAdminMetrics = ({
           // Fetch all proposals for this worker (without date filter)
           const proposalQ = query(
             proposalsRef,
-            where("partner", "==", workerId)
+            where("lenderId", "==", workerId)
           );
           const proposalSnapshot = await getDocs(proposalQ);
 

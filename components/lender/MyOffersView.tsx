@@ -68,12 +68,12 @@ const MyOffersView = ({
       if (accepted) {
         setWinningOffer({
           amount: accepted.amount,
-          interestRate: accepted.interest_rate,
-          amortizationFrequency: accepted.amortization_frequency,
+          interestRate: accepted.interestRate,
+          amortizationFrequency: accepted.amortizationFrequency,
           amortization: accepted.amortization,
           term: accepted.deadline,
           comision: accepted.comision,
-          medicalBalance: accepted.medical_balance,
+          medicalBalance: accepted.medicalBalance,
         });
       } else {
         setWinningOffer(null);
@@ -231,7 +231,7 @@ const MyOffersView = ({
                         Tasa de interés:
                       </span>
                       <span className="font-medium">
-                        {proposal.interest_rate}%
+                        {proposal.interestRate}%
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
@@ -247,7 +247,7 @@ const MyOffersView = ({
                         Frecuencia de pago:
                       </span>
                       <span className="font-medium capitalize">
-                        {proposal.amortization_frequency}
+                        {proposal.amortizationFrequency}
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
@@ -267,14 +267,14 @@ const MyOffersView = ({
                           : "No disponible"}
                       </span>
                     </div>
-                    {proposal.medical_balance !== undefined &&
-                      proposal.medical_balance > 0 && (
+                    {proposal.medicalBalance !== undefined &&
+                      proposal.medicalBalance > 0 && (
                         <div className="flex justify-between items-center">
                           <span className="text-gray-500 text-sm">
                             Seguro de vida saldo deudor:
                           </span>
                           <span className="font-medium">
-                            ${proposal.medical_balance?.toLocaleString()}
+                            ${proposal.medicalBalance?.toLocaleString()}
                           </span>
                         </div>
                       )}

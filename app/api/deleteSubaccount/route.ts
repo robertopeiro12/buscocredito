@@ -13,7 +13,7 @@ export async function DELETE(req: NextRequest) {
     }
 
     // Solo administradores pueden eliminar subcuentas
-    if (user.userType !== 'b_admin') {
+    if (user.userType !== 'companyAdmin') {
       return new Response(
         JSON.stringify({ error: 'Acceso denegado - Solo administradores' }), 
         { 

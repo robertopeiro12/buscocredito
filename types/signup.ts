@@ -9,8 +9,6 @@ export interface AddressData {
   state: string;
   country: string;
   zipCode: string;
-  // Campo legacy para retrocompatibilidad
-  number?: string;
 }
 
 export interface SignupFormData {

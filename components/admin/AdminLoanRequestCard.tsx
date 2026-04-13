@@ -8,8 +8,8 @@ import type {
 
 // Extender el tipo para incluir campos adicionales que puede tener el admin
 interface ExtendedPublicUserData extends PublicUserData {
-  first_name?: string;
-  last_name?: string;
+  name?: string;
+  lastName?: string;
   age?: number;
   location?: string;
 }
@@ -128,11 +128,11 @@ const AdminLoanRequestCard = ({
                 Información del Solicitante
               </h4>
               <div className="grid grid-cols-2 gap-x-4 gap-y-3">
-                {userData.first_name && (
+                {userData.name && (
                   <div>
                     <p className="text-sm text-gray-500">Nombre</p>
                     <p className="font-medium text-gray-800">
-                      {userData.first_name} {userData.last_name || ""}
+                      {userData.name} {userData.lastName || ""}
                     </p>
                   </div>
                 )}

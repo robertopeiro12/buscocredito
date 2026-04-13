@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Solo administradores pueden acceder
-    if (user.userType !== 'b_admin') {
+    if (user.userType !== 'companyAdmin') {
       return new Response(
         JSON.stringify({ error: 'Acceso denegado - Solo administradores' }), 
         { 
@@ -35,10 +35,10 @@ export async function GET(request: NextRequest) {
     
     // 1. Obtener todos los trabajadores de este administrador (o uno específico)
     const workersRef = db.collection('cuentas');
-    let workersQuery = workersRef.where('Empresa_id', '==', user.uid);
+    let workersQuery = workersRef.where('adminId', '==', user.uid);
     
     if (workerId) {
-      workersQuery = workersRef.where('Empresa_id', '==', user.uid).where(FieldPath.documentId(), '==', workerId);
+      workersQuery = workersRef.where('adminId', '==', user.uid).where(FieldPath.documentId(), '==', workerId);
     }
     
     const workersSnapshot = await workersQuery.get();
@@ -54,7 +54,7 @@ export async function GET(request: NextRequest) {
       const data = doc.data();
       workersMap.set(doc.id, {
         id: doc.id,
-        name: data.Nombre || data.name || 'Sin nombre',
+        name: data.name || 'Sin nombre',
         email: data.email || ''
       });
     });
@@ -80,7 +80,7 @@ export async function GET(request: NextRequest) {
         // Actividades de solicitudes (como partner)
         const solicitudesRef = db.collection('solicitudes');
         const solicitudesQuery = solicitudesRef
-          .where('partner', '==', workerId)
+          .where('lenderId', '==', workerId)
           .orderBy('updatedAt', 'desc')
           .limit(20);
           

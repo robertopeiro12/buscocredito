@@ -47,7 +47,7 @@ export function useSuperAdminDashboard() {
   // UI State
   const [activeTab, setActiveTab] = useState("overview");
   const [searchTerm, setSearchTerm] = useState("");
-  const [filterType, setFilterType] = useState<"all" | "super_admin" | "b_admin" | "b_sale" | "user">("all");
+  const [filterType, setFilterType] = useState<"all" | "superAdmin" | "companyAdmin" | "lender" | "borrower">("all");
   const [filterStatus, setFilterStatus] = useState<"all" | "active" | "disabled">("all");
   const [selectedAccount, setSelectedAccount] = useState<AccountInfo | null>(null);
   const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
@@ -67,7 +67,7 @@ export function useSuperAdminDashboard() {
         return;
       }
 
-      if (user.type !== "super_admin") {
+      if (user.type !== "superAdmin") {
         router.push("/unauthorized");
         return;
       }
@@ -101,10 +101,10 @@ export function useSuperAdminDashboard() {
           return {
             uid: doc.id,
             email: data.email || null,
-            name: data.Nombre || data.name || "Sin nombre",
-            type: data.type || "user",
-            Empresa: data.Empresa,
-            Empresa_id: data.Empresa_id,
+            name: data.name || "Sin nombre",
+            type: data.type || "borrower",
+            companyName: data.companyName,
+            adminId: data.adminId,
             createdAt: data.created_at?.toDate?.()?.toISOString() || data.createdAt,
             lastLoginAt: data.lastLoginAt,
             isActive: data.isActive !== false,
@@ -211,10 +211,10 @@ export function useSuperAdminDashboard() {
       activeAccounts: accounts.filter((acc) => !acc.disabled).length,
       disabledAccounts: accounts.filter((acc) => acc.disabled).length,
       accountsByType: {
-        super_admin: accounts.filter((acc) => acc.type === "super_admin").length,
-        b_admin: accounts.filter((acc) => acc.type === "b_admin").length,
-        b_sale: accounts.filter((acc) => acc.type === "b_sale").length,
-        user: accounts.filter((acc) => acc.type === "user").length,
+        superAdmin: accounts.filter((acc) => acc.type === "superAdmin").length,
+        companyAdmin: accounts.filter((acc) => acc.type === "companyAdmin").length,
+        lender: accounts.filter((acc) => acc.type === "lender").length,
+        borrower: accounts.filter((acc) => acc.type === "borrower").length,
       },
       totalSolicitudes: solicitudesData.length,
       totalPropuestas: propuestasCount,
@@ -387,7 +387,7 @@ export function useSuperAdminDashboard() {
         searchTerm === "" ||
         account.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         account.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        account.Empresa?.toLowerCase().includes(searchTerm.toLowerCase());
+        account.companyName?.toLowerCase().includes(searchTerm.toLowerCase());
 
       // Type filter
       const matchesType = filterType === "all" || account.type === filterType;

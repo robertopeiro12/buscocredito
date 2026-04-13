@@ -23,13 +23,26 @@ import {
   Tab,
 } from "@heroui/react";
 import { useState, useEffect } from "react";
-import type { ProposalData } from "@/app/lender/types/loan.types";
+import type { PaymentFrequency } from "@/types/entities/account.types";
+
+// Datos del formulario de propuesta (subconjunto editable por el lender)
+interface ProposalFormData {
+  company: string;
+  amount: number;
+  comision: number;
+  amortizationFrequency: PaymentFrequency | '';
+  amortization: number;
+  lenderId: string;
+  deadline: number;
+  interestRate: number;
+  medicalBalance: number;
+}
 
 interface ProposalFormProps {
-  proposal: ProposalData;
+  proposal: ProposalFormData;
   loading: boolean;
   error: string | null;
-  onUpdate: (fields: Partial<ProposalData>) => void;
+  onUpdate: (fields: Partial<ProposalFormData>) => void;
   onSubmit: () => void;
   onCancel: () => void;
 }
@@ -90,10 +103,10 @@ export function ProposalForm({
     const roundedAmount = Math.round(proposal.amount || 0);
     const roundedComision = Math.round(proposal.comision || 0);
     const roundedInterestRate =
-      proposal.interest_rate !== -1 ? Math.round(proposal.interest_rate) : -1;
+      proposal.interestRate !== -1 ? Math.round(proposal.interestRate) : -1;
     const roundedMedicalBalance =
-      proposal.medical_balance !== -1
-        ? Math.round(proposal.medical_balance)
+      proposal.medicalBalance !== -1
+        ? Math.round(proposal.medicalBalance)
         : -1;
 
     // Para amortización, no formateamos el valor para preservar los decimales exactos
@@ -117,8 +130,8 @@ export function ProposalForm({
   }, [
     proposal.amount,
     proposal.comision,
-    proposal.interest_rate,
-    proposal.medical_balance,
+    proposal.interestRate,
+    proposal.medicalBalance,
     proposal.amortization,
   ]);
 
@@ -204,7 +217,7 @@ export function ProposalForm({
     // Permitir solo números y separadores
     const cleanValue = value.replace(/[^\d,]/g, "");
     setFormattedInterestRate(cleanValue);
-    onUpdate({ interest_rate: parseFormattedValue(cleanValue) });
+    onUpdate({ interestRate: parseFormattedValue(cleanValue) });
   };
 
   const handleMedicalBalanceChange = (
@@ -214,7 +227,7 @@ export function ProposalForm({
     // Permitir solo números y separadores
     const cleanValue = value.replace(/[^\d,]/g, "");
     setFormattedMedicalBalance(cleanValue);
-    onUpdate({ medical_balance: parseFormattedValue(cleanValue) });
+    onUpdate({ medicalBalance: parseFormattedValue(cleanValue) });
   };
 
   // Manejador para el campo de amortización
@@ -319,9 +332,9 @@ export function ProposalForm({
             <Select
               size="lg"
               placeholder="Seleccione frecuencia de pago"
-              selectedKeys={[proposal.amortization_frequency]}
+              selectedKeys={[proposal.amortizationFrequency]}
               onChange={(e) =>
-                onUpdate({ amortization_frequency: e.target.value as any })
+                onUpdate({ amortizationFrequency: e.target.value as any })
               }
               classNames={{
                 trigger:

@@ -116,7 +116,7 @@ function LenderPageContent() {
                 handleSelectRequest(requestId);
                 updateProposal({
                   company: partnerData.company,
-                  partner: user,
+                  lenderId: user,
                 });
                 handleMakeOffer();
               }}

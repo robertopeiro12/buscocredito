@@ -36,10 +36,10 @@ interface AccountDetailModalProps {
 }
 
 const typeLabels: Record<string, { label: string; color: "default" | "primary" | "secondary" | "success" | "warning" | "danger" }> = {
-  super_admin: { label: "Super Admin", color: "secondary" },
-  b_admin: { label: "Administrador", color: "primary" },
-  b_sale: { label: "Vendedor", color: "success" },
-  user: { label: "Usuario", color: "default" },
+  superAdmin: { label: "Super Admin", color: "secondary" },
+  companyAdmin: { label: "Admin Empresa", color: "primary" },
+  lender: { label: "Prestamista", color: "success" },
+  borrower: { label: "Solicitante", color: "default" },
 };
 
 export function AccountDetailModal({
@@ -64,7 +64,7 @@ export function AccountDetailModal({
     });
   };
 
-  const isSuperAdmin = account.type === "super_admin";
+  const isSuperAdmin = account.type === "superAdmin";
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="2xl" scrollBehavior="inside">
@@ -120,14 +120,14 @@ export function AccountDetailModal({
                   </div>
                 </div>
 
-                {account.Empresa && (
+                {account.companyName && (
                   <div className="flex items-center gap-3">
                     <div className="p-2 bg-gray-100 rounded-lg">
                       <Building className="w-4 h-4 text-gray-600" />
                     </div>
                     <div>
                       <p className="text-xs text-gray-500">Empresa</p>
-                      <p className="text-sm font-medium">{account.Empresa}</p>
+                      <p className="text-sm font-medium">{account.companyName}</p>
                     </div>
                   </div>
                 )}

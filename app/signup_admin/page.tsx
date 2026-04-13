@@ -70,9 +70,9 @@ export default function SignUpAdmin() {
 
       const db = getFirestore();
       await setDoc(doc(db, "cuentas", userId), {
-        Empresa: b_name,
+        companyName: b_name,
         name: b_name, // Usar el nombre de la empresa como nombre para cumplir con las reglas
-        type: "b_admin",
+        type: "companyAdmin",
         email: email,
         // Removed createdAt field
       });

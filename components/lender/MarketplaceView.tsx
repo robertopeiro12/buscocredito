@@ -46,7 +46,7 @@ interface MarketplaceViewProps {
   partnerData: {
     company: string;
     name: string;
-    company_id: string;
+    adminId: string;
   };
   user: string;
   

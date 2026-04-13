@@ -12,8 +12,8 @@ import AdminMarketplaceFilters from "./AdminMarketplaceFilters";
 
 // Extender el tipo para incluir campos adicionales
 interface ExtendedPublicUserData extends PublicUserData {
-  first_name?: string;
-  last_name?: string;
+  name?: string;
+  lastName?: string;
   age?: number;
   location?: string;
 }
@@ -44,7 +44,7 @@ const AdminMarketplaceView = ({}: AdminMarketplaceViewProps = {}) => {
   } = useAdminLoans({
     status: "pending", // Solo solicitudes pendientes
     enableRealtime: true,
-    adminCompany: adminData.Empresa, // Pasar la empresa del admin
+    adminCompany: adminData.companyName, // Pasar la empresa del admin
   });
 
   // Cargar datos de usuarios para las solicitudes

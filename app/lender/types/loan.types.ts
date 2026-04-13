@@ -1,10 +1,8 @@
 // app/lender/types/loan.types.ts
-// Re-exportar tipos centralizados para compatibilidad
-export type { 
-  LoanRequest, 
-  ProposalData, 
-  PublicUserData 
-} from '@/types/entities/business.types';
+// Re-exportar tipos centralizados
+export type { LoanRequest } from '@/types/entities/loan.types';
+export type { Proposal } from '@/types/entities/proposal.types';
+export type { PublicUserData, LenderInfo } from '@/types/entities/business.types';
 
 // Import para usar en interfaces
 import type { PublicUserData } from '@/types/entities/business.types';
@@ -22,29 +20,23 @@ export interface LenderState {
 
 export interface LenderFilters {
   search: string;
-  state: string; // Estado de la República Mexicana
-  city: string; // Ciudad
-  purpose: 'all' | 'Personal' | 'Negocio'; // Basado en tus propósitos definidos
-  type: 'all' | 'consumo' | 'deudas' | 'capital' | 'maquinaria'; // Basado en tus tipos definidos
+  state: string;
+  city: string;
+  purpose: 'all' | 'Personal' | 'Negocio';
+  type: 'all' | 'consumo' | 'deudas' | 'capital' | 'maquinaria';
   amountRange: 'all' | '0-50000' | '50000-100000' | '100000-250000' | '250000-500000' | '500000+';
-}
-
-export interface PartnerData {
-  name: string;
-  company: string;
-  company_id: string;
 }
 
 export interface LenderProposal {
   id: string;
   loanId?: string | null;
   amortization: number;
-  amortization_frequency: string;
-  medical_balance: number;
+  amortizationFrequency: string;
+  medicalBalance: number;
   comision: number;
   amount: number;
   deadline: number;
-  interest_rate: number;
+  interestRate: number;
   term: number;
   status: 'pending' | 'accepted' | 'rejected';
   createdAt: string | null;

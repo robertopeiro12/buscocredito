@@ -95,45 +95,45 @@ export async function POST(request: NextRequest) {
     
     console.log("Winning proposal data:", { 
       proposalId, 
-      partner: winningProposal?.partner,
+      lenderId: winningProposal?.lenderId,
       amount: winningProposal?.amount,
-      interest_rate: winningProposal?.interest_rate 
+      interestRate: winningProposal?.interestRate
     });
     
     if (winningProposal) {
       // Notificación para el ganador
-      console.log("Sending notification to winner:", winningProposal.partner);
+      console.log("Sending notification to winner:", winningProposal.lenderId);
       const winnerNotificationResult = await createNotification({
-        recipientId: winningProposal.partner,
+        recipientId: winningProposal.lenderId,
         type: "loan_accepted",
         title: "Propuesta Aceptada",
-        message: `El solicitante ha seleccionado tu oferta de $${winningProposal.amount?.toLocaleString()} con una tasa de interés del ${winningProposal.interest_rate}%.`,
+        message: `El solicitante ha seleccionado tu oferta de $${winningProposal.amount?.toLocaleString()} con una tasa de interés del ${winningProposal.interestRate}%.`,
         data: {
           loanId: loanId,
           proposalId: proposalId,
           amount: winningProposal.amount,
-          interestRate: winningProposal.interest_rate,
-          amortizationFrequency: winningProposal.amortization_frequency,
+          interestRate: winningProposal.interestRate,
+          amortizationFrequency: winningProposal.amortizationFrequency,
           amortization: winningProposal.amortization,
           term: winningProposal.deadline,
           comision: winningProposal.comision,
-          medicalBalance: winningProposal.medical_balance,
+          medicalBalance: winningProposal.medicalBalance,
           purpose: solicitudData?.purpose,
           loanType: solicitudData?.type
         }
       });
       console.log("Winner notification result:", winnerNotificationResult);
-      
+
       // Notificaciones para competidores
       const competitorProposals = otherProposalsSnapshot.docs.filter(doc => doc.id !== proposalId);
       console.log(`Found ${competitorProposals.length} competitor proposals to notify`);
-      
+
       const competitorNotifications = competitorProposals.map(async (doc) => {
         const competitorProposal = doc.data();
-        console.log("Sending notification to competitor:", competitorProposal.partner);
-        
+        console.log("Sending notification to competitor:", competitorProposal.lenderId);
+
         const result = await createNotification({
-          recipientId: competitorProposal.partner,
+          recipientId: competitorProposal.lenderId,
           type: "loan_assigned_other",
           title: "El Usuario ha aceptado otra propuesta",
           message: "La solicitud fue asignada a otra propuesta",
@@ -143,25 +143,25 @@ export async function POST(request: NextRequest) {
             loanType: solicitudData?.type,
             winningOffer: {
               amount: winningProposal.amount,
-              interestRate: winningProposal.interest_rate,
-              amortizationFrequency: winningProposal.amortization_frequency,
+              interestRate: winningProposal.interestRate,
+              amortizationFrequency: winningProposal.amortizationFrequency,
               amortization: winningProposal.amortization,
               term: winningProposal.deadline,
               comision: winningProposal.comision,
-              medicalBalance: winningProposal.medical_balance
+              medicalBalance: winningProposal.medicalBalance
             },
             competitorOffer: {
-              amount: competitorProposal.amount || competitorProposal.montoOfrecido,
-              interestRate: competitorProposal.interest_rate || competitorProposal.tasaInteres,
-              amortizationFrequency: competitorProposal.amortization_frequency || competitorProposal.frecuenciaPago,
-              amortization: competitorProposal.amortization || competitorProposal.montoAmortizacion,
-              term: competitorProposal.deadline || competitorProposal.plazo,
+              amount: competitorProposal.amount,
+              interestRate: competitorProposal.interestRate,
+              amortizationFrequency: competitorProposal.amortizationFrequency,
+              amortization: competitorProposal.amortization,
+              term: competitorProposal.deadline,
               comision: competitorProposal.comision,
-              medicalBalance: competitorProposal.medical_balance || competitorProposal.seguroVida
+              medicalBalance: competitorProposal.medicalBalance
             }
           }
         });
-        console.log(`Competitor notification result for ${competitorProposal.partner}:`, result);
+        console.log(`Competitor notification result for ${competitorProposal.lenderId}:`, result);
         return result;
       });
       

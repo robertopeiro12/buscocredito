@@ -41,11 +41,11 @@ export async function POST(request: NextRequest) {
     if (body.name && typeof body.name === 'string') {
       updateData.name = body.name.trim();
     }
-    if (body.last_name && typeof body.last_name === 'string') {
-      updateData.last_name = body.last_name.trim();
+    if (body.lastName && typeof body.lastName === 'string') {
+      updateData.lastName = body.lastName.trim();
     }
-    if (body.second_last_name && typeof body.second_last_name === 'string') {
-      updateData.second_last_name = body.second_last_name.trim();
+    if (body.secondLastName && typeof body.secondLastName === 'string') {
+      updateData.secondLastName = body.secondLastName.trim();
     }
     if (body.phone && typeof body.phone === 'string') {
       updateData.phone = body.phone.trim();

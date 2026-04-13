@@ -35,8 +35,8 @@ export const UserSettings = ({ userData, onUpdate, userId }: UserSettingsProps) 
   // Form state for editing
   const [formData, setFormData] = useState({
     name: userData.name || "",
-    last_name: userData.last_name || "",
-    second_last_name: userData.second_last_name || "",
+    lastName: userData.lastName || "",
+    secondLastName: userData.secondLastName || "",
     phone: userData.phone || "",
     rfc: userData.rfc || "",
     address: {
@@ -54,8 +54,8 @@ export const UserSettings = ({ userData, onUpdate, userId }: UserSettingsProps) 
   useEffect(() => {
     setFormData({
       name: userData.name || "",
-      last_name: userData.last_name || "",
-      second_last_name: userData.second_last_name || "",
+      lastName: userData.lastName || "",
+      secondLastName: userData.secondLastName || "",
       phone: userData.phone || "",
       rfc: userData.rfc || "",
       address: {
@@ -179,8 +179,8 @@ export const UserSettings = ({ userData, onUpdate, userId }: UserSettingsProps) 
     // Reset form data to current userData
     setFormData({
       name: userData.name || "",
-      last_name: userData.last_name || "",
-      second_last_name: userData.second_last_name || "",
+      lastName: userData.lastName || "",
+      secondLastName: userData.secondLastName || "",
       phone: userData.phone || "",
       rfc: userData.rfc || "",
       address: {
@@ -207,7 +207,7 @@ export const UserSettings = ({ userData, onUpdate, userId }: UserSettingsProps) 
           </div>
           <div>
             <h2 className="text-2xl font-semibold text-gray-900">
-              {`${userData.name} ${userData.last_name} ${userData.second_last_name}`}
+              {`${userData.name} ${userData.lastName} ${userData.secondLastName}`}
             </h2>
           </div>
         </div>
@@ -253,7 +253,6 @@ export const UserSettings = ({ userData, onUpdate, userId }: UserSettingsProps) 
                 <p className="text-gray-900">
                   {`${userData.address.street} #${
                     userData.address.exteriorNumber ||
-                    userData.address.number ||
                     "No disponible"
                   }${
                     userData.address.interiorNumber
@@ -406,15 +405,15 @@ export const UserSettings = ({ userData, onUpdate, userId }: UserSettingsProps) 
                       <Input
                         label="Apellido Paterno"
                         placeholder="Apellido paterno"
-                        value={formData.last_name}
-                        onValueChange={(value) => handleInputChange("last_name", value)}
+                        value={formData.lastName}
+                        onValueChange={(value) => handleInputChange("lastName", value)}
                         variant="bordered"
                       />
                       <Input
                         label="Apellido Materno"
                         placeholder="Apellido materno"
-                        value={formData.second_last_name}
-                        onValueChange={(value) => handleInputChange("second_last_name", value)}
+                        value={formData.secondLastName}
+                        onValueChange={(value) => handleInputChange("secondLastName", value)}
                         variant="bordered"
                       />
                     </div>

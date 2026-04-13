@@ -1,12 +1,14 @@
 // Super Admin Dashboard Types
 
+import type { UserRole } from './entities/account.types';
+
 export interface AccountInfo {
   uid: string;
   email: string | null;
   name: string | null;
-  type: 'super_admin' | 'b_admin' | 'b_sale' | 'user';
-  Empresa: string | null;
-  Empresa_id: string | null;
+  type: UserRole;
+  companyName: string | null;
+  adminId: string | null;
   createdAt: string | null;
   lastLoginAt: string | null;
   isActive: boolean;
@@ -24,10 +26,10 @@ export interface SystemStats {
   activeAccounts: number;
   disabledAccounts: number;
   accountsByType: {
-    super_admin: number;
-    b_admin: number;
-    b_sale: number;
-    user: number;
+    superAdmin: number;
+    companyAdmin: number;
+    lender: number;
+    borrower: number;
   };
   totalSolicitudes: number;
   totalPropuestas: number;
@@ -57,7 +59,7 @@ export interface SuperAdminDashboardState {
   error: string | null;
   selectedAccount: AccountInfo | null;
   searchTerm: string;
-  filterType: 'all' | 'super_admin' | 'b_admin' | 'b_sale' | 'user';
+  filterType: 'all' | UserRole;
   filterStatus: 'all' | 'active' | 'disabled';
 }
 

@@ -9,13 +9,13 @@ import { useSearchParams, useRouter } from "next/navigation";
 // Helper function to get redirect path based on user type
 const getRedirectPath = (userType: string): string => {
   switch (userType) {
-    case "super_admin":
+    case "superAdmin":
       return "/super_admin_dashboard";
-    case "b_admin":
+    case "companyAdmin":
       return "/admin_dashboard";
-    case "b_sale":
+    case "lender":
       return "/lender";
-    case "user":
+    case "borrower":
     default:
       return "/user_dashboard";
   }

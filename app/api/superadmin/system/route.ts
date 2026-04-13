@@ -21,7 +21,7 @@ async function verifySuperAdmin(request: NextRequest): Promise<{ authorized: boo
     }
 
     const userData = userDoc.data();
-    if (userData?.type !== "super_admin") {
+    if (userData?.type !== "superAdmin") {
       return { authorized: false, error: "Insufficient permissions. Super admin access required." };
     }
 

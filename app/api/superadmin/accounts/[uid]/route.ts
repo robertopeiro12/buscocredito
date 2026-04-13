@@ -21,7 +21,7 @@ async function verifySuperAdmin(request: NextRequest): Promise<{ authorized: boo
     }
 
     const userData = userDoc.data();
-    if (userData?.type !== "super_admin") {
+    if (userData?.type !== "superAdmin") {
       return { authorized: false, error: "Insufficient permissions. Super admin access required." };
     }
 
@@ -167,8 +167,8 @@ export async function DELETE(
 
     const userData = userDoc.data();
 
-    // Prevent deletion of super_admin accounts (extra safety)
-    if (userData?.type === "super_admin") {
+    // Prevent deletion of superAdmin accounts (extra safety)
+    if (userData?.type === "superAdmin") {
       return NextResponse.json(
         { error: "Cannot delete super admin accounts" },
         { status: 403 }
@@ -193,13 +193,13 @@ export async function DELETE(
       console.warn("User not found in Firebase Auth:", authError.message);
     }
 
-    // If this is an admin (b_admin), delete all worker subaccounts and their propuestas first
+    // If this is a companyAdmin, delete all worker subaccounts and their propuestas first
     let deletedSubaccounts = 0;
     let deletedWorkerPropuestas = 0;
-    
-    if (userData?.type === "b_admin") {
+
+    if (userData?.type === "companyAdmin") {
       // Find all worker subaccounts belonging to this admin
-      const subaccountsSnapshot = await db.collection("cuentas").where("Empresa_id", "==", uid).get();
+      const subaccountsSnapshot = await db.collection("cuentas").where("adminId", "==", uid).get();
       
       if (!subaccountsSnapshot.empty) {
         const workerIds = subaccountsSnapshot.docs.map(doc => doc.id);
@@ -368,10 +368,10 @@ export async function GET(
       account: {
         uid,
         email: userData?.email || authUser?.email,
-        name: userData?.Nombre || userData?.name,
+        name: userData?.name,
         type: userData?.type,
-        Empresa: userData?.Empresa,
-        Empresa_id: userData?.Empresa_id,
+        companyName: userData?.companyName,
+        adminId: userData?.adminId,
         phone: userData?.phone,
         address: userData?.address,
         createdAt: authUser?.metadata?.creationTime,

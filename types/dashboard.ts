@@ -1,26 +1,15 @@
-import { Timestamp } from "firebase/firestore";
-import { CreditScore } from "./creditScore";
+import type { CreditScore } from "./creditScore";
+import type { Address } from "./entities/account.types";
 
-export interface Address {
-  street: string;
-  exteriorNumber: string;
-  interiorNumber: string;
-  colony: string;
-  city: string;
-  state: string;
-  country: string;
-  zipCode: string;
-  // Campo legacy para retrocompatibilidad
-  number?: string;
-}
+export type { Address };
 
 export interface UserData {
   name: string;
-  last_name: string;
-  second_last_name: string;
+  lastName: string;
+  secondLastName: string;
   email: string;
   rfc: string;
-  birthday: any; // You might want to make this more specific
+  birthday: string;
   phone: string;
   address: Address;
   creditScore: CreditScore;
@@ -45,17 +34,17 @@ export type NewSolicitudData = Omit<SolicitudData, "id">;
 
 export interface Offer {
   id: string;
-  lender_name: string; // company de Firebase
-  amount: number; // amount de Firebase
-  interest_rate: number; // interest_rate de Firebase
-  term: number; // deadline de Firebase (en meses)
-  monthly_payment: number; // calculado basado en amortization_frequency
-  amortization_frequency: string; // "quincenal", "semanal", "mensual"
-  amortization: number | null; // amortization de Firebase
-  medical_balance: number | null; // medical_balance de Firebase
-  comision: number | null; // comision de Firebase
-  deadline: number | null; // deadline de Firebase (en meses)
-  partner: string | null; // partner de Firebase
+  lender_name: string;
+  amount: number;
+  interestRate: number;
+  term: number;
+  monthly_payment: number;
+  amortizationFrequency: string;
+  amortization: number | null;
+  medicalBalance: number | null;
+  comision: number | null;
+  deadline: number | null;
+  lenderId: string | null;
   status: "accepted" | "rejected" | "pending" | null;
   requestInfo: {
     originalAmount: number;

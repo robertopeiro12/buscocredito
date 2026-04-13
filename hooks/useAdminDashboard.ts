@@ -19,11 +19,11 @@ export type Subaccount = {
   email: string;
   password: string;
   userId: string;
-  Empresa: string;
+  companyName: string;
 };
 
 export type AdminData = {
-  Empresa: string;
+  companyName: string;
   email: string;
 };
 
@@ -42,7 +42,7 @@ export function useAdminDashboard() {
   const [user, setUser] = useState("");
   const [userEmail, setUserEmail] = useState("");
   const [adminData, setAdminData] = useState<AdminData>({
-    Empresa: "",
+    companyName: "",
     email: "",
   });
 
@@ -60,7 +60,7 @@ export function useAdminDashboard() {
     email: "",
     password: "",
     userId: "",
-    Empresa: "",
+    companyName: "",
   });
   const [formErrors, setFormErrors] = useState<FormErrors>({
     name: "",
@@ -123,7 +123,7 @@ export function useAdminDashboard() {
       if (adminDoc.exists()) {
         const data = adminDoc.data();
         setAdminData({
-          Empresa: data.Empresa || "",
+          companyName: data.companyName || "",
           email: data.email || "",
         });
       }
@@ -156,7 +156,7 @@ export function useAdminDashboard() {
         email: sub.email,
         password: "",
         userId: sub.userId,
-        Empresa: sub.Empresa,
+        companyName: sub.companyName,
       }));
 
       setSubaccounts(newSubaccounts);
@@ -253,14 +253,14 @@ export function useAdminDashboard() {
       await createSubaccount({
         ...newSubaccount,
         userId: user,
-        Empresa: adminData.Empresa,
+        companyName: adminData.companyName,
       });
       setNewSubaccount({
         name: "",
         email: "",
         password: "",
         userId: "",
-        Empresa: "",
+        companyName: "",
       });
       setFormErrors({ name: "", email: "", password: "" });
       toast.success("¡Subcuenta creada exitosamente!", {

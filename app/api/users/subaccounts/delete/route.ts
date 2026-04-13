@@ -16,7 +16,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Solo administradores pueden eliminar subcuentas
-    if (user.userType !== 'b_admin') {
+    if (user.userType !== 'companyAdmin') {
       return createErrorResponse('Solo administradores pueden eliminar subcuentas', 403);
     }
 

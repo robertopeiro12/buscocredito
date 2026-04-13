@@ -1,11 +1,21 @@
 import { Timestamp } from "firebase/firestore";
 
 /**
- * Formats a Firebase Timestamp to a localized date string
+ * Formats a date value (string, Timestamp, or Date) to a localized date string
  */
-export const formatDate = (timestamp: Timestamp | null): string => {
-  if (!timestamp) return "";
-  const date = timestamp.toDate();
+export const formatDate = (value: string | Timestamp | Date | null): string => {
+  if (!value) return "";
+  let date: Date;
+  if (typeof value === "string") {
+    date = new Date(value);
+  } else if (value instanceof Date) {
+    date = value;
+  } else if (typeof value === "object" && "toDate" in value) {
+    date = value.toDate();
+  } else {
+    return "";
+  }
+  if (isNaN(date.getTime())) return "";
   return new Intl.DateTimeFormat("es-MX", {
     day: "numeric",
     month: "long",

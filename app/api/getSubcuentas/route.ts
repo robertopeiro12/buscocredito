@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Solo administradores pueden acceder a esta API
-    if (user.userType !== 'b_admin') {
+    if (user.userType !== 'companyAdmin') {
       return new Response(
         JSON.stringify({ error: 'Acceso denegado - Solo administradores' }), 
         { 
@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
     
     // Obtener subcuentas que pertenecen a este administrador
     const subcuentasRef = db.collection('cuentas');
-    const query = subcuentasRef.where('Empresa_id', '==', user.uid);
+    const query = subcuentasRef.where('adminId', '==', user.uid);
     const querySnapshot = await query.get();
     
     const subcuentas: any[] = [];
@@ -36,10 +36,10 @@ export async function GET(request: NextRequest) {
       const data = doc.data();
       subcuentas.push({
         id: doc.id,
-        name: data.Nombre || '',
+        name: data.name || '',
         email: data.email || '',
         userId: doc.id,
-        Empresa: data.Empresa || '',
+        companyName: data.companyName || '',
         type: data.type || ''
       });
     });

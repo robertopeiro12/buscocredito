@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Solo usuarios tipo 'user' pueden acceder a sus ofertas
-    if (user.userType !== 'user') {
+    if (user.userType !== 'borrower') {
       return new Response(
         JSON.stringify({ error: 'Acceso denegado' }), 
         { 

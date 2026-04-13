@@ -1,6 +1,9 @@
 import "@testing-library/jest-dom";
 import { vi } from "vitest";
 
+// Mock "server-only" (importado por API routes y utils)
+vi.mock("server-only", () => ({}));
+
 // Mock Next.js navigation
 vi.mock("next/navigation", () => ({
   useRouter: () => ({
@@ -90,6 +93,39 @@ vi.mock("@/db/FirebaseAdmin", () => ({
   initAdmin: vi.fn(),
   getAdminFirestore: vi.fn(),
   getAdminAuth: vi.fn(),
+}));
+
+// Mock firebase-admin/auth (server-side)
+vi.mock("firebase-admin/auth", () => ({
+  getAuth: vi.fn(() => ({
+    verifyIdToken: vi.fn(),
+    getUser: vi.fn(),
+    createUser: vi.fn(),
+    deleteUser: vi.fn(),
+    setCustomUserClaims: vi.fn(),
+  })),
+}));
+
+// Mock firebase-admin/firestore (server-side)
+vi.mock("firebase-admin/firestore", () => ({
+  getFirestore: vi.fn(),
+  FieldValue: { arrayUnion: vi.fn(), arrayRemove: vi.fn() },
+  FieldPath: { documentId: vi.fn() },
+}));
+
+// Mock @/db/FirestoreFunc
+vi.mock("@/db/FirestoreFunc", () => ({
+  create_subaccount_doc: vi.fn(),
+  delete_subaccount_doc: vi.fn(),
+  createNotification: vi.fn().mockResolvedValue({ status: 200 }),
+  getLenderProposals: vi.fn(),
+  getLoanOffers: vi.fn(),
+}));
+
+// Mock @/db/FireAuthFunc
+vi.mock("@/db/FireAuthFunc", () => ({
+  create_subaccount: vi.fn(),
+  delete_subaccount: vi.fn(),
 }));
 
 // Mock react-hot-toast

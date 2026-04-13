@@ -11,11 +11,11 @@ import toast from 'react-hot-toast';
 import type {
   LenderState,
   LenderFilters,
-  PartnerData,
   LenderProposal,
   PublicUserData,
   LoanRequest,
 } from '@/app/lender/types/loan.types';
+import type { LenderInfo } from '@/types/entities/business.types';
 
 const initialFilters: LenderFilters = {
   search: "",
@@ -26,10 +26,10 @@ const initialFilters: LenderFilters = {
   amountRange: "all",
 };
 
-const initialPartnerData: PartnerData = {
+const initialPartnerData: LenderInfo = {
   name: "",
   company: "",
-  company_id: "",
+  adminId: "",
 };
 
 export const useLenderDashboard = () => {
@@ -54,7 +54,7 @@ export const useLenderDashboard = () => {
   const [activeTab, setActiveTab] = useState<LenderState['activeTab']>(initialTab);
   const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
   const [isCreatingOffer, setIsCreatingOffer] = useState(false);
-  const [partnerData, setPartnerData] = useState<PartnerData>(initialPartnerData);
+  const [partnerData, setPartnerData] = useState<LenderInfo>(initialPartnerData);
   const [filters, setFilters] = useState<LenderFilters>(initialFilters);
   const [userData, setUserData] = useState<PublicUserData | null>(null);
   const [lenderProposals, setLenderProposals] = useState<LenderProposal[]>([]);
@@ -165,9 +165,9 @@ export const useLenderDashboard = () => {
 
       if (docSnap.exists()) {
         setPartnerData({
-          name: docSnap.data().Nombre || "",
-          company: docSnap.data().Empresa || "",
-          company_id: docSnap.data().company_id || "",
+          name: docSnap.data().name || "",
+          company: docSnap.data().companyName || "",
+          adminId: docSnap.data().adminId || "",
         });
       }
     } catch (error) {
@@ -315,7 +315,7 @@ export const useLenderDashboard = () => {
   const handleMakeOffer = () => {
     updateProposal({
       company: partnerData.company,
-      partner: user,
+      lenderId: user,
     });
     setIsCreatingOffer(true);
   };

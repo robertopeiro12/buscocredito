@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Solo lenders pueden ver sus propuestas
-    if (user.userType !== 'b_sale') {
+    if (user.userType !== 'lender') {
       return ApiResponses.onlyLendersAllowed();
     }
 

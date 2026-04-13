@@ -2,15 +2,15 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 // Definir los tipos de usuario
-type UserType = 'super_admin' | 'b_admin' | 'b_sale' | 'user';
+type UserType = 'superAdmin' | 'companyAdmin' | 'lender' | 'borrower';
 
 // Definir las rutas protegidas y los roles permitidos
 const protectedRoutes: Record<string, UserType[]> = {
-  '/super_admin_dashboard': ['super_admin'],
-  '/admin_dashboard': ['b_admin'],
-  '/lender': ['b_sale'],
-  '/user_dashboard': ['user'],
-  '/worker_dashboard': ['b_sale'],
+  '/super_admin_dashboard': ['superAdmin'],
+  '/admin_dashboard': ['companyAdmin'],
+  '/lender': ['lender'],
+  '/user_dashboard': ['borrower'],
+  '/worker_dashboard': ['lender'],
 };
 
 // Rutas públicas que no requieren autenticación

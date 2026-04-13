@@ -99,7 +99,7 @@ export default function AdminDashboard() {
     useAdminLoans({
       status: "pending",
       enableRealtime: true,
-      adminCompany: adminData.Empresa, // Pasar la empresa del admin
+      adminCompany: adminData.companyName, // Pasar la empresa del admin
     });
 
   // Hook para estadísticas de trabajadores
@@ -123,7 +123,7 @@ export default function AdminDashboard() {
     isLoading: isLoadingComparisons,
   } = useProposalComparison({
     rawProposals,
-    companyName: adminData.Empresa,
+    companyName: adminData.companyName,
     isLoadingMetrics,
   });
 
@@ -133,6 +133,12 @@ export default function AdminDashboard() {
     summary?.totalPropuestasEnviadas || 0;
   const getAverageApprovalRate = () => summary?.averageApprovalRate || 0;
   const workersError = statsError || activityError;
+
+  // Mapa de IDs de trabajadores a nombres para exportar propuestas
+  const workerNameMap: Record<string, string> = {};
+  workers.forEach((w) => {
+    workerNameMap[w.id] = w.name;
+  });
 
   // CONDICIONALES DESPUÉS DE TODOS LOS HOOKS
   // Mostrar loading mientras verifica permisos
@@ -161,7 +167,7 @@ export default function AdminDashboard() {
         <AdminSidebarUpdated
           activeTab={activeTab}
           setActiveTab={setActiveTab}
-          companyName={adminData.Empresa}
+          companyName={adminData.companyName}
         />
 
         {/* Main Content with left margin to account for fixed sidebar */}
@@ -170,7 +176,7 @@ export default function AdminDashboard() {
           <div className="px-4 lg:px-6">
             <AdminHeader
               activeTab={activeTab}
-              companyName={adminData.Empresa}
+              companyName={adminData.companyName}
               onTabChange={setActiveTab}
               onSignOut={handleSignOut}
             />
@@ -521,7 +527,7 @@ export default function AdminDashboard() {
                       onPress={() =>
                         exportMetricsSummary(
                           metricsData,
-                          adminData.Empresa,
+                          adminData.companyName,
                           selectedTimeRange
                         )
                       }
@@ -534,7 +540,7 @@ export default function AdminDashboard() {
                       variant="bordered"
                       startContent={<Download className="w-4 h-4" />}
                       onPress={() =>
-                        exportProposalsData(rawProposals, adminData.Empresa)
+                        exportProposalsData(rawProposals, adminData.companyName, workerNameMap)
                       }
                       className="border-blue-600 text-blue-700 hover:bg-blue-50"
                     >
@@ -545,7 +551,7 @@ export default function AdminDashboard() {
                       variant="bordered"
                       startContent={<Download className="w-4 h-4" />}
                       onPress={() =>
-                        exportWorkerStats(workers, adminData.Empresa)
+                        exportWorkerStats(workers, adminData.companyName)
                       }
                       className="border-purple-600 text-purple-700 hover:bg-purple-50"
                     >
@@ -714,14 +720,14 @@ export default function AdminDashboard() {
                           <AmortizationComparisonChart comparisons={comparisons} />
                           <InterestRateComparisonChart
                             comparisons={comparisons}
-                            companyName={adminData.Empresa}
+                            companyName={adminData.companyName}
                           />
                         </div>
 
                         {/* Detailed table */}
                         <ProposalDetailsTable
                           comparisons={comparisons}
-                          companyName={adminData.Empresa}
+                          companyName={adminData.companyName}
                         />
                       </div>
                     ) : (

@@ -47,11 +47,11 @@ export const useDashboardState = () => {
   const [offerToAccept, setOfferToAccept] = useState<OfferToAccept | null>(null);
   const [userData, setUserData] = useState<UserData>({
     name: "",
-    last_name: "",
-    second_last_name: "",
+    lastName: "",
+    secondLastName: "",
     email: "",
     rfc: "",
-    birthday: null,
+    birthday: "",
     phone: "",
     address: {
       street: "",

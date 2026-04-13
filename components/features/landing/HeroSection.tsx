@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 
 const HeroSection = () => {
   return (
@@ -19,10 +20,11 @@ const HeroSection = () => {
               en minutos.
             </p>
             <Link
-              href="/como-funciona"
-              className="inline-flex items-center justify-center px-8 py-3 border-2 border-gray-900 text-base font-semibold rounded-full text-gray-900 bg-transparent hover:bg-gray-100 transition duration-300"
+              href="/prestamos"
+              className="inline-flex items-center gap-3 bg-[#2EA043] hover:bg-green-500 text-white text-lg font-bold px-10 py-4 rounded-xl shadow-lg hover:shadow-green-500/30 transform hover:-translate-y-1 transition-all duration-300"
             >
-              CONOCE MÁS
+              Comienza a comparar tu crédito
+              <ArrowRight className="w-5 h-5" />
             </Link>
           </div>
 

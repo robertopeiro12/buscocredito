@@ -15,11 +15,11 @@ export async function POST(req: NextRequest) {
     }
 
     // Solo administradores pueden crear subcuentas
-    if (user.userType !== 'b_admin') {
+    if (user.userType !== 'companyAdmin') {
       return ApiResponses.onlyAdminsAllowed();
     }
 
-    const { name, email, password, userId, Empresa } = await req.json();
+    const { name, email, password, userId, companyName } = await req.json();
     
     // Verificar que el userId coincida con el usuario autenticado
     if (userId !== user.uid) {
@@ -28,8 +28,8 @@ export async function POST(req: NextRequest) {
 
     // Validar campos requeridos
     const validation = validateRequiredFields(
-      { name, email, password, userId, Empresa },
-      ['name', 'email', 'password', 'userId', 'Empresa']
+      { name, email, password, userId, companyName },
+      ['name', 'email', 'password', 'userId', 'companyName']
     );
     
     if (!validation.isValid) {
@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
     }
     
     if (newUser.userId) {
-      const account = await create_subaccount_doc(name, email, userId, newUser.userId, Empresa);
+      const account = await create_subaccount_doc(name, email, userId, newUser.userId, companyName);
       if (account.status !== 200) {
         return createErrorResponse(account.error || 'Error al crear documento de subcuenta');
       }

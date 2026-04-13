@@ -49,7 +49,7 @@ export function validateLoanStatus(status: string): boolean {
 }
 
 export function validateUserType(userType: string): boolean {
-  const validTypes = ['user', 'b_sale', 'b_admin'];
+  const validTypes = ['borrower', 'lender', 'companyAdmin', 'superAdmin'];
   return validTypes.includes(userType);
 }
 
@@ -84,24 +84,24 @@ export const BusinessValidators = {
   },
   
   proposal: (data: any): ValidationResult => {
-    const requiredFields = ['amount', 'interest_rate', 'deadline', 'amortization_frequency'];
+    const requiredFields = ['amount', 'interestRate', 'deadline', 'amortizationFrequency'];
     const fieldValidation = validateRequiredFields(data, requiredFields);
-    
+
     if (!fieldValidation.isValid) {
       return fieldValidation;
     }
-    
+
     const errors: string[] = [];
-    
+
     if (!validateAmount(data.amount)) {
       errors.push('El monto debe ser un número mayor a 0');
     }
-    
-    if (!validateAmount(data.interest_rate)) {
+
+    if (!validateAmount(data.interestRate)) {
       errors.push('La tasa de interés debe ser un número mayor a 0');
     }
-    
-    if (!validatePaymentFrequency(data.amortization_frequency)) {
+
+    if (!validatePaymentFrequency(data.amortizationFrequency)) {
       errors.push('Frecuencia de amortización inválida');
     }
     

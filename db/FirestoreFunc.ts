@@ -14,18 +14,18 @@ export const create_subaccount_doc = async (
   email: string,
   admin_uid: string,
   account_uid: string,
-  Empresa: string
+  companyName: string
 ): Promise<{ status: number; error?: string }> => {
   const Firestore = getFirestore();
   const docRef = Firestore.collection("cuentas").doc(account_uid);
 
   try {
     await docRef.set({
-      Empresa: Empresa,
-      Empresa_id: admin_uid,
-      Nombre: name,
+      companyName: companyName,
+      adminId: admin_uid,
+      name: name,
       email: email,
-      type: "b_sale"
+      type: "lender"
     });
     return { status: 200 };
   } catch (error: any) {
@@ -202,43 +202,42 @@ export const getLoanOffers = async (loanId: string) => {
     
     const offers = Array.from(docsMap.values()).map(doc => {
       const data = doc.data();
-      
+
       // Calcular el pago basado en la frecuencia de amortización
       const calculatePaymentAmount = () => {
         const principal = data.amount || 0;
-        const rate = (data.interest_rate || 0) / 100;
+        const rate = (data.interestRate || 0) / 100;
         const term = data.deadline || 12;
-        
+
         // Calcular pago mensual básico
         const monthlyPayment = principal / term;
-        
+
         // Ajustar según frecuencia
-        switch(data.amortization_frequency?.toLowerCase()) {
+        switch(data.amortizationFrequency?.toLowerCase()) {
           case 'quincenal':
-            return (monthlyPayment / 2); // Pago quincenal
+            return (monthlyPayment / 2);
           case 'semanal':
-            return (monthlyPayment / 4); // Pago semanal
+            return (monthlyPayment / 4);
           case 'mensual':
           default:
-            return monthlyPayment; // Pago mensual
+            return monthlyPayment;
         }
       };
-      
+
       return {
         id: doc.id,
-        lender_name: data.company, // company de Firebase
-        amount: data.amount, // amount de Firebase
-        interest_rate: data.interest_rate, // interest_rate de Firebase
-        term: data.deadline, // deadline de Firebase (en meses)
+        lender_name: data.company,
+        amount: data.amount,
+        interestRate: data.interestRate,
+        term: data.deadline,
         monthly_payment: calculatePaymentAmount(),
-        amortization_frequency: data.amortization_frequency, // "quincenal", "semanal", "mensual"
-        amortization: data.amortization, // amortization de Firebase
-        medical_balance: data.medical_balance, // medical_balance de Firebase
-        comision: data.comision, // comision de Firebase
-        deadline: data.deadline, // deadline de Firebase (en meses)
-        partner: data.partner, // partner de Firebase
+        amortizationFrequency: data.amortizationFrequency,
+        amortization: data.amortization,
+        medicalBalance: data.medicalBalance,
+        comision: data.comision,
+        deadline: data.deadline,
+        lenderId: data.lenderId,
         status: data.status,
-        // Solo type y purpose de la solicitud original
         requestInfo: data.requestInfo
       };
     });
@@ -264,9 +263,9 @@ export const getLenderProposals = async (lenderId: string) => {
     const Firestore = getAdminFirestore();
     const propuestasRef = Firestore.collection("propuestas");
     
-    // Buscar propuestas donde el partner sea el lenderId
+    // Buscar propuestas donde el lenderId coincida
     const allDocs = await propuestasRef
-      .where("partner", "==", lenderId)
+      .where("lenderId", "==", lenderId)
       .get();
     
     const proposals = await Promise.all(allDocs.docs.map(async (doc) => {
@@ -289,14 +288,14 @@ export const getLenderProposals = async (lenderId: string) => {
                 const userData = userDoc.data();
                 // Construir nombre completo con los campos correctos
                 const firstName = userData?.name || '';
-                const lastName = userData?.last_name || '';
-                const secondLastName = userData?.second_last_name || '';
+                const lastName = userData?.lastName || '';
+                const secondLastName = userData?.secondLastName || '';
                 const fullName = `${firstName} ${lastName} ${secondLastName}`.trim().replace(/\s+/g, ' ');
-                
+
                 contactInfo = {
-                  fullName: fullName || userData?.Nombre || "No disponible",
+                  fullName: fullName || "No disponible",
                   email: userData?.email || "No disponible",
-                  phone: userData?.phone || userData?.telefono || "No disponible"
+                  phone: userData?.phone || "No disponible"
                 };
               }
             }
@@ -310,20 +309,17 @@ export const getLenderProposals = async (lenderId: string) => {
         id: doc.id,
         loanId: data.loanId || data.solicitudId || null,
         amortization: data.amortization,
-        amortization_frequency: data.amortization_frequency,
-        medical_balance: data.medical_balance,
+        amortizationFrequency: data.amortizationFrequency,
+        medicalBalance: data.medicalBalance,
         comision: data.comision,
         amount: data.amount,
         deadline: data.deadline,
-        interest_rate: data.interest_rate,
+        interestRate: data.interestRate,
         term: data.deadline,
         status: data.status,
-        createdAt: data.createdAt?.toDate ? data.createdAt.toDate().toISOString() : 
-                  data.createdAt instanceof Date ? data.createdAt.toISOString() : 
-                  data.fechaCreacion?.toDate ? data.fechaCreacion.toDate().toISOString() :
-                  data.fechaCreacion instanceof Date ? data.fechaCreacion.toISOString() :
-                  typeof data.createdAt === 'string' ? data.createdAt :
-                  typeof data.fechaCreacion === 'string' ? data.fechaCreacion : null,
+        createdAt: data.createdAt?.toDate ? data.createdAt.toDate().toISOString() :
+                  data.createdAt instanceof Date ? data.createdAt.toISOString() :
+                  typeof data.createdAt === 'string' ? data.createdAt : null,
         requestInfo: data.requestInfo || {},
         contactInfo: contactInfo
       };
@@ -374,7 +370,7 @@ export const createNotification = async (notificationData: {
         if (userDoc.exists) {
           const userData = userDoc.data();
           const userEmail = userData?.email;
-          const userName = userData?.Nombre || userData?.name || 'Usuario';
+          const userName = userData?.name || 'Usuario';
           
           // Check if user has email notifications enabled (default: true)
           const emailNotificationsEnabled = userData?.emailNotifications !== false;

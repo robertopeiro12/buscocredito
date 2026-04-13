@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
     console.log(`👤 Usuario autenticado: ${user.uid}, tipo: ${user.userType}`);
 
     // Solo administradores pueden acceder
-    if (user.userType !== 'b_admin') {
+    if (user.userType !== 'companyAdmin') {
       console.log('❌ Usuario no es administrador');
       return new Response(
         JSON.stringify({ error: 'Acceso denegado - Solo administradores' }), 
@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
     
     // 1. Obtener todos los trabajadores de este administrador
     const workersRef = db.collection('cuentas');
-    const workersQuery = workersRef.where('Empresa_id', '==', user.uid);
+    const workersQuery = workersRef.where('adminId', '==', user.uid);
     const workersSnapshot = await workersQuery.get();
     
     console.log(`📊 Buscando trabajadores para admin: ${user.uid}`);
@@ -68,10 +68,10 @@ export async function GET(request: NextRequest) {
       try {
         // Obtener propuestas donde este trabajador es el partner (maneja la propuesta)
         const propuestasRef = db.collection('propuestas');
-        const propuestasQuery = propuestasRef.where('partner', '==', workerId);
+        const propuestasQuery = propuestasRef.where('lenderId', '==', workerId);
         const propuestasSnapshot = await propuestasQuery.get();
         
-        console.log(`📈 Trabajador ${workerId} (${workerData.Nombre}): ${propuestasSnapshot.size} propuestas`);
+        console.log(`📈 Trabajador ${workerId} (${workerData.name}): ${propuestasSnapshot.size} propuestas`);
         
         // Calcular métricas básicas
         const totalPropuestas = propuestasSnapshot.size;
@@ -172,9 +172,9 @@ export async function GET(request: NextRequest) {
         
         const workerStats = {
           id: workerId,
-          name: workerData.Nombre || workerData.name || 'Sin nombre',
+          name: workerData.name || 'Sin nombre',
           email: workerData.email || '',
-          type: workerData.type || 'b_sale',
+          type: workerData.type || 'lender',
           
           // Métricas calculadas
           stats: {
@@ -193,7 +193,7 @@ export async function GET(request: NextRequest) {
         };
         
         workersStats.push(workerStats);
-        console.log(`✅ Stats calculadas para ${workerData.Nombre}: ${totalPropuestas} propuestas, ${approvalRate}% aprobación`);
+        console.log(`✅ Stats calculadas para ${workerData.name}: ${totalPropuestas} propuestas, ${approvalRate}% aprobación`);
         
       } catch (workerError) {
         console.error(`❌ Error calculando stats para trabajador ${workerId}:`, workerError);
@@ -201,9 +201,9 @@ export async function GET(request: NextRequest) {
         // Incluir trabajador con stats básicos aunque falle el cálculo
         workersStats.push({
           id: workerId,
-          name: workerData.Nombre || workerData.name || 'Sin nombre',
+          name: workerData.name || 'Sin nombre',
           email: workerData.email || '',
-          type: workerData.type || 'b_sale',
+          type: workerData.type || 'lender',
           stats: {
             totalSolicitudes: 0,
             totalPropuestas: 0,

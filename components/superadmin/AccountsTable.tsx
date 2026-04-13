@@ -35,8 +35,8 @@ interface AccountsTableProps {
   isLoading: boolean;
   searchTerm: string;
   setSearchTerm: (term: string) => void;
-  filterType: "all" | "super_admin" | "b_admin" | "b_sale" | "user";
-  setFilterType: (type: "all" | "super_admin" | "b_admin" | "b_sale" | "user") => void;
+  filterType: "all" | "superAdmin" | "companyAdmin" | "lender" | "borrower";
+  setFilterType: (type: "all" | "superAdmin" | "companyAdmin" | "lender" | "borrower") => void;
   filterStatus: "all" | "active" | "disabled";
   setFilterStatus: (status: "all" | "active" | "disabled") => void;
   onViewAccount: (account: AccountInfo) => void;
@@ -47,10 +47,10 @@ interface AccountsTableProps {
 }
 
 const typeLabels: Record<string, { label: string; color: "default" | "primary" | "secondary" | "success" | "warning" | "danger" }> = {
-  super_admin: { label: "Super Admin", color: "secondary" },
-  b_admin: { label: "Admin", color: "primary" },
-  b_sale: { label: "Vendedor", color: "success" },
-  user: { label: "Usuario", color: "default" },
+  superAdmin: { label: "Super Admin", color: "secondary" },
+  companyAdmin: { label: "Admin Empresa", color: "primary" },
+  lender: { label: "Prestamista", color: "success" },
+  borrower: { label: "Solicitante", color: "default" },
 };
 
 export function AccountsTable({
@@ -136,10 +136,10 @@ export function AccountsTable({
               }}
             >
               <DropdownItem key="all">Todos</DropdownItem>
-              <DropdownItem key="super_admin">Super Admin</DropdownItem>
-              <DropdownItem key="b_admin">Admin</DropdownItem>
-              <DropdownItem key="b_sale">Vendedor</DropdownItem>
-              <DropdownItem key="user">Usuario</DropdownItem>
+              <DropdownItem key="superAdmin">Super Admin</DropdownItem>
+              <DropdownItem key="companyAdmin">Admin Empresa</DropdownItem>
+              <DropdownItem key="lender">Prestamista</DropdownItem>
+              <DropdownItem key="borrower">Solicitante</DropdownItem>
             </DropdownMenu>
           </Dropdown>
           <Dropdown>
@@ -232,7 +232,7 @@ export function AccountsTable({
               </TableCell>
               <TableCell>
                 <span className="text-gray-600">
-                  {account.Empresa || "-"}
+                  {account.companyName || "-"}
                 </span>
               </TableCell>
               <TableCell>
@@ -266,7 +266,7 @@ export function AccountsTable({
                       <Eye className="w-4 h-4" />
                     </Button>
                   </Tooltip>
-                  {account.type !== "super_admin" && (
+                  {account.type !== "superAdmin" && (
                     <>
                       {account.disabled ? (
                         <Tooltip content="Activar cuenta">

@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Solo usuarios tipo 'user' pueden crear solicitudes
-    if (user.userType !== 'user') {
+    if (user.userType !== 'borrower') {
       return ApiResponses.onlyUsersAllowed();
     }
 

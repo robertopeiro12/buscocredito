@@ -28,11 +28,11 @@ export const fetchUserData = async (userId: string): Promise<UserData> => {
       console.log('Documento de usuario no encontrado, devolviendo datos por defecto');
       return {
         name: "",
-        last_name: "",
-        second_last_name: "",
+        lastName: "",
+        secondLastName: "",
         email: "",
         rfc: "",
-        birthday: null,
+        birthday: "",
         phone: "",
         address: {
           street: "",
@@ -58,11 +58,11 @@ export const fetchUserData = async (userId: string): Promise<UserData> => {
       console.log('Error de permisos, devolviendo datos por defecto para usuario nuevo');
       return {
         name: "",
-        last_name: "",
-        second_last_name: "",
+        lastName: "",
+        secondLastName: "",
         email: "",
         rfc: "",
-        birthday: null,
+        birthday: "",
         phone: "",
         address: {
           street: "",

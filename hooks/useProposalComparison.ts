@@ -142,8 +142,8 @@ export function useProposalComparison({
             amortizationDiff = ((adminAmort - acceptedAmort) / acceptedAmort) * 100;
           }
 
-          const acceptedRate = parseFloat(acceptedProposal.interest_rate?.toString() || "0");
-          const adminRate = parseFloat(adminProposal.interest_rate?.toString() || "0");
+          const acceptedRate = parseFloat(acceptedProposal.interestRate?.toString() || "0");
+          const adminRate = parseFloat(adminProposal.interestRate?.toString() || "0");
           interestRateDiff = adminRate - acceptedRate;
 
           const acceptedAmt = parseFloat(acceptedProposal.amount?.toString() || "0");
@@ -175,20 +175,20 @@ export function useProposalComparison({
           proposalIndex: results.length + 1,
           loanId,
           adminAmount: parseFloat(adminProposal.amount?.toString() || "0"),
-          adminInterestRate: parseFloat(adminProposal.interest_rate?.toString() || "0"),
+          adminInterestRate: parseFloat(adminProposal.interestRate?.toString() || "0"),
           adminAmortization: parseFloat(adminProposal.amortization?.toString() || "0"),
           adminCommission: parseFloat((adminProposal.comision || adminProposal.commission || 0).toString()),
           adminDeadline: parseFloat(adminProposal.deadline?.toString() || "0"),
-          adminFrequency: adminProposal.amortization_frequency || "",
+          adminFrequency: adminProposal.amortizationFrequency || "",
           adminStatus: adminProposal.status || "pending",
           adminCompany: adminProposal.company || companyName,
           adminCreatedAt: parseDate(adminProposal.createdAt || adminProposal.fechaCreacion),
           acceptedAmount: acceptedProposal ? parseFloat(acceptedProposal.amount?.toString() || "0") : null,
-          acceptedInterestRate: acceptedProposal ? parseFloat(acceptedProposal.interest_rate?.toString() || "0") : null,
+          acceptedInterestRate: acceptedProposal ? parseFloat(acceptedProposal.interestRate?.toString() || "0") : null,
           acceptedAmortization: acceptedProposal ? parseFloat(acceptedProposal.amortization?.toString() || "0") : null,
           acceptedCommission: acceptedProposal ? parseFloat((acceptedProposal.comision || acceptedProposal.commission || 0).toString()) : null,
           acceptedDeadline: acceptedProposal ? parseFloat(acceptedProposal.deadline?.toString() || "0") : null,
-          acceptedFrequency: acceptedProposal?.amortization_frequency || null,
+          acceptedFrequency: acceptedProposal?.amortizationFrequency || null,
           acceptedCompany: acceptedProposal?.company || null,
           amortizationDiff,
           interestRateDiff,
