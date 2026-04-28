@@ -4,7 +4,7 @@ import { getAdminAuth, getAdminFirestore } from '@/db/FirebaseAdmin';
 export interface AuthUser {
   uid: string;
   email: string;
-  role: 'user' | 'lender' | 'admin' | 'worker';
+  role: 'borrower' | 'lender' | 'companyAdmin' | 'superAdmin' | 'worker';
   companyName?: string;
   verified?: boolean;
 }
@@ -43,7 +43,7 @@ export async function verifyAuthToken(request: NextRequest): Promise<AuthUser | 
     return {
       uid: decodedToken.uid,
       email: decodedToken.email || '',
-      role: userData?.role || 'user',
+      role: (userData?.type || userData?.role || 'borrower') as any,
       companyName: userData?.companyName,
       verified: userData?.verified || false
     };
@@ -85,17 +85,17 @@ export function requireRole(allowedRoles: string[]) {
 /**
  * Middleware específico para lenders
  */
-export const requireLender = requireRole(['lender', 'admin']);
+export const requireLender = requireRole(['lender', 'companyAdmin', 'superAdmin']);
 
 /**
  * Middleware específico para admins
  */
-export const requireAdmin = requireRole(['admin']);
+export const requireAdmin = requireRole(['companyAdmin', 'superAdmin']);
 
 /**
  * Middleware específico para workers
  */
-export const requireWorker = requireRole(['worker', 'admin']);
+export const requireWorker = requireRole(['worker', 'companyAdmin', 'superAdmin']);
 
 /**
  * Middleware para usuarios verificados
@@ -110,7 +110,7 @@ export async function requireVerifiedUser(request: NextRequest): Promise<AuthUse
     );
   }
 
-  if (!user.verified && user.role !== 'admin') {
+  if (!user.verified && !['companyAdmin', 'superAdmin'].includes(user.role)) {
     return new Response(
       JSON.stringify({ 
         error: 'Cuenta no verificada. Contacta al administrador para verificar tu cuenta.' 
@@ -142,13 +142,13 @@ export async function verifyResourceAccess(
         const propuestaData = propuestaDoc.data();
         
         // Admins pueden acceder a todo
-        if (user.role === 'admin') return true;
+        if (['companyAdmin', 'superAdmin'].includes(user.role)) return true;
         
         // Lenders pueden acceder a sus propias propuestas
         if (user.role === 'lender' && propuestaData?.lenderId === user.uid) return true;
         
         // Users pueden leer propuestas dirigidas a ellos
-        if (user.role === 'user' && propuestaData?.userId === user.uid && action === 'read') return true;
+        if (user.role === 'borrower' && propuestaData?.userId === user.uid && action === 'read') return true;
         
         return false;
 
@@ -159,10 +159,10 @@ export async function verifyResourceAccess(
         const solicitudData = solicitudDoc.data();
         
         // Admins pueden acceder a todo
-        if (user.role === 'admin') return true;
+        if (['companyAdmin', 'superAdmin'].includes(user.role)) return true;
         
         // Users pueden acceder a sus propias solicitudes
-        if (user.role === 'user' && solicitudData?.userId === user.uid) return true;
+        if (user.role === 'borrower' && solicitudData?.userId === user.uid) return true;
         
         // Lenders pueden leer todas las solicitudes
         if (user.role === 'lender' && action === 'read') return true;
@@ -176,7 +176,7 @@ export async function verifyResourceAccess(
         const notificationData = notificationDoc.data();
         
         // Solo el usuario destinatario y admins pueden acceder
-        return user.role === 'admin' || notificationData?.userId === user.uid;
+        return ['companyAdmin', 'superAdmin'].includes(user.role) || notificationData?.userId === user.uid;
 
       case 'subcuenta':
         const subcuentaDoc = await db.collection('subcuentas').doc(resourceId).get();
@@ -185,7 +185,7 @@ export async function verifyResourceAccess(
         const subcuentaData = subcuentaDoc.data();
         
         // Solo el propietario y admins pueden acceder
-        return user.role === 'admin' || subcuentaData?.userId === user.uid;
+        return ['companyAdmin', 'superAdmin'].includes(user.role) || subcuentaData?.userId === user.uid;
 
       default:
         return false;

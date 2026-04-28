@@ -75,7 +75,6 @@ export function AmortizationComparisonChart({ comparisons }: Props) {
             return [
               `Tu amortización: $${item.adminAmortization.toLocaleString()}`,
               `Aceptada: $${item.acceptedAmortization?.toLocaleString()}`,
-              `Empresa ganadora: ${item.acceptedCompany || "N/A"}`,
             ];
           },
         },

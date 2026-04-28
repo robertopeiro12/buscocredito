@@ -258,6 +258,14 @@ service cloud.firestore {
     }
 
     // ========================================
+    // REGLAS PARA TOKENS DE BETA
+    // ========================================
+
+    match /beta_tokens/{tokenId} {
+      allow read, write: if isSuperAdmin();
+    }
+
+    // ========================================
     // REGLA POR DEFECTO: DENEGAR TODO
     // ========================================
 

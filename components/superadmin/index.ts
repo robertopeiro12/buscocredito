@@ -7,3 +7,4 @@ export { AccountDetailModal } from "./AccountDetailModal";
 export { ConfirmActionModal } from "./ConfirmActionModal";
 export { SystemInfoCards } from "./SystemInfoCards";
 export { TokenManagement } from "./TokenManagement";
+export { BetaManagement } from "./BetaManagement";

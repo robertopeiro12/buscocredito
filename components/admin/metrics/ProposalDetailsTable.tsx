@@ -124,8 +124,8 @@ export function ProposalDetailsTable({ comparisons, companyName }: Props) {
               </th>
               <th className={thClass}>Dif. Amort.</th>
               <th className={thClass}>Dif. Tasa</th>
-              <th className={thClass} onClick={() => handleSort("acceptedCompany")}>
-                Ganador <SortIcon field="acceptedCompany" />
+              <th className={thClass}>
+                Estado de Solicitud
               </th>
             </tr>
           </thead>

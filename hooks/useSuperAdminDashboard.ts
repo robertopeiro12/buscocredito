@@ -478,6 +478,7 @@ export function useSuperAdminDashboard() {
     setConfirmAction,
 
     // Actions
+    getAuthToken,
     fetchAccountsAndStats,
     fetchSystemInfo,
     deactivateAccount,

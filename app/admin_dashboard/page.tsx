@@ -525,21 +525,6 @@ export default function AdminDashboard() {
                       variant="bordered"
                       startContent={<Download className="w-4 h-4" />}
                       onPress={() =>
-                        exportMetricsSummary(
-                          metricsData,
-                          adminData.companyName,
-                          selectedTimeRange
-                        )
-                      }
-                      className="border-green-600 text-green-700 hover:bg-green-50"
-                    >
-                      Exportar Resumen CSV
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="bordered"
-                      startContent={<Download className="w-4 h-4" />}
-                      onPress={() =>
                         exportProposalsData(rawProposals, adminData.companyName, workerNameMap)
                       }
                       className="border-blue-600 text-blue-700 hover:bg-blue-50"

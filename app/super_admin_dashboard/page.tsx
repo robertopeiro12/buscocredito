@@ -14,6 +14,7 @@ import {
   ConfirmActionModal,
   SystemInfoCards,
   TokenManagement,
+  BetaManagement,
 } from "@/components/superadmin";
 import type { AccountInfo } from "@/types/superadmin";
 
@@ -54,6 +55,7 @@ export default function SuperAdminDashboard() {
     setConfirmAction,
 
     // Actions
+    getAuthToken,
     fetchAccountsAndStats,
     fetchSystemInfo,
     handleConfirmAction,
@@ -141,6 +143,9 @@ export default function SuperAdminDashboard() {
 
       case "tokens":
         return <TokenManagement />;
+
+      case "beta":
+        return <BetaManagement getAuthToken={getAuthToken} />;
 
       case "stats":
         return (
