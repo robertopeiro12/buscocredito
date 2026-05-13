@@ -21,11 +21,9 @@ export default function NavBar() {
     ].includes(pathname) || pathname.startsWith("/lender");
 
   const navLinks = [
-    { href: "/", label: "Inicio" },
-    { href: "/prestamos", label: "Soluciones" },
-    { href: "/acerca-de", label: "Acerca de" },
-    { href: "/prestamista", label: "Inversionistas" },
-    { href: "/como-funciona", label: "Blog" },
+    { href: "/soluciones", label: "Soluciones" },
+    { href: "/como-funciona", label: "Cómo funciona" },
+    { href: "/prestamista", label: "Institución Financiera" },
   ];
 
   return (
@@ -62,7 +60,7 @@ export default function NavBar() {
           {!shouldHideAuthButtons && (
             <div className="hidden md:block">
               <Link
-                href="/login"
+                href="/signup"
                 className="bg-[#0e3a45] hover:bg-[#082830] text-white px-6 py-2.5 rounded-full font-semibold text-sm transition shadow-lg transform hover:-translate-y-0.5"
               >
                 SOLICITA TU CRÉDITO
@@ -108,14 +106,7 @@ export default function NavBar() {
             {!shouldHideAuthButtons && (
               <div className="flex flex-col space-y-3 pt-4 border-t border-gray-100">
                 <Link
-                  href="/login"
-                  className="w-full text-center px-5 py-2 text-[#0e3a45] font-medium hover:text-green-700 transition-colors duration-200 border border-[#0e3a45] rounded-lg hover:bg-green-50"
-                  onClick={() => setIsOpen(false)}
-                >
-                  Iniciar sesión
-                </Link>
-                <Link
-                  href="/login"
+                  href="/signup"
                   className="w-full text-center px-5 py-2 rounded-full bg-[#0e3a45] text-white font-medium hover:bg-[#082830] transition-all duration-200"
                   onClick={() => setIsOpen(false)}
                 >

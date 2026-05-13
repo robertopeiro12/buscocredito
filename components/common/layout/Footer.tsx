@@ -1,47 +1,46 @@
 import React from "react";
 import Link from "next/link";
-import Image from "next/image";
 
 const Footer = () => {
   return (
     <footer role="contentinfo">
-      <div className="bg-white border-t border-gray-100 py-16">
+      <div className="bg-white border-t border-gray-100 py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             {/* Logo Section */}
-            <div className="col-span-2 md:col-span-1">
-              <div className="mb-6">
-                <Image
-                  src="/img/logo-buscocredito.png"
-                  alt="Busco Crédito"
-                  width={220}
-                  height={80}
-                  className="h-20 w-auto"
-                />
-              </div>
-              <p className="text-xs text-gray-500">
-                © BuscoCrédito 2026 - All Rights Reserved
+            <div className="md:col-span-1">
+              <p className="text-sm text-gray-600 leading-relaxed mb-4 max-w-xs">
+                Marketplace financiero que conecta personas solicitantes con instituciones
+                financieras para comparar ofertas con mayor claridad.
               </p>
             </div>
 
-            {/* Soluciones */}
+            {/* Navegación */}
             <div>
-              <h4 className="font-bold text-gray-900 mb-4">Soluciones</h4>
-              <ul className="space-y-3 text-sm text-gray-600">
+              <h4 className="font-bold text-gray-900 mb-3">Navegación</h4>
+              <ul className="space-y-2 text-sm text-gray-600">
                 <li>
                   <Link
-                    href="/prestamos"
+                    href="/"
                     className="hover:text-[#0e3a45] transition"
                   >
-                    Crédito personal
+                    Inicio
                   </Link>
                 </li>
                 <li>
                   <Link
-                    href="/prestamos"
+                    href="/soluciones"
                     className="hover:text-[#0e3a45] transition"
                   >
-                    Crédito hoy
+                    Soluciones
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/como-funciona"
+                    className="hover:text-[#0e3a45] transition"
+                  >
+                    Cómo funciona
                   </Link>
                 </li>
                 <li>
@@ -49,16 +48,16 @@ const Footer = () => {
                     href="/prestamista"
                     className="hover:text-[#0e3a45] transition"
                   >
-                    Otros servicios
+                    Institución financiera
                   </Link>
                 </li>
               </ul>
             </div>
 
-            {/* Nosotros */}
+            {/* Compañía */}
             <div>
-              <h4 className="font-bold text-gray-900 mb-4">Nosotros</h4>
-              <ul className="space-y-3 text-sm text-gray-600">
+              <h4 className="font-bold text-gray-900 mb-3">Compañía</h4>
+              <ul className="space-y-2 text-sm text-gray-600">
                 <li>
                   <Link
                     href="/acerca-de"
@@ -69,48 +68,64 @@ const Footer = () => {
                 </li>
                 <li>
                   <Link
-                    href="/como-funciona"
+                    href="/transparencia"
                     className="hover:text-[#0e3a45] transition"
                   >
-                    Contacto
+                    Transparencia
                   </Link>
                 </li>
                 <li>
-                  <Link href="#" className="hover:text-[#0e3a45] transition">
-                    Bolsa de Trabajo
+                  <Link
+                    href="mailto:contacto@buscocredito.com"
+                    className="hover:text-[#0e3a45] transition"
+                  >
+                    contacto@buscocredito.com
                   </Link>
                 </li>
               </ul>
             </div>
 
-            {/* Ayuda */}
+            {/* Legal */}
             <div>
-              <h4 className="font-bold text-gray-900 mb-4">Ayuda</h4>
-              <ul className="space-y-3 text-sm text-gray-600">
+              <h4 className="font-bold text-gray-900 mb-3">Legal</h4>
+              <ul className="space-y-2 text-sm text-gray-600">
                 <li>
                   <Link
-                    href="/como-funciona"
+                    href="/terminos"
                     className="hover:text-[#0e3a45] transition"
                   >
-                    Centro de Ayuda
+                    Términos y condiciones
                   </Link>
                 </li>
                 <li>
                   <Link
-                    href="/como-funciona"
+                    href="/politica-privacidad"
                     className="hover:text-[#0e3a45] transition"
                   >
-                    FAQs
+                    Política de privacidad
                   </Link>
                 </li>
                 <li>
-                  <Link href="#" className="hover:text-[#0e3a45] transition">
-                    Mapa del Sitio
+                  <Link
+                    href="/aviso-legal"
+                    className="hover:text-[#0e3a45] transition"
+                  >
+                    Aviso legal
                   </Link>
                 </li>
               </ul>
             </div>
+
           </div>
+
+          <div className="mt-8 pt-4 border-t border-gray-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <p className="text-xs text-gray-500">
+                © BuscoCrédito 2026. Todos los derechos reservados.
+              </p>
+              <p className="text-xs text-gray-500">
+                BuscoCrédito no otorga préstamos; funciona como intermediario financiero.
+              </p>
+            </div>
         </div>
       </div>
 

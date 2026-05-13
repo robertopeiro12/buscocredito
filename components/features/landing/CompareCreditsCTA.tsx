@@ -13,7 +13,7 @@ const CompareCreditsCTA = () => {
           mejor se adapte a tu situación. Sin compromisos, sin letra chiquita.
         </p>
         <Link
-          href="/prestamos"
+          href="/soluciones"
           className="inline-flex items-center gap-3 bg-[#2EA043] hover:bg-green-500 text-white text-lg sm:text-xl font-bold px-10 py-5 rounded-xl shadow-2xl hover:shadow-green-500/30 transform hover:-translate-y-1 transition-all duration-300"
         >
           Comienza a comparar tu crédito

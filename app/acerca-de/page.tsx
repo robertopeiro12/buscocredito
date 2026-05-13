@@ -149,7 +149,7 @@ export default function AcercaDePage() {
               </p>
               <div className="flex flex-col sm:flex-row justify-center gap-4">
                 <Link
-                  href="/prestamos"
+                  href="/soluciones"
                   className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-[#2EA043] hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
                 >
                   Solicitar Préstamo

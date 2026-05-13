@@ -26,7 +26,7 @@ const publicRoutes = [
   '/politica-privacidad',
   '/terminos',
   '/transparencia',
-  '/prestamos',
+  '/soluciones',
   '/prestamista',
 ];
 
