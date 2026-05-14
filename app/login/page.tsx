@@ -5,21 +5,8 @@ import { useAuth } from "../../contexts/AuthContext";
 import { useForm } from "../../hooks/useForm";
 import { useState, useEffect, useRef, useCallback, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-
-// Helper function to get redirect path based on user type
-const getRedirectPath = (userType: string): string => {
-  switch (userType) {
-    case "superAdmin":
-      return "/super_admin_dashboard";
-    case "companyAdmin":
-      return "/admin_dashboard";
-    case "lender":
-      return "/lender";
-    case "borrower":
-    default:
-      return "/user_dashboard";
-  }
-};
+import Link from "next/link";
+import { getRedirectPath } from "@/lib/navigation";
 
 // Reglas de validación
 const validationRules = {
@@ -109,8 +96,11 @@ function LoginForm() {
         setBlockTimeLeft((prev) => prev - 1);
       }, 1000);
     } else if (isBlocked && blockTimeLeft === 0) {
-      setIsBlocked(false);
-      setAttemptCount(0);
+      const reset = setTimeout(() => {
+        setIsBlocked(false);
+        setAttemptCount(0);
+      }, 0);
+      return () => clearTimeout(reset);
     }
     return () => clearTimeout(timer);
   }, [blockTimeLeft, isBlocked]);
@@ -218,13 +208,13 @@ function LoginForm() {
           }}
           endContent={
             <button
-              className="focus:outline-none"
+              className="focus:outline-none text-gray-400 hover:text-[#0e3a45] transition-colors"
               type="button"
               onClick={() => setShowPassword(!showPassword)}
             >
               {showPassword ? (
                 <svg
-                  className="w-4 h-4 text-gray-400"
+                  className="w-4 h-4"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -238,7 +228,7 @@ function LoginForm() {
                 </svg>
               ) : (
                 <svg
-                  className="w-4 h-4 text-gray-400"
+                  className="w-4 h-4"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -283,34 +273,41 @@ function LoginForm() {
               type="checkbox"
               checked={rememberMe}
               onChange={(e) => setRememberMe(e.target.checked)}
-              className="w-4 h-4 text-[#55A555] bg-gray-100 border-gray-300 rounded focus:ring-[#55A555] focus:ring-2"
+              className="w-4 h-4 text-[#0e3a45] bg-gray-100 border-gray-300 rounded focus:ring-[#0e3a45] focus:ring-2"
             />
             <span className="ml-2 text-sm text-gray-600">Recordarme</span>
           </label>
           <a
             href="/forgot-password"
-            className="text-sm text-[#55A555] hover:underline"
+            className="text-sm text-[#0e3a45] hover:underline"
           >
             ¿Olvidaste tu contraseña?
           </a>
         </div>
 
         <Button
-          color="success"
           onClick={handleSignIn}
           isLoading={loading || isSubmitting}
           isDisabled={isBlocked}
-          className="w-full bg-[#55A555] hover:opacity-90 transition-opacity"
+          className="w-full bg-[#0e3a45] text-white hover:opacity-90 transition-opacity"
         >
           {getButtonText()}
         </Button>
 
         <p className="text-center text-sm text-gray-600">
           ¿No tienes cuenta?{" "}
-          <a href="/signup" className="text-[#55A555] hover:underline font-medium">
+          <Link href="/signup" className="text-[#0e3a45] hover:underline font-medium">
             Regístrate
-          </a>
+          </Link>
         </p>
+
+        {/* Señal de confianza */}
+        <div className="flex items-center justify-center gap-2 text-xs text-gray-400 pt-2 border-t border-gray-100">
+          <svg className="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+          </svg>
+          <span>Conexión segura · Tus datos están protegidos</span>
+        </div>
       </div>
     </div>
   );

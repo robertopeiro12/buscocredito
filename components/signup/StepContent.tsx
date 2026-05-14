@@ -218,7 +218,7 @@ const StepContent = ({
                 />
               </div>
               {isLoadingCP && (
-                <div className="mt-1 text-sm text-blue-600 flex items-center gap-1">
+                <div className="mt-1 text-sm text-[#0e3a45] flex items-center gap-1">
                   <svg
                     className="animate-spin h-4 w-4"
                     xmlns="http://www.w3.org/2000/svg"
@@ -380,7 +380,7 @@ const StepContent = ({
                     <button
                       type="button"
                       onClick={() => setShowTermsModal(true)}
-                      className="text-green-600 underline hover:text-green-700"
+                      className="text-[#0e3a45] underline hover:opacity-70"
                     >
                       Términos y Condiciones
                     </button>{" "}
@@ -388,7 +388,7 @@ const StepContent = ({
                     <button
                       type="button"
                       onClick={() => setShowPrivacyModal(true)}
-                      className="text-green-600 underline hover:text-green-700"
+                      className="text-[#0e3a45] underline hover:opacity-70"
                     >
                       Política de Privacidad
                     </button>
@@ -420,7 +420,7 @@ const StepContent = ({
                     <Button
                       color="primary"
                       onPress={() => setShowTermsModal(false)}
-                      className="bg-green-600 hover:bg-green-700"
+                      className="bg-[#0e3a45] hover:opacity-90 text-white"
                     >
                       Cerrar
                     </Button>
@@ -446,7 +446,7 @@ const StepContent = ({
                     <Button
                       color="primary"
                       onPress={() => setShowPrivacyModal(false)}
-                      className="bg-green-600 hover:bg-green-700"
+                      className="bg-[#0e3a45] hover:opacity-90 text-white"
                     >
                       Cerrar
                     </Button>

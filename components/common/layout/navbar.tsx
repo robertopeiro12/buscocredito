@@ -29,7 +29,7 @@ export default function NavBar() {
   return (
     <nav className="fixed w-full z-50 bg-white/90 backdrop-blur-md border-b border-gray-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-20">
+        <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <Link href="/" className="flex-shrink-0 flex items-center cursor-pointer">
             <Image
@@ -60,7 +60,7 @@ export default function NavBar() {
           {!shouldHideAuthButtons && (
             <div className="hidden md:block">
               <Link
-                href="/signup"
+                href="/login"
                 className="bg-[#0e3a45] hover:bg-[#082830] text-white px-6 py-2.5 rounded-full font-semibold text-sm transition shadow-lg transform hover:-translate-y-0.5"
               >
                 SOLICITA TU CRÉDITO
@@ -106,7 +106,7 @@ export default function NavBar() {
             {!shouldHideAuthButtons && (
               <div className="flex flex-col space-y-3 pt-4 border-t border-gray-100">
                 <Link
-                  href="/signup"
+                  href="/login"
                   className="w-full text-center px-5 py-2 rounded-full bg-[#0e3a45] text-white font-medium hover:bg-[#082830] transition-all duration-200"
                   onClick={() => setIsOpen(false)}
                 >

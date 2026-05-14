@@ -165,3 +165,14 @@
       font-feature-settings: "rlig" 1, "calt" 1;
     }
   }
+
+/* PhoneInput overrides */
+.phone-input-container { width: 100% !important; }
+.phone-input-container .form-control { width: 100% !important; height: 46px !important; }
+.phone-input-container .flag-dropdown { background-color: transparent !important; border: none !important; border-right: 1px solid #e5e7eb !important; }
+.phone-input-container .selected-flag { background-color: transparent !important; }
+.phone-input-flag-button-error { border-color: #FCA5A5 !important; }
+.phone-input-container .country-list { margin: 0; padding: 0; background-color: white; border: 1px solid #e5e7eb; border-radius: 0.375rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+.phone-input-container .country-list .country { padding: 8px 12px; }
+.phone-input-container .country-list .country:hover { background-color: #f3f4f6; }
+.phone-input-container .country-list .country.highlight { background-color: #e5e7eb; }
