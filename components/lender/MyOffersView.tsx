@@ -4,6 +4,7 @@ import { User, ChevronRight, CreditCard, Eye, Info, X } from "lucide-react";
 import { LenderStats } from "@/components/features/dashboard/LenderStats";
 import { MarketplacePagination } from "@/components/features/dashboard/MarketplacePagination";
 import { LenderLoadingSkeletons } from "@/components/features/dashboard/LenderLoadingSkeletons";
+import { auth } from "@/app/firebase";
 import type { LenderProposal } from "@/app/lender/types/loan.types";
 
 interface WinningOffer {
@@ -45,7 +46,11 @@ const MyOffersView = ({
     setShowReasonModal(true);
 
     try {
+      const token = await auth.currentUser?.getIdToken();
       const response = await fetch(`/api/proposals/winning?loanId=${encodeURIComponent(loanId)}`, {
+        headers: {
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
         credentials: 'include',
       });
 
