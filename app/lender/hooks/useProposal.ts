@@ -1,6 +1,6 @@
 // hooks/useProposal.ts
 import { useState, useEffect } from 'react';
-import type { LoanRequest } from '../types/loan.types';
+import type { LoanRequest } from '@/app/lender/types/loan.types';
 import type { PaymentFrequency } from '@/types/entities/account.types';
 
 // Datos del formulario de propuesta (subconjunto editable por el lender)

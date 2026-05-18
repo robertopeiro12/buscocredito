@@ -148,10 +148,6 @@ function LenderPageContent() {
               onClearFilters={clearFilters}
               onMakeOffer={(requestId) => {
                 handleSelectRequest(requestId);
-                updateProposal({
-                  company: partnerData.company,
-                  lenderId: user,
-                });
                 handleMakeOffer();
               }}
               onSubmitOffer={handleSubmitOffer}

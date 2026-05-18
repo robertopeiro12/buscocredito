@@ -204,25 +204,6 @@ export const useLenderDashboard = () => {
     }
   };
 
-  const updateOffer = async (id: string) => {
-    try {
-      const response = await fetch("/api/loans/accept", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ id: id, offer_data: proposalData }),
-      });
-
-      if (response.ok) {
-      } else {
-        console.error("Error fetching user data:", response.statusText);
-      }
-    } catch (error) {
-      console.error("Error getting data:", error);
-    }
-  };
-
   const handleSubmitOffer = async () => {
     const success = await submitProposal();
     if (success) {
@@ -463,7 +444,6 @@ export const useLenderDashboard = () => {
     handleMakeOffer,
     handleCancelOffer,
     handleBackToMarket,
-    updateOffer,
     refreshLoans,
     
     // Funciones de proposal
