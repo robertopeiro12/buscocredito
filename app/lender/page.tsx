@@ -90,8 +90,8 @@ function LenderPageContent() {
       {/* Main Content with left margin to account for fixed sidebar */}
       <div className="flex-1 ml-64">
         {/* Header */}
-        <div className="px-4 lg:px-6">
-          <LenderHeader 
+        <div className="px-4 lg:px-6 pt-4 lg:pt-6">
+          <LenderHeader
             activeTab={lenderState.activeTab}
             companyName={partnerData.company}
             onTabChange={handleTabChange}
@@ -100,7 +100,7 @@ function LenderPageContent() {
         </div>
 
         {/* Content Area */}
-        <main className="p-4 lg:p-6">
+        <main className="px-4 lg:px-6 pb-4 lg:pb-6">
           {lenderState.activeTab === "marketplace" && (
             <MarketplaceView
               filteredRequests={filteredRequests}

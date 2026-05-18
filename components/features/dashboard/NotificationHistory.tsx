@@ -300,14 +300,16 @@ export default function NotificationHistory({ userId, isLender = false }: Notifi
       {/* Header */}
       <div className="mb-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-1">
-              Centro de Notificaciones
-            </h1>
-            <p className="text-gray-600">
-              Historial de todas tus notificaciones y alertas
-            </p>
-          </div>
+          {!isLender && (
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900 mb-1">
+                Centro de Notificaciones
+              </h1>
+              <p className="text-gray-600">
+                Historial de todas tus notificaciones y alertas
+              </p>
+            </div>
+          )}
 
           {/* Stats */}
           <div className="flex items-center gap-3">

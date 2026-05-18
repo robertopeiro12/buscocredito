@@ -26,6 +26,8 @@ const LenderHeader = ({
         return 'Mis Propuestas';
       case 'metrics':
         return 'Métricas y Análisis';
+      case 'notifications':
+        return 'Notificaciones';
       case 'settings':
         return 'Configuración';
       case 'help':
@@ -43,6 +45,8 @@ const LenderHeader = ({
         return 'Gestiona y monitorea tus propuestas enviadas';
       case 'metrics':
         return 'Analiza tu rendimiento como prestamista y encuentra oportunidades de mejora';
+      case 'notifications':
+        return 'Historial de alertas y novedades de tus propuestas';
       case 'settings':
         return 'Administra tu perfil y configuración de cuenta';
       case 'help':
