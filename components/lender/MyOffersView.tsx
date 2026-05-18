@@ -137,8 +137,8 @@ const MyOffersView = ({
           </p>
         </div>
         {lenderProposals.length > 0 && (
-          <div className="flex items-center bg-gray-50 px-3 py-1.5 rounded-full border border-gray-100">
-            <span className="text-sm text-gray-600">
+          <div className="flex items-center bg-[#0e3a45]/[0.06] px-3 py-1.5 rounded-full border border-[#0e3a45]/10">
+            <span className="text-sm font-medium text-[#0e3a45]">
               {lenderProposals.length} propuestas enviadas
             </span>
           </div>
@@ -149,8 +149,8 @@ const MyOffersView = ({
         <LenderLoadingSkeletons.OffersGrid />
       ) : lenderProposals.length === 0 ? (
         <div className="text-center py-16">
-          <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-br from-green-100 to-green-200 flex items-center justify-center">
-            <CreditCard className="w-12 h-12 text-green-600" />
+          <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-[#0e3a45]/[0.06] flex items-center justify-center">
+            <CreditCard className="w-12 h-12 text-[#0e3a45]" />
           </div>
           <h3 className="text-2xl font-semibold text-gray-900 mb-3">
             No has enviado propuestas
@@ -164,7 +164,7 @@ const MyOffersView = ({
             size="md"
             startContent={<ChevronRight className="w-4 h-4" />}
             onClick={onGoToMarketplace}
-            className="bg-green-600 hover:bg-green-700 text-white font-semibold px-6 py-2 shadow-md hover:shadow-lg transition-all duration-200"
+            className="bg-[#0e3a45] hover:opacity-90 text-white font-semibold px-6 py-2 shadow-sm transition-all duration-200"
           >
             Explorar Mercado
           </Button>
@@ -175,21 +175,22 @@ const MyOffersView = ({
             {currentOffers.map((proposal) => (
               <Card
                 key={proposal.id}
-                className="shadow-md hover:shadow-lg transition-shadow duration-200"
+                className="overflow-hidden border border-gray-100 hover:border-[#0e3a45]/20 hover:shadow-md transition-all duration-200"
               >
+                <div className="h-1 bg-green-500 w-full" />
                 <CardBody className="p-6">
                   <div className="flex justify-between items-start mb-4">
                     <div>
-                      <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                      <h3 className="text-sm font-semibold text-gray-900 mb-0.5">
                         {proposal.requestInfo?.purpose || "Sin propósito"}
                       </h3>
-                      <p className="text-sm text-gray-500">
+                      <p className="text-xs text-gray-500">
                         {proposal.requestInfo?.type || "Préstamo"}
                       </p>
                     </div>
                     <div className="flex flex-col items-end">
-                      <span className="text-lg font-semibold text-green-600 mb-2">
-                        ${proposal.amount?.toLocaleString()}
+                      <span className="text-lg font-bold text-[#0e3a45] mb-2">
+                        ${proposal.amount?.toLocaleString("es-MX")}
                       </span>
                       <Chip
                         className={`text-white text-sm ${getStatusColor(
@@ -203,58 +204,58 @@ const MyOffersView = ({
 
                   <div className="space-y-3">
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-500 text-sm">
-                        Monto:
+                      <span className="text-[10px] uppercase tracking-wide text-gray-400 font-semibold">
+                        Monto
                       </span>
-                      <span className="font-medium">
-                        ${proposal.amount?.toLocaleString()}
+                      <span className="text-sm font-semibold text-gray-800">
+                        ${proposal.amount?.toLocaleString("es-MX")}
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-500 text-sm">
-                        Propósito de préstamo:
+                      <span className="text-[10px] uppercase tracking-wide text-gray-400 font-semibold">
+                        Propósito
                       </span>
-                      <span className="font-medium">
+                      <span className="text-sm font-semibold text-gray-800">
                         {proposal.requestInfo?.purpose || "Sin propósito"}
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-500 text-sm">
-                        Tipo de préstamo:
+                      <span className="text-[10px] uppercase tracking-wide text-gray-400 font-semibold">
+                        Tipo
                       </span>
-                      <span className="font-medium">
+                      <span className="text-sm font-semibold text-gray-800">
                         {proposal.requestInfo?.type || "Préstamo"}
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-500 text-sm">
-                        Tasa de interés:
+                      <span className="text-[10px] uppercase tracking-wide text-gray-400 font-semibold">
+                        Tasa de interés
                       </span>
-                      <span className="font-medium">
+                      <span className="text-sm font-semibold text-gray-800">
                         {proposal.interestRate}%
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-500 text-sm">
-                        Plazo del préstamo:
+                      <span className="text-[10px] uppercase tracking-wide text-gray-400 font-semibold">
+                        Plazo
                       </span>
-                      <span className="font-medium">
+                      <span className="text-sm font-semibold text-gray-800">
                         {proposal.deadline} meses
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-500 text-sm">
-                        Frecuencia de pago:
+                      <span className="text-[10px] uppercase tracking-wide text-gray-400 font-semibold">
+                        Frecuencia
                       </span>
-                      <span className="font-medium capitalize">
+                      <span className="text-sm font-semibold text-gray-800 capitalize">
                         {proposal.amortizationFrequency}
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-500 text-sm">
-                        Fecha de propuesta:
+                      <span className="text-[10px] uppercase tracking-wide text-gray-400 font-semibold">
+                        Fecha
                       </span>
-                      <span className="font-medium">
+                      <span className="text-sm font-semibold text-gray-800">
                         {proposal.createdAt
                           ? typeof proposal.createdAt === "object" &&
                             "seconds" in proposal.createdAt
@@ -270,26 +271,28 @@ const MyOffersView = ({
                     {proposal.medicalBalance !== undefined &&
                       proposal.medicalBalance > 0 && (
                         <div className="flex justify-between items-center">
-                          <span className="text-gray-500 text-sm">
-                            Seguro de vida saldo deudor:
+                          <span className="text-[10px] uppercase tracking-wide text-gray-400 font-semibold">
+                            Seguro vida
                           </span>
-                          <span className="font-medium">
-                            ${proposal.medicalBalance?.toLocaleString()}
+                          <span className="text-sm font-semibold text-gray-800">
+                            ${proposal.medicalBalance?.toLocaleString("es-MX")}
                           </span>
                         </div>
                       )}
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-500 text-sm">
-                        Amortización:
+                      <span className="text-[10px] uppercase tracking-wide text-gray-400 font-semibold">
+                        Amortización
                       </span>
-                      <span className="font-medium">
-                        ${proposal.amortization?.toLocaleString()}
+                      <span className="text-sm font-semibold text-gray-800">
+                        ${proposal.amortization?.toLocaleString("es-MX")}
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-500 text-sm">Comisión por apertura:</span>
-                      <span className="font-medium">
-                        ${proposal.comision?.toLocaleString()}
+                      <span className="text-[10px] uppercase tracking-wide text-gray-400 font-semibold">
+                        Comisión apertura
+                      </span>
+                      <span className="text-sm font-semibold text-gray-800">
+                        ${proposal.comision?.toLocaleString("es-MX")}
                       </span>
                     </div>
                   </div>
@@ -327,20 +330,20 @@ const MyOffersView = ({
                       </h4>
                       <div className="space-y-2 bg-green-50 p-3 rounded-md">
                         <div className="flex justify-between items-center">
-                          <span className="text-gray-600">Nombre:</span>
-                          <span className="font-medium text-gray-800">
+                          <span className="text-[10px] uppercase tracking-wide text-gray-400 font-semibold">Nombre</span>
+                          <span className="text-sm font-semibold text-gray-800">
                             {proposal.contactInfo.fullName || "No disponible"}
                           </span>
                         </div>
                         <div className="flex justify-between items-center">
-                          <span className="text-gray-600">Email:</span>
-                          <span className="font-medium text-gray-800">
+                          <span className="text-[10px] uppercase tracking-wide text-gray-400 font-semibold">Email</span>
+                          <span className="text-sm font-semibold text-gray-800">
                             {proposal.contactInfo.email || "No disponible"}
                           </span>
                         </div>
                         <div className="flex justify-between items-center">
-                          <span className="text-gray-600">Teléfono:</span>
-                          <span className="font-medium text-gray-800">
+                          <span className="text-[10px] uppercase tracking-wide text-gray-400 font-semibold">Teléfono</span>
+                          <span className="text-sm font-semibold text-gray-800">
                             {proposal.contactInfo.phone || "No disponible"}
                           </span>
                         </div>
@@ -378,52 +381,52 @@ const MyOffersView = ({
           <ModalBody>
             {loadingReason ? (
               <div className="flex items-center justify-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-500" />
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0e3a45]" />
                 <span className="ml-3 text-gray-500">Cargando detalles...</span>
               </div>
             ) : winningOffer ? (
               <div className="space-y-1 text-sm">
                 <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                  <span className="text-gray-500">Monto:</span>
-                  <span className="font-medium text-gray-900">
-                    ${winningOffer.amount?.toLocaleString() || "N/A"}
+                  <span className="text-[10px] uppercase tracking-wide text-gray-400 font-semibold">Monto</span>
+                  <span className="text-sm font-semibold text-gray-900">
+                    ${winningOffer.amount?.toLocaleString("es-MX") || "N/A"}
                   </span>
                 </div>
                 <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                  <span className="text-gray-500">Tasa de interés:</span>
-                  <span className="font-medium text-gray-900">
+                  <span className="text-[10px] uppercase tracking-wide text-gray-400 font-semibold">Tasa de interés</span>
+                  <span className="text-sm font-semibold text-gray-900">
                     {winningOffer.interestRate || "N/A"}%
                   </span>
                 </div>
                 <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                  <span className="text-gray-500">Frecuencia de pago:</span>
-                  <span className="font-medium text-gray-900 capitalize">
+                  <span className="text-[10px] uppercase tracking-wide text-gray-400 font-semibold">Frecuencia de pago</span>
+                  <span className="text-sm font-semibold text-gray-900 capitalize">
                     {winningOffer.amortizationFrequency || "N/A"}
                   </span>
                 </div>
                 <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                  <span className="text-gray-500">Plazo:</span>
-                  <span className="font-medium text-gray-900">
+                  <span className="text-[10px] uppercase tracking-wide text-gray-400 font-semibold">Plazo</span>
+                  <span className="text-sm font-semibold text-gray-900">
                     {winningOffer.term || "N/A"} meses
                   </span>
                 </div>
                 {winningOffer.amortization !== undefined && winningOffer.amortization > 0 && (
                   <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                    <span className="text-gray-500">Monto de amortización:</span>
-                    <span className="font-medium text-gray-900">
-                      ${winningOffer.amortization?.toLocaleString()}
+                    <span className="text-[10px] uppercase tracking-wide text-gray-400 font-semibold">Amortización</span>
+                    <span className="text-sm font-semibold text-gray-900">
+                      ${winningOffer.amortization?.toLocaleString("es-MX")}
                     </span>
                   </div>
                 )}
                 <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                  <span className="text-gray-500">Comisión por apertura:</span>
-                  <span className="font-medium text-gray-900">
-                    ${winningOffer.comision?.toLocaleString() || "N/A"}
+                  <span className="text-[10px] uppercase tracking-wide text-gray-400 font-semibold">Comisión apertura</span>
+                  <span className="text-sm font-semibold text-gray-900">
+                    ${winningOffer.comision?.toLocaleString("es-MX") || "N/A"}
                   </span>
                 </div>
                 <div className="flex justify-between items-center py-2">
                   <div className="flex items-center gap-1">
-                    <span className="text-gray-500">Seguro de vida saldo deudor:</span>
+                    <span className="text-[10px] uppercase tracking-wide text-gray-400 font-semibold">Seguro vida</span>
                     <Tooltip
                       content="Seguro que cubre el adeudo en caso de una situación fatal"
                       placement="top"
@@ -432,8 +435,8 @@ const MyOffersView = ({
                       <Info className="w-3 h-3 text-gray-400 hover:text-gray-600 cursor-help" />
                     </Tooltip>
                   </div>
-                  <span className="font-medium text-gray-900">
-                    ${winningOffer.medicalBalance?.toLocaleString() || "N/A"}
+                  <span className="text-sm font-semibold text-gray-900">
+                    ${winningOffer.medicalBalance?.toLocaleString("es-MX") || "N/A"}
                   </span>
                 </div>
               </div>
@@ -447,9 +450,9 @@ const MyOffersView = ({
           </ModalBody>
           <ModalFooter>
             <Button
-              color="danger"
               variant="light"
               onClick={() => setShowReasonModal(false)}
+              className="text-[#0e3a45]"
             >
               Cerrar
             </Button>
