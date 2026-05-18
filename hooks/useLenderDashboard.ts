@@ -60,6 +60,7 @@ export const useLenderDashboard = () => {
   const [lenderProposals, setLenderProposals] = useState<LenderProposal[]>([]);
   const [loadingProposals, setLoadingProposals] = useState(false);
   const [userDataMap, setUserDataMap] = useState<Record<string, PublicUserData>>({});
+  const [lenderEmailNotifications, setLenderEmailNotifications] = useState(true);
 
   // Hooks de datos
   const {
@@ -261,7 +262,7 @@ export const useLenderDashboard = () => {
 
       if (response.ok) {
         const data = await response.json();
-        
+
         // Manejar la estructura de respuesta correcta: data.data.proposals o data.data
         let proposals = [];
         if (data.data) {
@@ -269,14 +270,16 @@ export const useLenderDashboard = () => {
         } else {
           proposals = data.proposals || [];
         }
-        
+
         setLenderProposals(Array.isArray(proposals) ? proposals : []);
       } else {
         console.error("Error fetching proposals:", response.statusText);
+        toast.error('Error al cargar tus propuestas');
         setLenderProposals([]);
       }
     } catch (error) {
       console.error("Error fetching proposals:", error);
+      toast.error('Error al cargar tus propuestas');
       setLenderProposals([]);
     } finally {
       setLoadingProposals(false);
@@ -348,6 +351,21 @@ export const useLenderDashboard = () => {
     }
   }, [activeTab, user, fetchLenderProposals]);
 
+  // Cargar preferencia de notificaciones por correo cuando el usuario está disponible
+  useEffect(() => {
+    if (!user) return;
+    fetch("/api/users/preferences", { credentials: "include" })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data?.data?.emailNotifications !== undefined) {
+          setLenderEmailNotifications(data.data.emailNotifications);
+        }
+      })
+      .catch(() => {
+        // Silently ignore — UI will default to true
+      });
+  }, [user]);
+
   useEffect(() => {
     // Cargar datos de usuario para todas las solicitudes
     const loadAllUserData = async () => {
@@ -391,6 +409,20 @@ export const useLenderDashboard = () => {
       loadAllUserData();
     }
   }, [requests, loading]);
+
+  const handleEmailNotificationsChange = async (value: boolean) => {
+    setLenderEmailNotifications(value);
+    try {
+      await fetch("/api/users/preferences", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: user, emailNotifications: value }),
+      });
+    } catch {
+      // Silently ignore — optimistic update already applied
+    }
+  };
 
   const handleTabChange = (tab: string) => {
     setActiveTab(tab as LenderState['activeTab']);
@@ -445,7 +477,11 @@ export const useLenderDashboard = () => {
     handleCancelOffer,
     handleBackToMarket,
     refreshLoans,
-    
+
+    // Email notifications
+    lenderEmailNotifications,
+    handleEmailNotificationsChange,
+
     // Funciones de proposal
     updateProposal,
     resetProposal,
