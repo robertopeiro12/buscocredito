@@ -39,7 +39,7 @@ export interface LenderProposal {
   interestRate: number;
   term: number;
   status: 'pending' | 'accepted' | 'rejected';
-  createdAt: string | null;
+  createdAt: string | { seconds: number } | null;
   requestInfo: {
     purpose?: string;
     type?: string;

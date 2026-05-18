@@ -61,7 +61,7 @@ export async function POST(request: NextRequest) {
 
     // Crear notificación para el usuario (web + email)
     await createNotification({
-      recipientId: body.userId,
+      recipientId: solicitudData?.userId,
       type: 'nueva_propuesta',
       title: 'Nueva propuesta recibida',
       message: `Has recibido una nueva propuesta para tu solicitud de préstamo de $${propuestaData.amount?.toLocaleString() || 'N/A'}`,

@@ -117,7 +117,7 @@ const LenderHeader = ({
             )}
           </div>
           
-          <div className="flex gap-2">
+          <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
             {menuItems.map((item) => (
               <Button
                 key={item.tab}

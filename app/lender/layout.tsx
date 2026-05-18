@@ -29,7 +29,7 @@ export default function LenderLayout({
           },
         }}
       />
-      <div className="flex-grow bg-gray-100">
+      <div className="flex-grow bg-gray-50">
         {children}
       </div>
       {/* <footer className="bg-gray-200 text-gray-600 p-4">

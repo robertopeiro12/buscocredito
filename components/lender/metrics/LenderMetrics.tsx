@@ -106,13 +106,7 @@ export function LenderMetrics({ proposals, requests, userId }: LenderMetricsProp
       animate="visible"
       variants={{ visible: { transition: { staggerChildren: 0.12 } } }}
     >
-      <motion.div variants={sectionVariants} className="flex items-center justify-between flex-wrap gap-4">
-        <div>
-          <h2 className="text-xl font-bold text-gray-900">Métricas y Análisis</h2>
-          <p className="text-sm text-gray-500 mt-0.5">
-            Analiza tu rendimiento como prestamista
-          </p>
-        </div>
+      <motion.div variants={sectionVariants} className="flex justify-end">
         <MetricsPeriodFilter value={period} onChange={setPeriod} />
       </motion.div>
 

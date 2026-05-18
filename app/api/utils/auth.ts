@@ -44,10 +44,13 @@ export async function verifyAuthentication(request: NextRequest): Promise<Authen
         const token = authHeader.split('Bearer ')[1];
         const decodedToken = await auth.verifyIdToken(token);
         
+        const userType = (decodedToken['userType'] as string) || (decodedToken['role'] as string);
+        if (!userType) return null;
+
         return {
           uid: decodedToken.uid,
           email: decodedToken.email || '',
-          userType: (decodedToken['userType'] as string) || (decodedToken['role'] as string) || 'borrower'
+          userType,
         };
       } catch (bearerError) {
         console.log('Bearer auth failed');

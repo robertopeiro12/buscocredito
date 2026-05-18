@@ -8,11 +8,13 @@ import LoanRequestDetails from "@/components/features/loans/LoanRequestDetails";
 import { ProposalForm } from "@/components/features/loans/ProposalForm";
 import { MarketplacePagination } from "@/components/features/dashboard/MarketplacePagination";
 import { LenderLoadingSkeletons } from "@/components/features/dashboard/LenderLoadingSkeletons";
-import type { 
-  LoanRequest, 
-  PublicUserData, 
-  LenderFilters as LenderFiltersType 
+import type {
+  LoanRequest,
+  LenderProposal,
+  PublicUserData,
+  LenderFilters as LenderFiltersType
 } from '@/app/lender/types/loan.types';
+import type { ProposalFormData } from '@/app/lender/hooks/useProposal';
 
 interface MarketplaceViewProps {
   // Datos
@@ -28,10 +30,10 @@ interface MarketplaceViewProps {
   filters: LenderFiltersType;
   
   // Props del proposal form
-  proposalData: any;
+  proposalData: ProposalFormData;
   submitting: boolean;
   submitError: string | null;
-  
+
   // Funciones
   onFilterChange: (key: keyof LenderFiltersType, value: string) => void;
   onClearFilters: () => void;
@@ -39,8 +41,8 @@ interface MarketplaceViewProps {
   onSubmitOffer: () => void;
   onCancelOffer: () => void;
   onBackToMarket: () => void;
-  updateProposal: (data: any) => void;
-  
+  updateProposal: (data: Partial<ProposalFormData>) => void;
+
   // Datos del partner
   partnerData: {
     company: string;
@@ -48,9 +50,9 @@ interface MarketplaceViewProps {
     adminId: string;
   };
   user: string;
-  
+
   // Datos adicionales para stats
-  lenderProposals?: any[];
+  lenderProposals?: LenderProposal[];
 }
 
 const MarketplaceView = ({
@@ -88,7 +90,7 @@ const MarketplaceView = ({
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [filteredRequests.length]);
+  }, [filteredRequests]);
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);

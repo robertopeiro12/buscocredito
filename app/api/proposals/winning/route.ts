@@ -18,6 +18,25 @@ export async function GET(request: NextRequest) {
     await initAdmin();
     const db = getFirestore();
 
+    // Verify the lender has a proposal for this loan
+    const lenderParticipationSnapshot = await db.collection('propuestas')
+      .where('loanId', '==', loanId)
+      .where('lenderId', '==', user.uid)
+      .limit(1)
+      .get();
+
+    const lenderParticipationFallback = lenderParticipationSnapshot.empty
+      ? await db.collection('propuestas')
+          .where('solicitudId', '==', loanId)
+          .where('lenderId', '==', user.uid)
+          .limit(1)
+          .get()
+      : lenderParticipationSnapshot;
+
+    if (lenderParticipationFallback.empty) {
+      return createSuccessResponse(null, 'No tienes propuestas para este préstamo');
+    }
+
     // Try loanId field first
     let snapshot = await db.collection('propuestas')
       .where('loanId', '==', loanId)
