@@ -29,7 +29,7 @@ const LenderFilters = ({
     (filters.amountRange && filters.amountRange !== "all");
 
   return (
-    <Card className="mb-6 p-4 shadow-sm border border-gray-100">
+    <Card className="mb-6 p-4 shadow-sm border border-[#0e3a45]/10">
       <div className="space-y-3">
         {/* Primera fila: Búsqueda + Estado + Ciudad */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -172,7 +172,7 @@ const LenderFilters = ({
               size="sm"
               variant="ghost"
               onClick={onClearFilters}
-              className="flex items-center justify-center gap-2 text-gray-600 hover:text-gray-800"
+              className="flex items-center justify-center gap-2 text-[#0e3a45] hover:bg-[#0e3a45]/[0.05]"
             >
               <SlidersHorizontal className="w-4 h-4" />
               Limpiar filtros
