@@ -106,22 +106,15 @@ const MyOffersView = ({
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-1">Mis Ofertas</h1>
-          <p className="text-gray-600">
-            Gestiona y monitorea el estado de tus propuestas enviadas
-          </p>
-        </div>
-        {lenderProposals.length > 0 && (
+      {lenderProposals.length > 0 && (
+        <div className="flex justify-end">
           <div className="flex items-center bg-[#0e3a45]/[0.06] px-3 py-1.5 rounded-full border border-[#0e3a45]/10">
             <span className="text-sm font-medium text-[#0e3a45]">
               {lenderProposals.length} propuestas enviadas
             </span>
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
       {loadingProposals ? (
         <LenderLoadingSkeletons.OffersGrid />

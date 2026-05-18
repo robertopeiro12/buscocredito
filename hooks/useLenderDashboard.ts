@@ -180,11 +180,14 @@ export const useLenderDashboard = () => {
 
   const getUserData = async (userId: string) => {
     try {
+      const token = await auth.currentUser?.getIdToken();
       const response = await fetch("/api/users/public-profile", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
+        credentials: "include",
         body: JSON.stringify({ userId }),
       });
 
@@ -373,6 +376,7 @@ export const useLenderDashboard = () => {
     const loadAllUserData = async () => {
       const userIds = Array.from(new Set(requests.map((req) => req.userId)));
       const dataMap: Record<string, PublicUserData> = {};
+      const token = await auth.currentUser?.getIdToken();
 
       const results = await Promise.all(
         userIds.map(async (userId) => {
@@ -381,7 +385,9 @@ export const useLenderDashboard = () => {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
+                ...(token ? { Authorization: `Bearer ${token}` } : {}),
               },
+              credentials: "include",
               body: JSON.stringify({ userId }),
             });
 

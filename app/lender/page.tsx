@@ -140,13 +140,7 @@ function LenderPageContent() {
 
           {lenderState.activeTab === "metrics" && (
             <div className="max-w-7xl mx-auto">
-              <div className="mb-6">
-                <h1 className="text-2xl font-bold text-gray-900 mb-2">Métricas y Análisis</h1>
-                <p className="text-gray-600">
-                  Analiza tu rendimiento como prestamista y encuentra oportunidades de mejora
-                </p>
-              </div>
-              <LenderStats 
+              <LenderStats
                 requests={requests}
                 proposals={lenderState.lenderProposals}
                 detailed={true}
@@ -239,8 +233,6 @@ function LenderPageContent() {
               <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                 <div className="h-1 bg-green-500 w-full" />
                 <div className="p-6">
-                  <h1 className="text-xl font-bold text-gray-900 mb-1">Centro de Ayuda</h1>
-                  <p className="text-sm text-gray-500 mb-6">Recursos y soporte para prestamistas</p>
                   <div className="grid gap-4 md:grid-cols-2">
                     <div className="p-5 bg-[#0e3a45]/[0.04] border border-[#0e3a45]/10 rounded-xl">
                       <div className="w-9 h-9 rounded-lg bg-[#0e3a45]/[0.08] flex items-center justify-center mb-3">
