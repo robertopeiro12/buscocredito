@@ -373,24 +373,33 @@ export const useLenderDashboard = () => {
       const userIds = Array.from(new Set(requests.map((req) => req.userId)));
       const dataMap: Record<string, PublicUserData> = {};
 
-      for (const userId of userIds) {
-        try {
-          const response = await fetch("/api/users/public-profile", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ userId }),
-          });
+      const results = await Promise.all(
+        userIds.map(async (userId) => {
+          try {
+            const response = await fetch("/api/users/public-profile", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ userId }),
+            });
 
-          if (response.ok) {
-            const data = await response.json();
-            if (data.data) {
-              dataMap[userId] = data.data;
+            if (response.ok) {
+              const data = await response.json();
+              if (data.data) {
+                return { userId, userData: data.data as PublicUserData };
+              }
             }
+          } catch (error) {
+            console.error(`Error getting data for user ${userId}:`, error);
           }
-        } catch (error) {
-          console.error(`Error getting data for user ${userId}:`, error);
+          return null;
+        })
+      );
+
+      for (const result of results) {
+        if (result) {
+          dataMap[result.userId] = result.userData;
         }
       }
 
