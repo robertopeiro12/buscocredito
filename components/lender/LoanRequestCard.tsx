@@ -32,12 +32,6 @@ const LoanRequestCard = ({ request, userData, index, onMakeOffer }: LoanRequestC
             </h4>
             <div className="grid grid-cols-2 gap-x-4 gap-y-3">
               <div>
-                <p className="text-[10px] uppercase tracking-wide text-gray-400">Monto</p>
-                <p className="text-sm font-semibold text-gray-800">
-                  ${request.amount.toLocaleString("es-MX")}
-                </p>
-              </div>
-              <div>
                 <p className="text-[10px] uppercase tracking-wide text-gray-400">Ingresos Mensuales</p>
                 <p className="text-sm font-semibold text-gray-800">
                   ${Number(request.income).toLocaleString("es-MX")}

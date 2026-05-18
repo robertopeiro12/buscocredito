@@ -29,9 +29,9 @@ export default function LenderLayout({
           },
         }}
       />
-      <main className="flex-grow bg-gray-100">
+      <div className="flex-grow bg-gray-100">
         {children}
-      </main>
+      </div>
       {/* <footer className="bg-gray-200 text-gray-600 p-4">
         <div className="container mx-auto text-center">
           © 2023 Worker Dashboard. All rights reserved.

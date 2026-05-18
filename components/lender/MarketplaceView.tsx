@@ -6,7 +6,6 @@ import LenderFilters from './LenderFilters';
 import LoanRequestCard from './LoanRequestCard';
 import LoanRequestDetails from "@/components/features/loans/LoanRequestDetails";
 import { ProposalForm } from "@/components/features/loans/ProposalForm";
-import { LenderStats } from "@/components/features/dashboard/LenderStats";
 import { MarketplacePagination } from "@/components/features/dashboard/MarketplacePagination";
 import { LenderLoadingSkeletons } from "@/components/features/dashboard/LenderLoadingSkeletons";
 import type { 
