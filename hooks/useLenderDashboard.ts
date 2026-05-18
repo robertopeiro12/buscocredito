@@ -274,6 +274,7 @@ export const useLenderDashboard = () => {
         headers: {
           "Content-Type": "application/json",
         },
+        credentials: "include",
         body: JSON.stringify({ lenderId: user }),
       });
 
