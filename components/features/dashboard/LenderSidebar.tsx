@@ -1,7 +1,7 @@
 "use client";
 
-// components/LenderSidebar.tsx
 import { Button } from "@heroui/react";
+import Image from "next/image";
 import { Store, FileText, Settings, HelpCircle, BarChart3, Bell } from "lucide-react";
 import { useState, useEffect } from "react";
 import { getFirestore, collection, query, where, onSnapshot } from "firebase/firestore";
@@ -21,92 +21,56 @@ export function LenderSidebar({
 }: LenderSidebarProps) {
   const [unreadCount, setUnreadCount] = useState(0);
 
-  // Real-time listener for unread notifications
   useEffect(() => {
     if (!userId) return;
-
     const db = getFirestore();
     const notificationsQuery = query(
       collection(db, "notifications"),
       where("recipientId", "==", userId),
       where("read", "==", false)
     );
-
     const unsubscribe = onSnapshot(notificationsQuery, (snapshot) => {
       setUnreadCount(snapshot.docs.length);
     });
-
     return () => unsubscribe();
   }, [userId]);
 
-  const getButtonClass = (tab: string) => 
-    `w-full justify-start h-14 px-4 mb-3 transition-all duration-200 ease-in-out ${
+  const getButtonClass = (tab: string) =>
+    `w-full justify-start h-12 px-4 mb-2 transition-all duration-200 ease-in-out ${
       activeTab === tab
-        ? "bg-gradient-to-r from-green-50 to-green-100 text-green-700 border-r-3 border-green-500 shadow-sm"
-        : "bg-transparent text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+        ? "bg-[#0e3a45]/[0.08] text-[#0e3a45] border-r-[3px] border-[#0e3a45] font-semibold"
+        : "bg-transparent text-gray-500 hover:bg-gray-50 hover:text-gray-900"
     }`;
 
   const navItems = [
-    {
-      icon: Store,
-      label: "Mercado",
-      id: "marketplace",
-      description: "Solicitudes disponibles"
-    },
-    {
-      icon: FileText,
-      label: "Mis Ofertas",
-      id: "myoffers",
-      description: "Propuestas enviadas"
-    },
-    {
-      icon: BarChart3,
-      label: "Métricas",
-      id: "metrics",
-      description: "Estadísticas y análisis"
-    },
-    {
-      icon: Bell,
-      label: "Notificaciones",
-      id: "notifications",
-      description: "Alertas y actualizaciones",
-      badge: unreadCount
-    },
-    {
-      icon: Settings,
-      label: "Configuración",
-      id: "settings",
-      description: "Perfil y preferencias"
-    },
-    {
-      icon: HelpCircle,
-      label: "Ayuda",
-      id: "help",
-      description: "Soporte y FAQ"
-    },
+    { icon: Store, label: "Mercado", id: "marketplace", description: "Solicitudes disponibles" },
+    { icon: FileText, label: "Mis Ofertas", id: "myoffers", description: "Propuestas enviadas" },
+    { icon: BarChart3, label: "Métricas", id: "metrics", description: "Estadísticas y análisis" },
+    { icon: Bell, label: "Notificaciones", id: "notifications", description: "Alertas y actualizaciones", badge: unreadCount },
+    { icon: Settings, label: "Configuración", id: "settings", description: "Perfil y preferencias" },
+    { icon: HelpCircle, label: "Ayuda", id: "help", description: "Soporte y FAQ" },
   ];
 
   return (
-    <div className="w-72 bg-white border-r border-gray-200 shadow-sm h-screen fixed left-0 top-0 z-10 hidden md:block">
+    <div className="w-64 bg-white border-r border-gray-200 shadow-sm h-screen fixed left-0 top-0 z-10 hidden md:block">
       <div className="flex flex-col h-full">
-        {/* Header Section */}
-        <div className="p-6 border-b border-gray-100">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center shadow-md">
-              <Store className="w-6 h-6 text-white" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <h1 className="text-xl font-bold text-gray-900 truncate">
-                {companyName}
-              </h1>
-              <p className="text-sm text-gray-500">Panel de Prestamista</p>
-            </div>
-          </div>
+        <div className="px-5 py-5 border-b border-gray-100">
+          <Image
+            src="/img/logo-buscocredito.png"
+            alt="BuscoCrédito"
+            width={160}
+            height={68}
+            className="h-11 w-auto"
+            priority
+          />
+          <p className="text-sm font-semibold text-gray-800 truncate mt-2">{companyName}</p>
+          <p className="text-[11px] uppercase tracking-wide text-gray-400 mt-0.5 font-medium">
+            Panel de Prestamista
+          </p>
         </div>
-        
-        {/* Navigation Menu */}
-        <nav className="flex-1 px-6 py-6">
-          <div className="space-y-1">
+
+        <nav className="flex-1 px-4 py-6">
+          <div className="space-y-2">
             {navItems.map((item) => (
               <Button
                 key={item.id}
@@ -114,8 +78,8 @@ export function LenderSidebar({
                   <div className="relative">
                     <item.icon className="w-5 h-5" />
                     {item.badge && item.badge > 0 && (
-                      <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
-                        {item.badge > 9 ? '9+' : item.badge}
+                      <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 text-white rounded-full text-[10px] flex items-center justify-center font-bold">
+                        {item.badge > 9 ? "9+" : item.badge}
                       </span>
                     )}
                   </div>
@@ -134,12 +98,12 @@ export function LenderSidebar({
             ))}
           </div>
         </nav>
-        
-        {/* Footer Section */}
-        <div className="p-6 border-t border-gray-100">
-          <div className="px-4 py-3 bg-gray-50 rounded-lg">
-            <p className="text-xs text-gray-500 text-center">
-              BuscoCredito Lender v2.0
+
+        <div className="p-4 border-t border-gray-100">
+          <div className="px-4 py-2.5 bg-[#0e3a45]/5 rounded-lg flex items-center gap-2">
+            <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse flex-shrink-0" />
+            <p className="text-[11px] text-[#0e3a45]/60 font-medium tracking-wide">
+              Plataforma segura
             </p>
           </div>
         </div>
