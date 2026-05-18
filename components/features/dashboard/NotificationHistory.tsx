@@ -17,7 +17,6 @@ import {
   ModalHeader,
   ModalBody,
   ModalFooter,
-  Tooltip,
   Spinner,
 } from "@heroui/react";
 import {
@@ -267,39 +266,43 @@ export default function NotificationHistory({ userId, isLender = false }: Notifi
     });
   };
 
-  // Get notification icon and colors
+  // Get notification style config
   const getNotificationStyle = (type: string) => {
     switch (type) {
       case "loan_accepted":
         return {
-          icon: "✅",
-          bgColor: "bg-green-50",
-          borderColor: "border-green-500",
-          chipColor: "success" as const,
-          label: "Propuesta Aceptada",
+          Icon: CheckCircle2,
+          accentColor: "border-[#0e3a45]",
+          iconBg: "bg-[#0e3a45]/8",
+          iconColor: "text-[#0e3a45]",
+          dotColor: "bg-[#0e3a45]",
+          label: "Propuesta aceptada",
         };
       case "loan_assigned_other":
         return {
-          icon: "ℹ️",
-          bgColor: "bg-blue-50",
-          borderColor: "border-blue-500",
-          chipColor: "primary" as const,
-          label: "Otra Propuesta Elegida",
+          Icon: TrendingDown,
+          accentColor: "border-slate-400",
+          iconBg: "bg-slate-100",
+          iconColor: "text-slate-500",
+          dotColor: "bg-slate-400",
+          label: "Otra propuesta elegida",
         };
       case "nueva_propuesta":
         return {
-          icon: "💰",
-          bgColor: "bg-yellow-50",
-          borderColor: "border-yellow-500",
-          chipColor: "warning" as const,
-          label: "Nueva Propuesta",
+          Icon: Banknote,
+          accentColor: "border-amber-500",
+          iconBg: "bg-amber-50",
+          iconColor: "text-amber-600",
+          dotColor: "bg-amber-500",
+          label: "Nueva propuesta",
         };
       default:
         return {
-          icon: "📢",
-          bgColor: "bg-gray-50",
-          borderColor: "border-gray-500",
-          chipColor: "default" as const,
+          Icon: Bell,
+          accentColor: "border-gray-300",
+          iconBg: "bg-gray-100",
+          iconColor: "text-gray-400",
+          dotColor: "bg-gray-400",
           label: "Notificación",
         };
     }
@@ -463,101 +466,47 @@ export default function NotificationHistory({ userId, isLender = false }: Notifi
           {filteredNotifications.map((notification) => {
             const style = getNotificationStyle(notification.type);
 
+            const { Icon, accentColor, iconBg, iconColor, dotColor, label } = style;
+            const isUnread = !notification.read;
+
             return (
-              <Card
+              <button
                 key={notification.id}
-                isPressable
-                onPress={() => {
-                  if (!notification.read) {
-                    markAsRead(notification.id);
-                  }
+                onClick={() => {
+                  if (isUnread) markAsRead(notification.id);
                   setSelectedNotification(notification);
                 }}
-                className={`transition-all ${
-                  !notification.read
-                    ? "border-l-4 " + style.borderColor + " shadow-md"
-                    : "border-l-4 border-gray-200 opacity-75 hover:opacity-100"
+                className={`w-full text-left group rounded-xl border bg-white transition-all ${
+                  isUnread
+                    ? `border-l-[3px] ${accentColor} border-t-gray-100 border-r-gray-100 border-b-gray-100 shadow-sm hover:shadow-md`
+                    : "border-gray-100 hover:border-gray-200 hover:shadow-sm opacity-70 hover:opacity-100"
                 }`}
               >
-                <CardBody className={`p-4 ${!notification.read ? style.bgColor : ""}`}>
-                  <div className="flex items-start gap-4">
-                    {/* Icon */}
-                    <div
-                      className={`w-10 h-10 rounded-full flex items-center justify-center text-xl ${
-                        !notification.read ? "bg-white shadow-sm" : "bg-gray-100"
-                      }`}
-                    >
-                      {style.icon}
-                    </div>
-
-                    {/* Content */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h4
-                          className={`font-medium ${
-                            !notification.read ? "text-gray-900" : "text-gray-600"
-                          }`}
-                        >
-                          {notification.title}
-                        </h4>
-                        <Chip size="sm" color={style.chipColor} variant="flat">
-                          {style.label}
-                        </Chip>
-                        {notification.emailSent && (
-                          <Tooltip content="Notificación enviada por email">
-                            <Mail className="w-4 h-4 text-gray-400" />
-                          </Tooltip>
-                        )}
-                      </div>
-
-                      <p
-                        className={`text-sm ${
-                          !notification.read ? "text-gray-700" : "text-gray-500"
-                        } line-clamp-2`}
-                      >
-                        {notification.message}
-                      </p>
-
-                      {/* Quick info for proposals */}
-                      {notification.type === "nueva_propuesta" && notification.data?.amount && (
-                        <div className="mt-2 flex items-center gap-3 text-xs text-gray-500 flex-wrap">
-                          <span>
-                            <strong>Monto:</strong> $
-                            {notification.data.amount.toLocaleString("es-MX")}
-                          </span>
-                          {notification.data.interestRate && (
-                            <span>
-                              <strong>Tasa:</strong> {notification.data.interestRate}%
-                            </span>
-                          )}
-                          {notification.data.term && (
-                            <span>
-                              <strong>Plazo:</strong> {notification.data.term} meses
-                            </span>
-                          )}
-                          {notification.data.amortization !== undefined && notification.data.amortization > 0 && (
-                            <span>
-                              <strong>Monto de amortización:</strong> $
-                              {notification.data.amortization.toLocaleString("es-MX")}
-                            </span>
-                          )}
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Meta */}
-                    <div className="flex flex-col items-end gap-2">
-                      <span className="text-xs text-gray-400 flex items-center gap-1">
-                        <Clock className="w-3 h-3" />
-                        {formatDate(notification.createdAt)}
-                      </span>
-                      {!notification.read && (
-                        <span className="w-2 h-2 rounded-full bg-red-500"></span>
-                      )}
-                    </div>
+                <div className="flex items-center gap-3 px-4 py-3.5">
+                  {/* Icon */}
+                  <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${iconBg}`}>
+                    <Icon className={`w-4.5 h-4.5 ${iconColor}`} strokeWidth={1.75} />
                   </div>
-                </CardBody>
-              </Card>
+
+                  {/* Content */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-baseline gap-2 mb-0.5">
+                      <span className={`text-xs font-semibold uppercase tracking-wide ${isUnread ? iconColor : "text-gray-400"}`}>
+                        {label}
+                      </span>
+                    </div>
+                    <p className={`text-sm leading-snug line-clamp-1 ${isUnread ? "text-gray-900 font-medium" : "text-gray-500"}`}>
+                      {notification.message}
+                    </p>
+                  </div>
+
+                  {/* Meta */}
+                  <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
+                    <span className="text-xs text-gray-400 tabular-nums">{formatDate(notification.createdAt)}</span>
+                    {isUnread && <span className={`w-1.5 h-1.5 rounded-full ${dotColor}`} />}
+                  </div>
+                </div>
+              </button>
             );
           })}
         </div>
@@ -599,6 +548,7 @@ export default function NotificationHistory({ userId, isLender = false }: Notifi
         isOpen={!!selectedNotification}
         onClose={() => setSelectedNotification(null)}
         size="md"
+        hideCloseButton
         classNames={{ base: "overflow-hidden" }}
       >
         <ModalContent>
