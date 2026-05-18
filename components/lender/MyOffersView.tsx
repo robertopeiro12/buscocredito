@@ -4,7 +4,6 @@ import { User, ChevronRight, CreditCard, Eye, Info, X } from "lucide-react";
 import { LenderStats } from "@/components/features/dashboard/LenderStats";
 import { MarketplacePagination } from "@/components/features/dashboard/MarketplacePagination";
 import { LenderLoadingSkeletons } from "@/components/features/dashboard/LenderLoadingSkeletons";
-import { getFirestore, collection, query, where, getDocs } from "firebase/firestore";
 import type { LenderProposal } from "@/app/lender/types/loan.types";
 
 interface WinningOffer {
@@ -46,40 +45,19 @@ const MyOffersView = ({
     setShowReasonModal(true);
 
     try {
-      const db = getFirestore();
-      const proposalsRef = collection(db, "propuestas");
-      const q = query(proposalsRef, where("loanId", "==", loanId), where("status", "==", "accepted"));
-      const snapshot = await getDocs(q);
-
-      let accepted: any = null;
-      snapshot.forEach((docSnap) => {
-        accepted = docSnap.data();
+      const response = await fetch(`/api/proposals/winning?loanId=${encodeURIComponent(loanId)}`, {
+        credentials: 'include',
       });
 
-      // Also try solicitudId for legacy data
-      if (!accepted) {
-        const legacyQ = query(proposalsRef, where("solicitudId", "==", loanId), where("status", "==", "accepted"));
-        const legacySnapshot = await getDocs(legacyQ);
-        legacySnapshot.forEach((docSnap) => {
-          accepted = docSnap.data();
-        });
+      if (!response.ok) {
+        setWinningOffer(null);
+        return;
       }
 
-      if (accepted) {
-        setWinningOffer({
-          amount: accepted.amount,
-          interestRate: accepted.interestRate,
-          amortizationFrequency: accepted.amortizationFrequency,
-          amortization: accepted.amortization,
-          term: accepted.deadline,
-          comision: accepted.comision,
-          medicalBalance: accepted.medicalBalance,
-        });
-      } else {
-        setWinningOffer(null);
-      }
+      const data = await response.json();
+      setWinningOffer(data.data || null);
     } catch (error) {
-      console.error("Error fetching winning offer:", error);
+      console.error('Error fetching winning offer:', error);
       setWinningOffer(null);
     } finally {
       setLoadingReason(false);
