@@ -1,7 +1,7 @@
 // app/lender/page.tsx
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useState, useEffect } from "react";
 import { Building2, Mail, Bell, BookOpen, Headphones } from "lucide-react";
 import { Switch } from "@heroui/react";
 
@@ -59,6 +59,35 @@ function LenderPageContent() {
 
   // Local state for settings
   const [lenderEmailNotifications, setLenderEmailNotifications] = useState(true);
+
+  // Fetch email notification preference on mount
+  useEffect(() => {
+    if (!user) return;
+    fetch("/api/users/preferences", { credentials: "include" })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data?.data?.emailNotifications !== undefined) {
+          setLenderEmailNotifications(data.data.emailNotifications);
+        }
+      })
+      .catch(() => {
+        // Silently ignore — UI will default to true
+      });
+  }, [user]);
+
+  const handleEmailNotificationsChange = async (value: boolean) => {
+    setLenderEmailNotifications(value);
+    try {
+      await fetch("/api/users/preferences", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: user, emailNotifications: value }),
+      });
+    } catch {
+      // Silently ignore — optimistic update already applied
+    }
+  };
 
   // CONDICIONALES DE AUTORIZACIÓN
   // Mostrar loading mientras verifica permisos
@@ -209,7 +238,7 @@ function LenderPageContent() {
                           color="success"
                           size="sm"
                           isSelected={lenderEmailNotifications}
-                          onValueChange={setLenderEmailNotifications}
+                          onValueChange={handleEmailNotificationsChange}
                         />
                       </div>
                       <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
