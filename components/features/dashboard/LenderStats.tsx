@@ -1,3 +1,5 @@
+"use client";
+
 import { Card, CardBody } from "@heroui/react";
 import { 
   TrendingUp, 
@@ -28,7 +30,7 @@ export const LenderStats = ({ requests, proposals, detailed = false }: LenderSta
       title: "Solicitudes Disponibles",
       value: requests.length.toString(),
       icon: Users,
-      color: "blue",
+      color: "brand",
       description: "Nuevas oportunidades",
     },
     {
@@ -100,14 +102,14 @@ export const LenderStats = ({ requests, proposals, detailed = false }: LenderSta
                 </div>
                 <div className={`
                   w-12 h-12 rounded-full flex items-center justify-center
-                  ${stat.color === 'blue' && 'bg-blue-100'}
+                  ${stat.color === 'brand' && 'bg-[#0e3a45]/[0.08]'}
                   ${stat.color === 'green' && 'bg-green-100'}
                   ${stat.color === 'emerald' && 'bg-emerald-100'}
                   ${stat.color === 'purple' && 'bg-purple-100'}
                 `}>
                   <stat.icon className={`
                     w-6 h-6
-                    ${stat.color === 'blue' && 'text-blue-600'}
+                    ${stat.color === 'brand' && 'text-[#0e3a45]'}
                     ${stat.color === 'green' && 'text-green-600'}
                     ${stat.color === 'emerald' && 'text-emerald-600'}
                     ${stat.color === 'purple' && 'text-purple-600'}
