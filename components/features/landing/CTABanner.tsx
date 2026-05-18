@@ -1,5 +1,3 @@
-"use client";
-
 import Image from "next/image";
 import Link from "next/link";
 
@@ -31,7 +29,9 @@ const CTABanner = () => {
           src="/img/landing/payment-card.jpg"
           alt="Tarjeta de crédito"
           fill
+          sizes="100vw"
           className="object-cover"
+          priority
         />
       </div>
 

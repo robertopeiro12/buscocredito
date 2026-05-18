@@ -1,5 +1,3 @@
-"use client";
-
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
@@ -36,6 +34,7 @@ const HeroSection = () => {
                 src="/img/landing/credit-card-chart.jpg"
                 alt="Tarjeta de crédito sobre gráficos financieros"
                 fill
+                sizes="(max-width: 1024px) 0vw, 30vw"
                 className="object-cover"
                 priority
               />
@@ -47,7 +46,9 @@ const HeroSection = () => {
                 src="/img/landing/hero-credit-card.jpg"
                 alt="Modelo de tarjeta de crédito sobre hoja de cálculo"
                 fill
+                sizes="(max-width: 1024px) 0vw, 28vw"
                 className="object-cover"
+                priority
               />
             </div>
 
@@ -57,6 +58,7 @@ const HeroSection = () => {
                 src="/img/landing/hero-credit-cards-group.jpg"
                 alt="Grupo de tarjetas de crédito"
                 fill
+                sizes="(max-width: 1024px) 0vw, 30vw"
                 className="object-cover"
               />
             </div>

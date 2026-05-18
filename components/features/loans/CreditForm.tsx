@@ -8,13 +8,28 @@ import {
   Building,
   User,
   DollarSign,
-  Calendar,
+  CalendarDays,
+  CalendarCheck,
+  CalendarClock,
   CreditCard,
   Wallet,
+  Calendar,
 } from "lucide-react";
 
-// Progress Bar Component
-// This component shows the user's progress through the form
+const BRAND = "#0e3a45";
+
+const formatCurrency = (value: number | string) => {
+  const num =
+    typeof value === "string"
+      ? parseInt(value.replace(/[^\d]/g, ""))
+      : value;
+  return new Intl.NumberFormat("es-MX", {
+    style: "currency",
+    currency: "MXN",
+    maximumFractionDigits: 0,
+  }).format(num || 0);
+};
+
 const ProgressBar = ({
   currentStep,
   totalSteps,
@@ -24,7 +39,6 @@ const ProgressBar = ({
 }) => (
   <div className="w-full mb-8">
     <div className="relative pt-1">
-      {/* Progress text showing current step and percentage */}
       <div className="flex mb-2 items-center justify-between">
         <div className="text-xs font-semibold text-green-600">
           Paso {currentStep} de {totalSteps}
@@ -35,7 +49,6 @@ const ProgressBar = ({
           </span>
         </div>
       </div>
-      {/* Progress bar visual element */}
       <div className="overflow-hidden h-2 mb-4 text-xs flex rounded bg-green-100">
         <motion.div
           initial={{ width: `${((currentStep - 1) / totalSteps) * 100}%` }}
@@ -47,8 +60,6 @@ const ProgressBar = ({
   </div>
 );
 
-// Reusable Button Component
-// This component provides consistent button styling across the form
 const Button = ({
   onClick,
   variant = "default",
@@ -60,19 +71,19 @@ const Button = ({
   disabled?: boolean;
   children: React.ReactNode;
 }) => {
-  const baseStyles =
+  const base =
     "py-2 px-6 rounded-lg font-medium transition-all duration-200 flex items-center gap-2";
   const variants = {
     default: "bg-gray-100 hover:bg-gray-200 text-gray-700",
-    primary: "bg-blue-500 hover:bg-blue-600 text-white",
-    success: "bg-green-500 hover:bg-green-600 text-white",
+    primary: "bg-[#0e3a45] hover:opacity-90 text-white",
+    success: "bg-[#0e3a45] hover:opacity-90 text-white",
   };
 
   return (
     <button
       onClick={onClick}
       disabled={disabled}
-      className={`${baseStyles} ${variants[variant]} ${
+      className={`${base} ${variants[variant]} ${
         disabled ? "opacity-50 cursor-not-allowed" : ""
       }`}
     >
@@ -81,7 +92,6 @@ const Button = ({
   );
 };
 
-// Section 1: Purpose Selection Component
 const Section1 = ({
   next,
   setPurpose,
@@ -101,7 +111,6 @@ const Section1 = ({
     exit={{ opacity: 0, x: 100 }}
     className="w-full space-y-6"
   >
-    {/* Section Header */}
     <div className="text-center space-y-2">
       <h2 className="text-2xl font-bold text-gray-800">
         Propósito del Crédito
@@ -111,9 +120,7 @@ const Section1 = ({
       </p>
     </div>
 
-    {/* Purpose Selection Cards */}
     <div className="grid grid-cols-2 gap-4 max-w-md mx-auto">
-      {/* Personal Credit Card */}
       <button
         onClick={() => {
           setPurpose("Personal");
@@ -121,25 +128,24 @@ const Section1 = ({
         }}
         className={`p-6 rounded-xl border-2 transition-all duration-200 ${
           purpose === "Personal"
-            ? "border-blue-500 bg-blue-50"
-            : "border-gray-200 hover:border-blue-200"
+            ? "border-[#0e3a45] bg-[#0e3a45]/[0.06]"
+            : "border-gray-200 hover:border-[#0e3a45]/30"
         }`}
       >
         <User
           className={`w-8 h-8 mb-2 mx-auto ${
-            purpose === "Personal" ? "text-blue-500" : "text-gray-400"
+            purpose === "Personal" ? "text-[#0e3a45]" : "text-gray-400"
           }`}
         />
         <span
           className={`block font-medium ${
-            purpose === "Personal" ? "text-blue-500" : "text-gray-600"
+            purpose === "Personal" ? "text-[#0e3a45]" : "text-gray-600"
           }`}
         >
           Personal
         </span>
       </button>
 
-      {/* Business Credit Card */}
       <button
         onClick={() => {
           setPurpose("Negocio");
@@ -147,18 +153,18 @@ const Section1 = ({
         }}
         className={`p-6 rounded-xl border-2 transition-all duration-200 ${
           purpose === "Negocio"
-            ? "border-blue-500 bg-blue-50"
-            : "border-gray-200 hover:border-blue-200"
+            ? "border-[#0e3a45] bg-[#0e3a45]/[0.06]"
+            : "border-gray-200 hover:border-[#0e3a45]/30"
         }`}
       >
         <Building
           className={`w-8 h-8 mb-2 mx-auto ${
-            purpose === "Negocio" ? "text-blue-500" : "text-gray-400"
+            purpose === "Negocio" ? "text-[#0e3a45]" : "text-gray-400"
           }`}
         />
         <span
           className={`block font-medium ${
-            purpose === "Negocio" ? "text-blue-500" : "text-gray-600"
+            purpose === "Negocio" ? "text-[#0e3a45]" : "text-gray-600"
           }`}
         >
           Negocio
@@ -166,14 +172,12 @@ const Section1 = ({
       </button>
     </div>
 
-    {/* Error Message */}
     {error && (
       <p className="text-red-500 text-center text-sm">
         Por favor seleccione un propósito para continuar
       </p>
     )}
 
-    {/* Navigation Buttons */}
     <div className="flex justify-center mt-6">
       <Button
         onClick={() => (purpose ? next() : setError(true))}
@@ -185,7 +189,7 @@ const Section1 = ({
     </div>
   </motion.div>
 );
-// Section 2: Credit Type Selection Component
+
 const Section2 = ({
   purpose,
   next,
@@ -203,7 +207,6 @@ const Section2 = ({
   error: boolean;
   setError: (error: boolean) => void;
 }) => {
-  // Define credit type options based on purpose
   const creditTypes = {
     Personal: [
       { id: "consumo", label: "Crédito al consumo", icon: CreditCard },
@@ -229,7 +232,6 @@ const Section2 = ({
       exit={{ opacity: 0, x: -100 }}
       className="w-full space-y-6"
     >
-      {/* Section Header */}
       <div className="text-center space-y-2">
         <h2 className="text-2xl font-bold text-gray-800">
           Tipo de Crédito ({purpose})
@@ -239,7 +241,6 @@ const Section2 = ({
         </p>
       </div>
 
-      {/* Credit Type Options */}
       <div className="grid grid-cols-1 gap-4 max-w-md mx-auto">
         {selectedTypes.map(({ id, label, icon: Icon }) => (
           <button
@@ -250,18 +251,18 @@ const Section2 = ({
             }}
             className={`p-4 rounded-xl border-2 transition-all duration-200 flex items-center gap-4 ${
               type === label
-                ? "border-blue-500 bg-blue-50"
-                : "border-gray-200 hover:border-blue-200"
+                ? "border-[#0e3a45] bg-[#0e3a45]/[0.06]"
+                : "border-gray-200 hover:border-[#0e3a45]/30"
             }`}
           >
             <Icon
               className={`w-6 h-6 ${
-                type === label ? "text-blue-500" : "text-gray-400"
+                type === label ? "text-[#0e3a45]" : "text-gray-400"
               }`}
             />
             <span
               className={`font-medium ${
-                type === label ? "text-blue-500" : "text-gray-600"
+                type === label ? "text-[#0e3a45]" : "text-gray-600"
               }`}
             >
               {label}
@@ -270,14 +271,12 @@ const Section2 = ({
         ))}
       </div>
 
-      {/* Error Message */}
       {error && (
         <p className="text-red-500 text-center text-sm">
           Por favor seleccione un tipo de crédito para continuar
         </p>
       )}
 
-      {/* Navigation Buttons */}
       <div className="flex justify-center gap-4 mt-6">
         <Button onClick={prev} variant="default">
           <ChevronLeft className="w-4 h-4" /> Atrás
@@ -293,7 +292,7 @@ const Section2 = ({
     </motion.div>
   );
 };
-// Section 3: Amount Selection Component
+
 const Section3 = ({
   amount,
   setAmount,
@@ -305,18 +304,8 @@ const Section3 = ({
   next: () => void;
   prev: () => void;
 }) => {
-  // Estado para controlar si se está usando entrada manual
   const [isManualInput, setIsManualInput] = useState(false);
-  // Estado para el valor de entrada manual
   const [manualInputValue, setManualInputValue] = useState("");
-
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat("es-MX", {
-      style: "currency",
-      currency: "MXN",
-      maximumFractionDigits: 0,
-    }).format(value);
-  };
 
   const handleSliderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setAmount(Number(e.target.value));
@@ -324,16 +313,10 @@ const Section3 = ({
   };
 
   const handleManualInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // Eliminar cualquier carácter que no sea número
     const rawValue = e.target.value.replace(/[^\d]/g, "");
     setManualInputValue(rawValue);
-
-    if (rawValue === "") {
-      return;
-    }
-
+    if (rawValue === "") return;
     const numericValue = parseInt(rawValue);
-
     if (!isNaN(numericValue)) {
       setAmount(numericValue);
       setIsManualInput(true);
@@ -347,6 +330,9 @@ const Section3 = ({
     }
   };
 
+  const sliderPct =
+    ((Math.min(amount, 5000000) - 10000) / (5000000 - 10000)) * 100;
+
   return (
     <motion.div
       initial={{ opacity: 0, x: 100 }}
@@ -354,7 +340,6 @@ const Section3 = ({
       exit={{ opacity: 0, x: -100 }}
       className="w-full space-y-8"
     >
-      {/* Section Header */}
       <div className="text-center space-y-2">
         <h2 className="text-2xl font-bold text-gray-800">Monto del Crédito</h2>
         <p className="text-gray-600">
@@ -362,18 +347,16 @@ const Section3 = ({
         </p>
       </div>
 
-      {/* Amount Display */}
       <div className="text-center">
-        <span className="text-4xl font-bold text-blue-500">
+        <span className="text-4xl font-bold text-[#0e3a45]">
           {formatCurrency(amount)}
         </span>
       </div>
 
-      {/* Slider or Manual Input Toggle */}
       <div className="max-w-md mx-auto">
         <button
           onClick={toggleInputMode}
-          className="mb-4 text-blue-500 hover:text-blue-700 text-sm font-medium flex items-center mx-auto"
+          className="mb-4 text-[#0e3a45] hover:opacity-70 text-sm font-medium flex items-center mx-auto"
         >
           {isManualInput
             ? "Usar slider para seleccionar monto"
@@ -381,7 +364,6 @@ const Section3 = ({
         </button>
 
         {!isManualInput ? (
-          // Slider Input
           <div className="space-y-6">
             <input
               type="range"
@@ -390,31 +372,20 @@ const Section3 = ({
               step="10000"
               value={amount <= 5000000 ? amount : 5000000}
               onChange={handleSliderChange}
-              className="w-full h-2 bg-blue-100 rounded-lg appearance-none cursor-pointer"
+              className="credit-slider w-full h-2 rounded-lg appearance-none cursor-pointer"
               style={{
-                background: `linear-gradient(to right, #3B82F6 0%, #3B82F6 ${
-                  ((Math.min(amount, 5000000) - 10000) / (5000000 - 10000)) *
-                  100
-                }%, #E5E7EB ${
-                  ((Math.min(amount, 5000000) - 10000) / (5000000 - 10000)) *
-                  100
-                }%, #E5E7EB 100%)`,
+                background: `linear-gradient(to right, ${BRAND} 0%, ${BRAND} ${sliderPct}%, #E5E7EB ${sliderPct}%, #E5E7EB 100%)`,
               }}
             />
-
-            {/* Range Labels */}
             <div className="flex justify-between text-sm text-gray-600">
               <span>{formatCurrency(10000)}</span>
               <span>{formatCurrency(5000000)}</span>
             </div>
-
-            {/* Helper Text */}
             <p className="text-sm text-gray-500 text-center">
               Deslice para ajustar el monto del crédito
             </p>
           </div>
         ) : (
-          // Manual Input
           <div className="space-y-4">
             <div className="relative">
               <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 w-5 h-5" />
@@ -422,7 +393,7 @@ const Section3 = ({
                 type="text"
                 value={manualInputValue}
                 onChange={handleManualInputChange}
-                className="w-full pl-10 pr-4 py-3 text-lg rounded-lg border-2 border-gray-200 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                className="w-full pl-10 pr-4 py-3 text-lg rounded-lg border-2 border-gray-200 focus:border-[#0e3a45] focus:outline-none focus:ring-2 focus:ring-[#0e3a45]/20"
                 placeholder="Ingrese cualquier monto"
               />
             </div>
@@ -433,7 +404,6 @@ const Section3 = ({
         )}
       </div>
 
-      {/* Navigation Buttons */}
       <div className="flex justify-center gap-4">
         <Button onClick={prev} variant="default">
           <ChevronLeft className="w-4 h-4" /> Atrás
@@ -445,7 +415,7 @@ const Section3 = ({
     </motion.div>
   );
 };
-// Section 4: Term Selection Component
+
 const Section4 = ({
   term,
   setTerm,
@@ -474,10 +444,7 @@ const Section4 = ({
     { months: -1, label: "6+ años", unit: "años" },
   ];
 
-  const termGroups = [
-    terms.slice(0, 5), // Short terms (3-18 months)
-    terms.slice(5), // Long terms (2-5+ years)
-  ];
+  const termGroups = [terms.slice(0, 5), terms.slice(5)];
 
   return (
     <motion.div
@@ -486,7 +453,6 @@ const Section4 = ({
       exit={{ opacity: 0, x: -100 }}
       className="w-full space-y-6"
     >
-      {/* Section Header */}
       <div className="text-center space-y-2">
         <h2 className="text-2xl font-bold text-gray-800">Plazo del Crédito</h2>
         <p className="text-gray-600">
@@ -494,7 +460,6 @@ const Section4 = ({
         </p>
       </div>
 
-      {/* Term Selection Grid */}
       <div className="space-y-6 max-w-2xl mx-auto">
         {termGroups.map((group, groupIndex) => (
           <div
@@ -510,8 +475,8 @@ const Section4 = ({
                 }}
                 className={`p-3 rounded-lg border-2 transition-all duration-200 ${
                   term === label
-                    ? "border-blue-500 bg-blue-50 text-blue-500"
-                    : "border-gray-200 hover:border-blue-200 text-gray-600"
+                    ? "border-[#0e3a45] bg-[#0e3a45]/[0.06] text-[#0e3a45]"
+                    : "border-gray-200 hover:border-[#0e3a45]/30 text-gray-600"
                 }`}
               >
                 <span className="block text-lg font-semibold">
@@ -530,14 +495,12 @@ const Section4 = ({
         ))}
       </div>
 
-      {/* Error Message */}
       {error && (
         <p className="text-red-500 text-center text-sm">
           Por favor seleccione un plazo para continuar
         </p>
       )}
 
-      {/* Navigation Buttons */}
       <div className="flex justify-center gap-4 mt-8">
         <Button onClick={prev} variant="default">
           <ChevronLeft className="w-4 h-4" /> Atrás
@@ -553,7 +516,7 @@ const Section4 = ({
     </motion.div>
   );
 };
-// Section 5: Payment Frequency Selection Component
+
 const Section5 = ({
   payment,
   setPayment,
@@ -569,26 +532,27 @@ const Section5 = ({
   error: boolean;
   setError: (error: boolean) => void;
 }) => {
-  // Payment frequency options with their respective metadata
   const paymentOptions = [
     {
       id: "semanal",
       label: "Semanal",
-      icon: Calendar,
-      description: "pagos cada 7 dias",
+      icon: CalendarDays,
+      description: "pagos cada 7 días",
+      frequency: "52 pagos al año",
     },
     {
       id: "quincenal",
       label: "Quincenal",
-      description: "pagos cada 15 dias",
-      icon: Calendar,
+      icon: CalendarCheck,
+      description: "pagos cada 15 días",
       frequency: "26 pagos al año",
     },
     {
       id: "mensual",
       label: "Mensual",
-      icon: Calendar,
+      icon: CalendarClock,
       description: "pagos cada mes",
+      frequency: "12 pagos al año",
     },
   ];
 
@@ -599,7 +563,6 @@ const Section5 = ({
       exit={{ opacity: 0, x: -100 }}
       className="w-full space-y-8"
     >
-      {/* Section Header */}
       <div className="text-center space-y-3">
         <h2 className="text-2xl font-bold text-gray-800">Frecuencia de Pago</h2>
         <p className="text-gray-600 max-w-md mx-auto">
@@ -608,9 +571,8 @@ const Section5 = ({
         </p>
       </div>
 
-      {/* Payment Options Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto px-4">
-        {paymentOptions.map(({ id, label, icon: Icon, description }) => (
+        {paymentOptions.map(({ id, label, icon: Icon, description, frequency }) => (
           <button
             key={id}
             onClick={() => {
@@ -621,21 +583,21 @@ const Section5 = ({
               relative p-6 rounded-xl border-2 transition-all duration-200
               ${
                 payment === label
-                  ? "border-blue-500 bg-blue-50 shadow-md"
-                  : "border-gray-200 hover:border-blue-200 hover:bg-gray-50"
+                  ? "border-[#0e3a45] bg-[#0e3a45]/[0.06] shadow-md"
+                  : "border-gray-200 hover:border-[#0e3a45]/30 hover:bg-gray-50"
               }
             `}
           >
             <div className="flex flex-col items-center text-center space-y-3">
               <Icon
                 className={`w-8 h-8 ${
-                  payment === label ? "text-blue-500" : "text-gray-400"
+                  payment === label ? "text-[#0e3a45]" : "text-gray-400"
                 }`}
               />
               <div className="space-y-1">
                 <span
                   className={`block text-lg font-medium ${
-                    payment === label ? "text-blue-500" : "text-gray-700"
+                    payment === label ? "text-[#0e3a45]" : "text-gray-700"
                   }`}
                 >
                   {label}
@@ -643,13 +605,16 @@ const Section5 = ({
                 <span className="block text-sm text-gray-500">
                   {description}
                 </span>
+                <span className="block text-xs text-gray-400">
+                  {frequency}
+                </span>
               </div>
             </div>
             {payment === label && (
               <motion.div
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
-                className="absolute -top-2 -right-2 bg-blue-500 text-white rounded-full p-1"
+                className="absolute -top-2 -right-2 bg-[#0e3a45] text-white rounded-full p-1"
               >
                 <Check className="w-4 h-4" />
               </motion.div>
@@ -658,7 +623,6 @@ const Section5 = ({
         ))}
       </div>
 
-      {/* Error Message */}
       {error && (
         <motion.p
           initial={{ opacity: 0, y: -10 }}
@@ -669,7 +633,6 @@ const Section5 = ({
         </motion.p>
       )}
 
-      {/* Navigation Buttons */}
       <div className="flex justify-center gap-4">
         <Button onClick={prev} variant="default">
           <ChevronLeft className="w-4 h-4" />
@@ -686,7 +649,7 @@ const Section5 = ({
     </motion.div>
   );
 };
-// Section 6: Income Input Component
+
 const Section6 = ({
   income,
   setIncome,
@@ -702,8 +665,7 @@ const Section6 = ({
   error: boolean;
   setError: (error: boolean) => void;
 }) => {
-  // Currency formatter utility
-  const formatCurrency = (value: string) => {
+  const formatIncomeDisplay = (value: string) => {
     const number = parseFloat(value.replace(/[^\d]/g, ""));
     return new Intl.NumberFormat("es-MX", {
       style: "currency",
@@ -714,10 +676,8 @@ const Section6 = ({
       .replace(/MX\$\s?|\$\s?/, "");
   };
 
-  // Income validation and handling
   const handleIncomeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const rawValue = e.target.value.replace(/[^\d]/g, "");
-
     if (rawValue === "" || parseInt(rawValue) >= 0) {
       setIncome(rawValue);
       setError(false);
@@ -740,7 +700,6 @@ const Section6 = ({
       exit={{ opacity: 0, x: -100 }}
       className="w-full space-y-8"
     >
-      {/* Section Header */}
       <div className="text-center space-y-3">
         <h2 className="text-2xl font-bold text-gray-800">
           Ingresos Mensuales Comprobables
@@ -752,30 +711,27 @@ const Section6 = ({
         </p>
       </div>
 
-      {/* Income Input Field */}
       <div className="max-w-md mx-auto space-y-4">
         <div className="relative">
           <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
           <input
             type="text"
-            value={formatCurrency(income)}
+            value={formatIncomeDisplay(income)}
             onChange={handleIncomeChange}
             className={`
-              w-full pl-10 pr-4 py-3 text-lg rounded-lg border-2 
+              w-full pl-10 pr-4 py-3 text-lg rounded-lg border-2
               transition-colors duration-200
               ${
                 error
-                  ? "border-red-300 focus:border-red-500"
-                  : "border-gray-200 focus:border-blue-500"
+                  ? "border-red-300 focus:border-red-500 focus:ring-red-200"
+                  : "border-gray-200 focus:border-[#0e3a45] focus:ring-[#0e3a45]/20"
               }
-              focus:outline-none focus:ring-2 
-              ${error ? "focus:ring-red-200" : "focus:ring-blue-200"}
+              focus:outline-none focus:ring-2
             `}
             placeholder="Ingrese sus ingresos mensuales"
           />
         </div>
 
-        {/* Helper Text */}
         <div className="text-sm text-gray-500 text-center space-y-2">
           <p>
             Posteriormente se le solicitará documentación que respalde estos
@@ -787,7 +743,6 @@ const Section6 = ({
           </p>
         </div>
 
-        {/* Error Message */}
         {error && (
           <motion.p
             initial={{ opacity: 0, y: -10 }}
@@ -799,7 +754,6 @@ const Section6 = ({
         )}
       </div>
 
-      {/* Navigation Buttons */}
       <div className="flex justify-center gap-4">
         <Button onClick={prev} variant="default">
           <ChevronLeft className="w-4 h-4" />
@@ -816,7 +770,7 @@ const Section6 = ({
     </motion.div>
   );
 };
-// Final Section: Review and Submit Component
+
 const FinalSection = ({
   formData,
   prev,
@@ -835,17 +789,6 @@ const FinalSection = ({
   onSubmit: () => Promise<void>;
   isSubmitting: boolean;
 }) => {
-  const formatCurrency = (value: number | string) => {
-    const numericValue =
-      typeof value === "string" ? parseInt(value.replace(/[^\d]/g, "")) : value;
-
-    return new Intl.NumberFormat("es-MX", {
-      style: "currency",
-      currency: "MXN",
-      maximumFractionDigits: 0,
-    }).format(numericValue || 0);
-  };
-
   const summaryItems = [
     {
       label: "Propósito del Crédito",
@@ -886,7 +829,6 @@ const FinalSection = ({
       exit={{ opacity: 0, x: -100 }}
       className="w-full space-y-8"
     >
-      {/* Review Header */}
       <div className="text-center space-y-3">
         <h2 className="text-2xl font-bold text-gray-800">Revisión Final</h2>
         <p className="text-gray-600 max-w-md mx-auto">
@@ -895,7 +837,6 @@ const FinalSection = ({
         </p>
       </div>
 
-      {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-3xl mx-auto">
         {summaryItems.map(({ label, value, icon: Icon }) => (
           <div
@@ -903,8 +844,8 @@ const FinalSection = ({
             className="p-4 rounded-lg border border-gray-200 bg-white shadow-sm"
           >
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-full bg-blue-50">
-                <Icon className="w-5 h-5 text-blue-500" />
+              <div className="p-2 rounded-full bg-[#0e3a45]/[0.06]">
+                <Icon className="w-5 h-5 text-[#0e3a45]" />
               </div>
               <div>
                 <p className="text-sm text-gray-500">{label}</p>
@@ -915,7 +856,6 @@ const FinalSection = ({
         ))}
       </div>
 
-      {/* Terms and Conditions */}
       <div className="max-w-3xl mx-auto p-4 rounded-lg bg-gray-50 border border-gray-200">
         <p className="text-sm text-gray-600 text-center">
           Al enviar esta solicitud, confirma que todos los datos proporcionados
@@ -923,7 +863,6 @@ const FinalSection = ({
         </p>
       </div>
 
-      {/* Navigation Buttons */}
       <div className="flex justify-center gap-4">
         <Button onClick={prev} variant="default" disabled={isSubmitting}>
           <ChevronLeft className="w-4 h-4" />
@@ -950,6 +889,7 @@ const FinalSection = ({
     </motion.div>
   );
 };
+
 const CreditForm = ({
   addSolicitud,
   resetForm,
@@ -989,10 +929,7 @@ const CreditForm = ({
   };
 
   const updateFormData = (field: string, value: string | number) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleSubmit = async () => {
@@ -1002,7 +939,7 @@ const CreditForm = ({
       if (result !== false) {
         resetForm();
       }
-    } catch (error) {
+    } catch {
       setError(true);
     } finally {
       setIsSubmitting(false);
@@ -1019,85 +956,89 @@ const CreditForm = ({
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.95 }}
-        className="relative bg-white p-8 rounded-xl shadow-xl w-full max-w-2xl mx-4"
+        className="relative bg-white rounded-xl shadow-xl w-full max-w-2xl mx-4 overflow-hidden"
       >
-        <button
-          className="absolute top-4 right-4 p-1 rounded-full hover:bg-gray-100 transition-colors"
-          onClick={resetForm}
-        >
-          <X className="w-6 h-6 text-gray-400" />
-        </button>
+        <div className="h-1 bg-green-500 w-full" />
+        <div className="p-8">
+          <button
+            className="absolute top-5 right-4 p-1 rounded-full hover:bg-gray-100 transition-colors"
+            onClick={resetForm}
+          >
+            <X className="w-6 h-6 text-gray-400" />
+          </button>
 
-        <ProgressBar currentStep={step} totalSteps={totalSteps} />
+          <ProgressBar currentStep={step} totalSteps={totalSteps} />
 
-        {step === 1 && (
-          <Section1
-            purpose={formData.purpose}
-            setPurpose={(value) => updateFormData("purpose", value)}
-            next={nextStep}
-            error={error}
-            setError={setError}
-          />
-        )}
-        {step === 2 && (
-          <Section2
-            purpose={formData.purpose}
-            type={formData.type}
-            setType={(value) => updateFormData("type", value)}
-            next={nextStep}
-            prev={prevStep}
-            error={error}
-            setError={setError}
-          />
-        )}
-        {step === 3 && (
-          <Section3
-            amount={formData.amount}
-            setAmount={(value) => updateFormData("amount", value)}
-            next={nextStep}
-            prev={prevStep}
-          />
-        )}
-        {step === 4 && (
-          <Section4
-            term={formData.term}
-            setTerm={(value) => updateFormData("term", value)}
-            next={nextStep}
-            prev={prevStep}
-            error={error}
-            setError={setError}
-          />
-        )}
-        {step === 5 && (
-          <Section5
-            payment={formData.payment}
-            setPayment={(value) => updateFormData("payment", value)}
-            next={nextStep}
-            prev={prevStep}
-            error={error}
-            setError={setError}
-          />
-        )}
-        {step === 6 && (
-          <Section6
-            income={formData.income}
-            setIncome={(value) => updateFormData("income", value)}
-            next={nextStep}
-            prev={prevStep}
-            error={error}
-            setError={setError}
-          />
-        )}
-        {step === 7 && (
-          <FinalSection
-            formData={formData}
-            prev={prevStep}
-            onSubmit={handleSubmit}
-            isSubmitting={isSubmitting}
-          />
-        )}
+          {step === 1 && (
+            <Section1
+              purpose={formData.purpose}
+              setPurpose={(value) => updateFormData("purpose", value)}
+              next={nextStep}
+              error={error}
+              setError={setError}
+            />
+          )}
+          {step === 2 && (
+            <Section2
+              purpose={formData.purpose}
+              type={formData.type}
+              setType={(value) => updateFormData("type", value)}
+              next={nextStep}
+              prev={prevStep}
+              error={error}
+              setError={setError}
+            />
+          )}
+          {step === 3 && (
+            <Section3
+              amount={formData.amount}
+              setAmount={(value) => updateFormData("amount", value)}
+              next={nextStep}
+              prev={prevStep}
+            />
+          )}
+          {step === 4 && (
+            <Section4
+              term={formData.term}
+              setTerm={(value) => updateFormData("term", value)}
+              next={nextStep}
+              prev={prevStep}
+              error={error}
+              setError={setError}
+            />
+          )}
+          {step === 5 && (
+            <Section5
+              payment={formData.payment}
+              setPayment={(value) => updateFormData("payment", value)}
+              next={nextStep}
+              prev={prevStep}
+              error={error}
+              setError={setError}
+            />
+          )}
+          {step === 6 && (
+            <Section6
+              income={formData.income}
+              setIncome={(value) => updateFormData("income", value)}
+              next={nextStep}
+              prev={prevStep}
+              error={error}
+              setError={setError}
+            />
+          )}
+          {step === 7 && (
+            <FinalSection
+              formData={formData}
+              prev={prevStep}
+              onSubmit={handleSubmit}
+              isSubmitting={isSubmitting}
+            />
+          )}
+        </div>
       </motion.div>
     </div>
   );
 };
+
 export default CreditForm;

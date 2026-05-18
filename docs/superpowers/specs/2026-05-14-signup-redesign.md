@@ -21,7 +21,6 @@ Rediseñar la página de signup para eliminar inconsistencias de marca (azul no 
 ## Panel Izquierdo
 
 - Franja `h-1` verde en la parte superior (consistente con login)
-- Logo BuscoCrédito (`/img/logo-buscocredito.png`) en blanco
 - Patrón geométrico de círculos concéntricos con outline, opacidad baja (mismo estilo que login)
 - Título y subtítulo dinámicos por paso:
 

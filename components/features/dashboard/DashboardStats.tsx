@@ -26,50 +26,44 @@ export const DashboardStats = ({
       title: "Mis Solicitudes",
       value: totalSolicitudes,
       icon: FileText,
-      color: "blue",
-      bgColor: "bg-blue-50",
-      iconColor: "text-blue-600",
-      textColor: "text-blue-700",
+      bgColor: "bg-[#0e3a45]/10",
+      iconColor: "text-[#0e3a45]",
     },
     {
       title: "Propuestas Recibidas",
       value: totalPropuestas,
       icon: TrendingUp,
-      color: "green",
-      bgColor: "bg-green-50",
-      iconColor: "text-green-600",
-      textColor: "text-green-700",
+      bgColor: "bg-[#0e3a45]/10",
+      iconColor: "text-[#0e3a45]",
     },
     {
-      title: "Tus propuestas que aprobaste",
+      title: "Solicitudes Aprobadas",
       value: solicitudesAprobadas,
       icon: CheckCircle2,
-      color: "emerald",
-      bgColor: "bg-emerald-50",
-      iconColor: "text-emerald-600",
-      textColor: "text-emerald-700",
+      bgColor: "bg-green-50",
+      iconColor: "text-green-600",
     },
   ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
       {stats.map((stat, index) => (
         <Card
           key={index}
           className="bg-white border border-gray-200 hover:shadow-md transition-shadow duration-200"
         >
-          <CardBody className="p-6">
+          <CardBody className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600 mb-1">
+                <p className="text-xs font-medium text-gray-500 mb-0.5">
                   {stat.title}
                 </p>
-                <p className="text-3xl font-bold text-gray-900">{stat.value}</p>
+                <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
               </div>
               <div
-                className={`w-12 h-12 rounded-lg ${stat.bgColor} flex items-center justify-center`}
+                className={`w-9 h-9 rounded-lg ${stat.bgColor} flex items-center justify-center`}
               >
-                <stat.icon className={`w-6 h-6 ${stat.iconColor}`} />
+                <stat.icon className={`w-4 h-4 ${stat.iconColor}`} />
               </div>
             </div>
           </CardBody>

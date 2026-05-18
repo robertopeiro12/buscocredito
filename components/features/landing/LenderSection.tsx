@@ -1,5 +1,3 @@
-"use client";
-
 import Image from "next/image";
 import Link from "next/link";
 
@@ -14,6 +12,7 @@ const LenderSection = () => {
               src="/img/landing/smiling-broker.jpg"
               alt="Prestamista sonriendo"
               fill
+              sizes="(max-width: 768px) 100vw, 50vw"
               className="object-cover object-top"
             />
           </div>

@@ -1,6 +1,6 @@
 import type { UserRole } from '@/types/entities/account.types';
 
-export function getRedirectPath(userType: UserRole | string): string {
+export function getRedirectPath(userType: UserRole): string {
   switch (userType) {
     case 'superAdmin':
       return '/super_admin_dashboard';

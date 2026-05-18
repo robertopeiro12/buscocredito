@@ -1,5 +1,3 @@
-"use client";
-
 import Image from "next/image";
 import { Share2, Settings2, Target, Coins } from "lucide-react";
 
@@ -57,6 +55,7 @@ const WhatIsBuscoCredito = () => {
           src="/img/landing/excited-woman.jpg"
           alt="Mujer feliz con tarjeta de crédito"
           fill
+          sizes="(max-width: 1024px) 100vw, 50vw"
           className="object-cover mix-blend-multiply opacity-90"
         />
         <div className="absolute inset-0 bg-yellow-500/20"></div>

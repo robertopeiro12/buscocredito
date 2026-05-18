@@ -92,7 +92,7 @@ export default function Signup() {
             </p>
           </div>
 
-          <p className="text-white/30 text-xs">
+          <p className="mt-auto text-white/30 text-xs">
             BuscoCrédito no otorga préstamos. Es un intermediario financiero.
           </p>
         </div>

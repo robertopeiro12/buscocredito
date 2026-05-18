@@ -90,19 +90,16 @@ function LoginForm() {
 
   // Timer para el bloqueo
   useEffect(() => {
-    let timer: NodeJS.Timeout;
     if (blockTimeLeft > 0) {
-      timer = setTimeout(() => {
+      const timer = setTimeout(() => {
         setBlockTimeLeft((prev) => prev - 1);
       }, 1000);
-    } else if (isBlocked && blockTimeLeft === 0) {
-      const reset = setTimeout(() => {
-        setIsBlocked(false);
-        setAttemptCount(0);
-      }, 0);
-      return () => clearTimeout(reset);
+      return () => clearTimeout(timer);
     }
-    return () => clearTimeout(timer);
+    if (isBlocked && blockTimeLeft === 0) {
+      setIsBlocked(false);
+      setAttemptCount(0);
+    }
   }, [blockTimeLeft, isBlocked]);
 
   // Manejo de tecla Enter

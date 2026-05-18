@@ -500,64 +500,63 @@ export default function DashboardPage() {
                                 </>
                               ) : (
                                 // Empty State
-                                <div className="text-center py-24">
-                                  <div className="w-32 h-32 mx-auto mb-8 rounded-full bg-gradient-to-br from-green-100 to-green-200 flex items-center justify-center">
-                                    <CreditCard className="w-16 h-16 text-green-600" />
+                                <div className="text-center py-12">
+                                  <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-[#0e3a45]/10 flex items-center justify-center">
+                                    <CreditCard className="w-8 h-8 text-[#0e3a45]" />
                                   </div>
-                                  <h3 className="text-3xl font-semibold text-gray-900 mb-4">
+                                  <h3 className="text-xl font-semibold text-gray-900 mb-2">
                                     ¡Comienza tu primera solicitud!
                                   </h3>
-                                  <p className="text-gray-600 mb-12 max-w-lg mx-auto text-lg leading-relaxed">
+                                  <p className="text-gray-500 mb-6 max-w-md mx-auto text-sm leading-relaxed">
                                     Solicita un préstamo y recibe múltiples
                                     propuestas de prestamistas verificados. Es
                                     rápido, seguro y sin compromisos iniciales.
                                   </p>
                                   <Button
                                     color="primary"
-                                    size="lg"
                                     startContent={
-                                      <PlusCircle className="w-6 h-6" />
+                                      <PlusCircle className="w-4 h-4" />
                                     }
                                     onPress={() => setShowForm(true)}
-                                    className="bg-green-600 hover:bg-green-700 text-white font-semibold px-10 py-5 text-xl h-auto shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
+                                    className="bg-[#0e3a45] hover:opacity-90 text-white font-semibold px-6 shadow-md transition-all duration-200"
                                   >
                                     Solicitar Mi Primer Préstamo
                                   </Button>
 
                                   {/* Benefits */}
-                                  <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+                                  <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4 max-w-3xl mx-auto">
                                     <div className="text-center">
-                                      <div className="w-16 h-16 bg-blue-100 rounded-xl flex items-center justify-center mx-auto mb-4">
-                                        <CheckCircle2 className="w-8 h-8 text-blue-600" />
+                                      <div className="w-10 h-10 bg-[#0e3a45]/10 rounded-lg flex items-center justify-center mx-auto mb-2">
+                                        <CheckCircle2 className="w-5 h-5 text-[#0e3a45]" />
                                       </div>
-                                      <h4 className="text-lg font-semibold text-gray-900 mb-3">
+                                      <h4 className="text-sm font-semibold text-gray-900 mb-1">
                                         Múltiples Ofertas
                                       </h4>
-                                      <p className="text-gray-600">
+                                      <p className="text-xs text-gray-500">
                                         Compara propuestas de diferentes
                                         prestamistas verificados
                                       </p>
                                     </div>
                                     <div className="text-center">
-                                      <div className="w-16 h-16 bg-green-100 rounded-xl flex items-center justify-center mx-auto mb-4">
-                                        <CreditCard className="w-8 h-8 text-green-600" />
+                                      <div className="w-10 h-10 bg-[#0e3a45]/10 rounded-lg flex items-center justify-center mx-auto mb-2">
+                                        <CreditCard className="w-5 h-5 text-[#0e3a45]" />
                                       </div>
-                                      <h4 className="text-lg font-semibold text-gray-900 mb-3">
+                                      <h4 className="text-sm font-semibold text-gray-900 mb-1">
                                         Proceso Rápido
                                       </h4>
-                                      <p className="text-gray-600">
+                                      <p className="text-xs text-gray-500">
                                         Obtén respuestas en minutos, no en días
                                         o semanas
                                       </p>
                                     </div>
                                     <div className="text-center">
-                                      <div className="w-16 h-16 bg-purple-100 rounded-xl flex items-center justify-center mx-auto mb-4">
-                                        <CheckCircle2 className="w-8 h-8 text-purple-600" />
+                                      <div className="w-10 h-10 bg-[#0e3a45]/10 rounded-lg flex items-center justify-center mx-auto mb-2">
+                                        <CheckCircle2 className="w-5 h-5 text-[#0e3a45]" />
                                       </div>
-                                      <h4 className="text-lg font-semibold text-gray-900 mb-3">
+                                      <h4 className="text-sm font-semibold text-gray-900 mb-1">
                                         100% Seguro
                                       </h4>
-                                      <p className="text-gray-600">
+                                      <p className="text-xs text-gray-500">
                                         Prestamistas verificados y plataforma
                                         confiable
                                       </p>
@@ -579,7 +578,7 @@ export default function DashboardPage() {
                           size="lg"
                           isIconOnly
                           onPress={() => setShowForm(true)}
-                          className="w-14 h-14 bg-green-600 hover:bg-green-700 shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-200"
+                          className="w-14 h-14 bg-[#0e3a45] hover:opacity-90 shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-200"
                         >
                           <PlusCircle className="w-6 h-6" />
                         </Button>
@@ -679,11 +678,11 @@ export default function DashboardPage() {
                           ${offerToAccept.offer.amount.toLocaleString()}
                         </span>
                       </p>
-                      <div className="bg-blue-50 p-3 rounded-md border border-blue-200">
-                        <p className="text-blue-800 text-sm font-medium">
+                      <div className="bg-[#0e3a45]/5 p-3 rounded-md border border-[#0e3a45]/20">
+                        <p className="text-[#0e3a45] text-sm font-medium">
                           Información importante
                         </p>
-                        <p className="text-sm text-blue-700 mt-2">
+                        <p className="text-sm text-[#0e3a45]/80 mt-2">
                           Esto no implica una aceptación formal del crédito ni
                           ningún compromiso. Solo se notifica a la institución
                           tu interés en continuar el proceso.

@@ -1,5 +1,3 @@
-"use client";
-
 import Image from "next/image";
 import Link from "next/link";
 
@@ -43,6 +41,7 @@ const HowItWorks = () => {
                   src={step.image}
                   alt={step.title}
                   fill
+                  sizes="(max-width: 768px) 100vw, 33vw"
                   className="object-cover transform group-hover:scale-110 transition duration-500"
                 />
               </div>

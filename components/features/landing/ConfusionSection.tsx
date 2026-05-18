@@ -1,5 +1,3 @@
-"use client";
-
 const ConfusionSection = () => {
   return (
     <section className="bg-green-400 py-16">
