@@ -1,8 +1,9 @@
 import React from 'react';
 import { Button } from "@heroui/react";
 import { LogOut, Store, FileText, Settings, HelpCircle, BarChart3, Bell } from "lucide-react";
+import type { LenderState } from '@/app/lender/types/loan.types';
 
-type LenderTab = "marketplace" | "myoffers" | "metrics" | "notifications" | "settings" | "help";
+type LenderTab = LenderState['activeTab'];
 
 interface LenderHeaderProps {
   activeTab: LenderTab;

@@ -52,4 +52,5 @@ export interface LenderProposal {
     email: string;
     phone: string;
   };
+  message?: string;
 }

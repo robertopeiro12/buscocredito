@@ -291,10 +291,10 @@ const MyOffersView = ({
                     </div>
                   )}
 
-                  {(proposal as any).message && (
+                  {proposal.message && (
                     <div className="pt-4 border-t border-gray-100">
                       <p className="text-sm text-gray-600 italic">
-                        &quot;{(proposal as any).message}&quot;
+                        &quot;{proposal.message}&quot;
                       </p>
                     </div>
                   )}
