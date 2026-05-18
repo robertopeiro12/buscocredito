@@ -11,8 +11,8 @@ import { motion } from "framer-motion";
 import type { LenderProposal, LoanRequest } from '@/app/lender/types/loan.types';
 
 interface LenderStatsProps {
-  requests: any[];
-  proposals: any[];
+  requests: LoanRequest[];
+  proposals: LenderProposal[];
   detailed?: boolean;
 }
 

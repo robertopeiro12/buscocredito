@@ -1,6 +1,6 @@
 import React from 'react';
 import { Button } from "@heroui/react";
-import { LogOut, Store, FileText, Settings, HelpCircle, BarChart3 } from "lucide-react";
+import { LogOut, Store, FileText, Settings, HelpCircle, BarChart3, Bell } from "lucide-react";
 
 type LenderTab = "marketplace" | "myoffers" | "metrics" | "notifications" | "settings" | "help";
 
@@ -66,6 +66,11 @@ const LenderHeader = ({
       tab: "metrics" as LenderTab,
       icon: BarChart3,
       label: "Métricas"
+    },
+    {
+      tab: "notifications" as LenderTab,
+      icon: Bell,
+      label: "Notificaciones"
     },
     {
       tab: "settings" as LenderTab,
