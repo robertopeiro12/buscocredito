@@ -1,11 +1,14 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { Button, Card, Chip, CardBody, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Tooltip } from "@heroui/react";
-import { User, ChevronRight, CreditCard, Eye, Info, X } from "lucide-react";
-import { LenderStats } from "@/components/features/dashboard/LenderStats";
+import { User, ChevronRight, CreditCard, Eye, Info, ArrowUpDown } from "lucide-react";
 import { MarketplacePagination } from "@/components/features/dashboard/MarketplacePagination";
 import { LenderLoadingSkeletons } from "@/components/features/dashboard/LenderLoadingSkeletons";
 import { auth } from "@/app/firebase";
+import { normalizeDate } from "@/app/lender/utils/metricsCalc";
 import type { LenderProposal } from "@/app/lender/types/loan.types";
+
+type StatusFilter = 'all' | 'pending' | 'accepted' | 'rejected';
+type SortOrder = 'newest' | 'oldest';
 
 interface WinningOffer {
   amount?: number;
@@ -21,16 +24,17 @@ interface MyOffersViewProps {
   lenderProposals: LenderProposal[];
   loadingProposals: boolean;
   onGoToMarketplace: () => void;
-  // Datos adicionales para stats
-  allRequests?: any[];
 }
 
 const MyOffersView = ({
   lenderProposals,
   loadingProposals,
   onGoToMarketplace,
-  allRequests = [],
 }: MyOffersViewProps) => {
+  // Filter / sort state
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+  const [sortOrder, setSortOrder] = useState<SortOrder>('newest');
+
   // Winning offer modal state
   const [showReasonModal, setShowReasonModal] = useState(false);
   const [winningOffer, setWinningOffer] = useState<WinningOffer | null>(null);
@@ -69,18 +73,36 @@ const MyOffersView = ({
     }
   };
 
+  // Filtered + sorted list
+  const processedProposals = useMemo(() => {
+    let list = statusFilter === 'all'
+      ? lenderProposals
+      : lenderProposals.filter(p => p.status === statusFilter);
+
+    list = [...list].sort((a, b) => {
+      const da = normalizeDate(a.createdAt)?.getTime() ?? 0;
+      const db = normalizeDate(b.createdAt)?.getTime() ?? 0;
+      return sortOrder === 'newest' ? db - da : da - db;
+    });
+
+    return list;
+  }, [lenderProposals, statusFilter, sortOrder]);
+
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 9; // 9 ofertas por página
+  const itemsPerPage = 9;
 
-  // Pagination logic
-  const totalPages = Math.ceil(lenderProposals.length / itemsPerPage);
+  const totalPages = Math.ceil(processedProposals.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const currentOffers = lenderProposals.slice(startIndex, endIndex);
+  const currentOffers = processedProposals.slice(startIndex, startIndex + itemsPerPage);
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
+  };
+
+  const handleStatusFilter = (status: StatusFilter) => {
+    setStatusFilter(status);
+    setCurrentPage(1);
   };
 
   const getStatusColor = (status: string) => {
@@ -112,11 +134,40 @@ const MyOffersView = ({
   return (
     <div className="space-y-6">
       {lenderProposals.length > 0 && (
-        <div className="flex justify-end">
-          <div className="flex items-center bg-[#0e3a45]/[0.06] px-3 py-1.5 rounded-full border border-[#0e3a45]/10">
-            <span className="text-sm font-medium text-[#0e3a45]">
-              {lenderProposals.length} propuestas enviadas
-            </span>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          {/* Status filter pills */}
+          <div className="flex gap-1 bg-gray-100 p-1 rounded-lg">
+            {(['all', 'pending', 'accepted', 'rejected'] as StatusFilter[]).map(s => (
+              <button
+                key={s}
+                onClick={() => handleStatusFilter(s)}
+                className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-all duration-150 ${
+                  statusFilter === s
+                    ? 'bg-[#0e3a45] text-white shadow-sm'
+                    : 'text-gray-500 hover:text-gray-700 hover:bg-white/60'
+                }`}
+              >
+                {s === 'all' ? 'Todas' : s === 'pending' ? 'Pendientes' : s === 'accepted' ? 'Aceptadas' : 'Rechazadas'}
+              </button>
+            ))}
+          </div>
+
+          <div className="flex items-center gap-3">
+            {/* Sort toggle */}
+            <button
+              onClick={() => { setSortOrder(o => o === 'newest' ? 'oldest' : 'newest'); setCurrentPage(1); }}
+              className="flex items-center gap-1.5 text-xs font-medium text-gray-500 hover:text-[#0e3a45] transition-colors"
+            >
+              <ArrowUpDown className="w-3.5 h-3.5" />
+              {sortOrder === 'newest' ? 'Más recientes' : 'Más antiguas'}
+            </button>
+
+            {/* Count */}
+            <div className="flex items-center bg-[#0e3a45]/[0.06] px-3 py-1.5 rounded-full border border-[#0e3a45]/10">
+              <span className="text-sm font-medium text-[#0e3a45]">
+                {processedProposals.length} {processedProposals.length === 1 ? 'propuesta' : 'propuestas'}
+              </span>
+            </div>
           </div>
         </div>
       )}
@@ -236,7 +287,7 @@ const MyOffersView = ({
                           ? typeof proposal.createdAt === "object" &&
                             "seconds" in proposal.createdAt
                             ? new Date(
-                                (proposal.createdAt as any).seconds * 1000
+                                (proposal.createdAt as { seconds: number }).seconds * 1000
                               ).toLocaleDateString()
                             : new Date(
                                 proposal.createdAt as string
