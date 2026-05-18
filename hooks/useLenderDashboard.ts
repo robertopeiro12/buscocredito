@@ -251,10 +251,12 @@ export const useLenderDashboard = () => {
 
     setLoadingProposals(true);
     try {
+      const token = await auth.currentUser?.getIdToken();
       const response = await fetch("/api/proposals/lender", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
         credentials: "include",
         body: JSON.stringify({ lenderId: user }),
