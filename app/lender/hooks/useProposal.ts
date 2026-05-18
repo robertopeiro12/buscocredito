@@ -1,10 +1,11 @@
 // hooks/useProposal.ts
 import { useState, useEffect } from 'react';
+import { auth } from '@/app/firebase';
 import type { LoanRequest } from '@/app/lender/types/loan.types';
 import type { PaymentFrequency } from '@/types/entities/account.types';
 
 // Datos del formulario de propuesta (subconjunto editable por el lender)
-interface ProposalFormData {
+export interface ProposalFormData {
   company: string;
   amount: number;
   comision: number;
@@ -90,10 +91,12 @@ export function useProposal(loan: LoanRequest | null) {
     setError(null);
 
     try {
+      const token = await auth.currentUser?.getIdToken();
       const response = await fetch('/api/createPropuesta', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
         body: JSON.stringify({
           ...proposalData,

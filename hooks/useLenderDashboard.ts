@@ -302,11 +302,12 @@ export const useLenderDashboard = () => {
     }));
   };
 
-  const handleMakeOffer = () => {
-    updateProposal({
-      company: partnerData.company,
-      lenderId: user,
-    });
+  const handleOpenOffer = async (requestId: string) => {
+    const request = requests.find((r) => r.id === requestId);
+    if (!request) return;
+    setSelectedRequestId(requestId);
+    await getUserData(request.userId);
+    updateProposal({ company: partnerData.company, lenderId: user });
     setIsCreatingOffer(true);
   };
 
@@ -349,9 +350,9 @@ export const useLenderDashboard = () => {
     }
   }, [partnerData.company, refreshLoans]);
 
-  // Cargar las propuestas del lender cuando se activa la pestaña "myoffers"
+  // Cargar las propuestas del lender cuando se activa la pestaña "myoffers" o "metrics"
   useEffect(() => {
-    if (activeTab === "myoffers" && user) {
+    if ((activeTab === "myoffers" || activeTab === "metrics") && user) {
       fetchLenderProposals();
     }
   }, [activeTab, user, fetchLenderProposals]);
@@ -359,22 +360,31 @@ export const useLenderDashboard = () => {
   // Cargar preferencia de notificaciones por correo cuando el usuario está disponible
   useEffect(() => {
     if (!user) return;
-    fetch("/api/users/preferences", { credentials: "include" })
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (data?.data?.emailNotifications !== undefined) {
-          setLenderEmailNotifications(data.data.emailNotifications);
-        }
+    auth.currentUser?.getIdToken().then((token) => {
+      fetch("/api/users/preferences", {
+        credentials: "include",
+        headers: {
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
       })
-      .catch(() => {
-        // Silently ignore — UI will default to true
-      });
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data) => {
+          if (data?.data?.emailNotifications !== undefined) {
+            setLenderEmailNotifications(data.data.emailNotifications);
+          }
+        })
+        .catch(() => {
+          // Silently ignore — UI will default to true
+        });
+    });
   }, [user]);
 
   useEffect(() => {
     // Cargar datos de usuario para todas las solicitudes
     const loadAllUserData = async () => {
-      const userIds = Array.from(new Set(requests.map((req) => req.userId)));
+      const allUserIds = Array.from(new Set(requests.map((req) => req.userId)));
+      const userIds = allUserIds.filter((id) => !userDataMap[id]);
+      if (userIds.length === 0) return;
       const dataMap: Record<string, PublicUserData> = {};
       const token = await auth.currentUser?.getIdToken();
 
@@ -421,10 +431,14 @@ export const useLenderDashboard = () => {
   const handleEmailNotificationsChange = async (value: boolean) => {
     setLenderEmailNotifications(value);
     try {
+      const token = await auth.currentUser?.getIdToken();
       await fetch("/api/users/preferences", {
         method: "POST",
         credentials: "include",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
         body: JSON.stringify({ userId: user, emailNotifications: value }),
       });
     } catch {
@@ -481,7 +495,7 @@ export const useLenderDashboard = () => {
     handleSignOut,
     handleFilterChange,
     clearFilters,
-    handleMakeOffer,
+    handleOpenOffer,
     handleCancelOffer,
     handleBackToMarket,
     refreshLoans,
