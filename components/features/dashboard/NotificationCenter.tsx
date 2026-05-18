@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Bell, X, Check, Clock, Info } from "lucide-react";
 import { Button, Card, Tooltip } from "@heroui/react";
+import { auth } from "@/app/firebase";
 
 interface NotificationData {
   id: string;
@@ -57,11 +58,14 @@ export default function NotificationCenter({
 
     setLoading(true);
     try {
+      const token = await auth.currentUser?.getIdToken();
       const response = await fetch("/api/notifications", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
+        credentials: "include",
         body: JSON.stringify({ userId }),
       });
 
@@ -108,11 +112,14 @@ export default function NotificationCenter({
     console.log("Loading unread count for userId:", userId);
 
     try {
+      const token = await auth.currentUser?.getIdToken();
       const response = await fetch("/api/getUnreadCount", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
+        credentials: "include",
         body: JSON.stringify({ userId }),
       });
 
