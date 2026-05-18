@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from "framer-motion";
 import { Card, Button } from "@heroui/react";
 import { CreditCard, ChevronRight, Store } from "lucide-react";
@@ -87,6 +87,10 @@ const MarketplaceView = ({
   const endIndex = startIndex + itemsPerPage;
   const currentRequests = filteredRequests.slice(startIndex, endIndex);
 
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filteredRequests.length]);
+
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
   };
@@ -132,7 +136,7 @@ const MarketplaceView = ({
               <LoanRequestCard
                 key={request.id}
                 request={request}
-                index={index}
+                index={startIndex + index}
                 userData={userDataMap[request.userId]}
                 onMakeOffer={() => onMakeOffer(request.id)}
               />
