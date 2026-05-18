@@ -10,7 +10,7 @@ import { useLenderDashboard } from "@/hooks/useLenderDashboard";
 
 // Components
 import { LenderSidebar } from "@/components/features/dashboard/LenderSidebar";
-import { LenderStats } from "@/components/features/dashboard/LenderStats";
+import { LenderMetrics } from "@/components/lender/metrics/LenderMetrics";
 import NotificationHistory from "@/components/features/dashboard/NotificationHistory";
 import LenderHeader from "@/components/lender/LenderHeader";
 import MarketplaceView from "@/components/lender/MarketplaceView";
@@ -50,7 +50,7 @@ function LenderPageContent() {
     handleSignOut,
     handleFilterChange,
     clearFilters,
-    handleMakeOffer,
+    handleOpenOffer,
     handleCancelOffer,
     handleBackToMarket,
     updateProposal,
@@ -116,10 +116,7 @@ function LenderPageContent() {
               submitError={submitError}
               onFilterChange={handleFilterChange}
               onClearFilters={clearFilters}
-              onMakeOffer={(requestId) => {
-                handleSelectRequest(requestId);
-                handleMakeOffer();
-              }}
+              onMakeOffer={handleOpenOffer}
               onSubmitOffer={handleSubmitOffer}
               onCancelOffer={handleCancelOffer}
               onBackToMarket={handleBackToMarket}
@@ -134,18 +131,15 @@ function LenderPageContent() {
               lenderProposals={lenderState.lenderProposals}
               loadingProposals={lenderState.loadingProposals}
               onGoToMarketplace={() => handleTabChange("marketplace")}
-              allRequests={requests}
             />
           )}
 
           {lenderState.activeTab === "metrics" && (
-            <div className="max-w-7xl mx-auto">
-              <LenderStats
-                requests={requests}
-                proposals={lenderState.lenderProposals}
-                detailed={true}
-              />
-            </div>
+            <LenderMetrics
+              userId={user}
+              proposals={lenderState.lenderProposals}
+              requests={requests}
+            />
           )}
 
           {lenderState.activeTab === "notifications" && (
