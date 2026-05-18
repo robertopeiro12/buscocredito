@@ -104,8 +104,8 @@ const MarketplaceView = ({
         <LenderLoadingSkeletons.MarketplaceGrid />
       ) : filteredRequests.length === 0 ? (
         <div className="text-center py-16">
-          <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center">
-            <Store className="w-12 h-12 text-blue-600" />
+          <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-[#0e3a45]/[0.06] flex items-center justify-center">
+            <Store className="w-12 h-12 text-[#0e3a45]" />
           </div>
           <h3 className="text-2xl font-semibold text-gray-900 mb-3">
             {allRequests.length === 0 ? "No hay solicitudes disponibles" : "No se encontraron solicitudes"}
@@ -117,10 +117,9 @@ const MarketplaceView = ({
           </p>
           {allRequests.length > 0 && (
             <Button
-              color="primary"
               size="md"
               onClick={onClearFilters}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2"
+              className="bg-[#0e3a45] hover:opacity-90 text-white font-semibold px-6 py-2"
             >
               Limpiar Filtros
             </Button>
@@ -156,7 +155,7 @@ const MarketplaceView = ({
       {/* Offer Modal */}
       {isCreatingOffer && selectedRequest && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border-t-4 border-green-500">
             <ProposalForm
               proposal={proposalData}
               loading={submitting}
