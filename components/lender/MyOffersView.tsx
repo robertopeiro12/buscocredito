@@ -105,7 +105,7 @@ const MyOffersView = ({
     setCurrentPage(1);
   };
 
-  const getStatusColor = (status: string) => {
+const getStatusColor = (status: string) => {
     switch (status) {
       case "pending":
         return "bg-yellow-500";
