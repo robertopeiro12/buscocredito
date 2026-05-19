@@ -476,10 +476,10 @@ export default function NotificationHistory({ userId, isLender = false }: Notifi
                   if (isUnread) markAsRead(notification.id);
                   setSelectedNotification(notification);
                 }}
-                className={`w-full text-left group rounded-xl border bg-white transition-all ${
+                className={`w-full text-left group rounded-xl border transition-all ${
                   isUnread
-                    ? `border-l-[3px] ${accentColor} border-t-gray-100 border-r-gray-100 border-b-gray-100 shadow-sm hover:shadow-md`
-                    : "border-gray-100 hover:border-gray-200 hover:shadow-sm opacity-70 hover:opacity-100"
+                    ? `border-l-[3px] ${accentColor} border-t-gray-200 border-r-gray-200 border-b-gray-200 bg-white shadow-sm hover:shadow-md`
+                    : "border-gray-200 bg-gray-50 hover:bg-white hover:border-gray-300 hover:shadow-sm"
                 }`}
               >
                 <div className="flex items-center gap-3 px-4 py-3.5">
@@ -491,18 +491,18 @@ export default function NotificationHistory({ userId, isLender = false }: Notifi
                   {/* Content */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-baseline gap-2 mb-0.5">
-                      <span className={`text-xs font-semibold uppercase tracking-wide ${isUnread ? iconColor : "text-gray-400"}`}>
+                      <span className={`text-xs font-semibold uppercase tracking-wide ${isUnread ? iconColor : "text-gray-500"}`}>
                         {label}
                       </span>
                     </div>
-                    <p className={`text-sm leading-snug line-clamp-1 ${isUnread ? "text-gray-900 font-medium" : "text-gray-500"}`}>
+                    <p className={`text-sm leading-snug line-clamp-1 ${isUnread ? "text-gray-900 font-medium" : "text-gray-600"}`}>
                       {notification.message}
                     </p>
                   </div>
 
                   {/* Meta */}
                   <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
-                    <span className="text-xs text-gray-400 tabular-nums">{formatDate(notification.createdAt)}</span>
+                    <span className="text-xs text-gray-500 tabular-nums">{formatDate(notification.createdAt)}</span>
                     {isUnread && <span className={`w-1.5 h-1.5 rounded-full ${dotColor}`} />}
                   </div>
                 </div>
