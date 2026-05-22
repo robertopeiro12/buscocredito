@@ -177,8 +177,8 @@ export function ProposalDetailsTable({ comparisons, companyName }: Props) {
                     <td colSpan={9} className="bg-gray-50 px-6 py-4">
                       <div className="grid grid-cols-2 gap-6">
                         {/* Admin's proposal */}
-                        <div className="bg-blue-50 rounded-lg p-4">
-                          <h4 className="text-sm font-bold text-blue-800 mb-3">
+                        <div className="bg-[#0e3a45]/[0.04] rounded-lg p-4">
+                          <h4 className="text-sm font-bold text-[#0e3a45] mb-3">
                             Tu Propuesta ({companyName})
                           </h4>
                           <div className="grid grid-cols-2 gap-2 text-sm">

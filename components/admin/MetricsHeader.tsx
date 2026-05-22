@@ -24,7 +24,7 @@ export const MetricsHeader = ({
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         {/* Title Section */}
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg shadow-sm">
+          <div className="p-2 bg-[#0e3a45] rounded-lg shadow-sm">
             <BarChart3 className="w-5 h-5 text-white" />
           </div>
           <div>
@@ -51,7 +51,7 @@ export const MetricsHeader = ({
                   key={option.key}
                   size="sm"
                   variant={isActive ? "solid" : "light"}
-                  color={isActive ? "primary" : "default"}
+                  style={isActive ? { backgroundColor: "#0e3a45" } : undefined}
                   className={`
                     font-medium px-3 py-2 rounded-md transition-all duration-200 min-w-0
                     ${isActive ? "shadow-sm text-white" : "text-gray-600 hover:text-gray-900"}

@@ -37,6 +37,9 @@ serviceAccountKey.json
 *.tsbuildinfo
 next-env.d.ts
 
+# superpowers tool session data
+.superpowers/
+
 notes.md
 serviceAccountKey.json
 

@@ -1,6 +1,6 @@
 import React from "react";
 import { Card, Chip, CardBody } from "@heroui/react";
-import { DollarSign, Target, User, Eye } from "lucide-react";
+import { DollarSign, User } from "lucide-react";
 import type {
   LoanRequest,
   PublicUserData,
@@ -30,15 +30,15 @@ const AdminLoanRequestCard = ({
       key={request.id}
       className="overflow-hidden shadow-sm border border-gray-100 hover:border-gray-200 transition-all duration-200"
     >
-      {/* Encabezado de la tarjeta */}
       <CardBody className="p-0">
+        <div className="h-1 bg-green-500 w-full" />
         <div className="p-5 border-b border-gray-100">
           <div className="flex justify-between items-center">
             <h3 className="text-lg font-semibold text-gray-700">
               Solicitud #{index + 1}
             </h3>
           </div>
-          <p className="text-3xl font-bold mt-2 text-green-600">
+          <p className="text-3xl font-bold mt-2 text-[#0e3a45]">
             ${request.amount.toLocaleString()}
           </p>
         </div>
@@ -158,15 +158,6 @@ const AdminLoanRequestCard = ({
             </div>
           )}
 
-          {/* Indicador de solo lectura */}
-          <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-            <div className="flex items-center gap-2">
-              <Eye className="h-4 w-4 text-green-600" />
-              <p className="text-sm text-green-700 font-medium">
-                Vista de solo lectura - Monitoreo administrativo
-              </p>
-            </div>
-          </div>
         </div>
       </CardBody>
     </Card>

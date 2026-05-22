@@ -12,10 +12,10 @@ export function AdminSidebarUpdated({
   setActiveTab,
   companyName,
 }: AdminSidebarProps) {
-  const getButtonClass = (tab: string) => 
+  const getButtonClass = (tab: string) =>
     `w-full justify-start h-12 px-4 mb-2 transition-all duration-200 ease-in-out ${
       activeTab === tab
-        ? "bg-gradient-to-r from-blue-50 to-blue-100 text-blue-700 border-r-3 border-blue-500 shadow-sm"
+        ? "bg-[#0e3a45]/[0.08] text-[#0e3a45] border-r-[3px] border-[#0e3a45] font-semibold"
         : "bg-transparent text-gray-600 hover:bg-gray-50 hover:text-gray-900"
     }`;
 
@@ -58,7 +58,7 @@ export function AdminSidebarUpdated({
         {/* Header Section */}
         <div className="p-6 border-b border-gray-100">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-md">
+            <div className="w-10 h-10 rounded-full bg-[#0e3a45] flex items-center justify-center shadow-md">
               <CreditCard className="w-5 h-5 text-white" />
             </div>
             <div>
@@ -94,9 +94,9 @@ export function AdminSidebarUpdated({
         
         {/* Footer Section */}
         <div className="p-4 border-t border-gray-100">
-          <div className="px-4 py-2 bg-gray-50 rounded-lg">
-            <p className="text-xs text-gray-500 text-center">
-              BuscoCredito Admin v2.0
+          <div className="px-4 py-2.5 bg-[#0e3a45]/5 rounded-lg flex items-center gap-2">
+            <p className="text-[11px] text-[#0e3a45]/60 font-medium tracking-wide uppercase">
+              Panel Administrativo
             </p>
           </div>
         </div>

@@ -69,11 +69,11 @@ export const MarketplacePagination = ({
             <Button
               variant={currentPage === page ? "solid" : "light"}
               size="sm"
-              color={currentPage === page ? "success" : "default"}
               onPress={() => onPageChange(page as number)}
+              style={currentPage === page ? { backgroundColor: "#0e3a45" } : undefined}
               className={`min-w-10 h-10 ${
                 currentPage === page
-                  ? "bg-green-600 text-white"
+                  ? "text-white"
                   : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
               }`}
             >

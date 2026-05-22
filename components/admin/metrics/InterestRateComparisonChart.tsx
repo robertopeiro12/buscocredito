@@ -49,11 +49,11 @@ export function InterestRateComparisonChart({ comparisons, companyName }: Props)
       {
         label: companyName || "Tu Propuesta",
         data: withComparison.map((c) => c.adminInterestRate),
-        borderColor: "rgb(59, 130, 246)",
-        backgroundColor: "rgba(59, 130, 246, 0.05)",
+        borderColor: "rgb(14, 58, 69)",
+        backgroundColor: "rgba(14, 58, 69, 0.05)",
         borderWidth: 3,
         tension: 0.4,
-        pointBackgroundColor: "rgb(59, 130, 246)",
+        pointBackgroundColor: "rgb(14, 58, 69)",
         pointBorderColor: "#fff",
         pointBorderWidth: 2,
         pointRadius: 5,
@@ -151,7 +151,7 @@ export function InterestRateComparisonChart({ comparisons, companyName }: Props)
         </div>
         <div className="flex gap-6 text-right">
           <div>
-            <p className="text-lg font-bold text-blue-600">
+            <p className="text-lg font-bold text-[#0e3a45]">
               {avgAdmin.toFixed(2)}%
             </p>
             <p className="text-xs text-gray-500">Tu promedio</p>

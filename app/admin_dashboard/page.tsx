@@ -12,6 +12,7 @@ import {
   ModalFooter,
   Spinner,
   Chip,
+  Switch,
 } from "@heroui/react";
 import {
   Search,
@@ -22,6 +23,11 @@ import {
   TrendingUp,
   Users,
   Download,
+  Building2,
+  Mail,
+  Bell,
+  BookOpen,
+  Headphones,
 } from "lucide-react";
 import { AdminSidebarUpdated } from "@/components/features/dashboard/AdminSidebarUpdated";
 import { AdminHeader } from "@/components/features/dashboard/AdminHeader";
@@ -43,7 +49,7 @@ import { ProposalDetailsTable } from "@/components/admin/metrics/ProposalDetails
 import { ComparisonSummaryCards } from "@/components/admin/metrics/ComparisonSummaryCards";
 import { useAdminDashboard } from "@/hooks/useAdminDashboard";
 import { useProposalComparison } from "@/hooks/useProposalComparison";
-import { exportMetricsSummary, exportProposalsData, exportWorkerStats } from "@/utils/exportCsv";
+import { exportProposalsData, exportWorkerStats } from "@/utils/exportCsv";
 import { useAdminLoans } from "@/hooks/useAdminLoans";
 import { useWorkerStats } from "@/hooks/useWorkerStats";
 
@@ -170,10 +176,8 @@ export default function AdminDashboard() {
           companyName={adminData.companyName}
         />
 
-        {/* Main Content with left margin to account for fixed sidebar */}
         <div className="flex-1 ml-64">
-          {/* Header */}
-          <div className="px-4 lg:px-6">
+          <div className="px-4 lg:px-6 pt-4 lg:pt-6">
             <AdminHeader
               activeTab={activeTab}
               companyName={adminData.companyName}
@@ -182,306 +186,163 @@ export default function AdminDashboard() {
             />
           </div>
 
-          {/* Content Area */}
-          <main className="p-4 lg:p-6">
+          <main className="px-4 lg:px-6 pb-4 lg:pb-6">
             {activeTab === "subaccounts" && (
               <div className="max-w-7xl mx-auto">
-                <div className="space-y-8">
-                  {/* Header Section Simplificado */}
-                  <div className="bg-gradient-to-r from-slate-50 to-blue-50 rounded-2xl p-8 border border-slate-200/50">
-                    <div className="flex justify-between items-center">
-                      <div className="flex items-center gap-4">
-                        <div className="p-3 bg-blue-100 rounded-xl">
-                          <Users className="w-8 h-8 text-blue-600" />
-                        </div>
-                        <div>
-                          <h1 className="text-3xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">
-                            Equipo de Trabajo
-                          </h1>
-                          <div className="flex items-center gap-2 mt-1">
-                            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                            <span className="text-slate-600 font-medium text-sm">
-                              {userEmail}
-                            </span>
+                <div className="space-y-6">
+                  {/* Stats cards */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <Card className="bg-white border border-gray-200 shadow-sm">
+                      <CardBody className="p-5">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-xs text-gray-500 uppercase tracking-wide font-medium">Total Trabajadores</p>
+                            <p className="text-3xl font-bold text-gray-900 mt-1">{workers?.length || 0}</p>
+                          </div>
+                          <div className="p-3 bg-gray-100 rounded-xl">
+                            <Users className="w-6 h-6 text-gray-500" />
                           </div>
                         </div>
-                      </div>
+                      </CardBody>
+                    </Card>
+
+                    <Card className="bg-white border border-gray-200 shadow-sm">
+                      <CardBody className="p-5">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-xs text-gray-500 uppercase tracking-wide font-medium">Activos (7 días)</p>
+                            <p className="text-3xl font-bold text-gray-900 mt-1">{getActiveWorkersCount()}</p>
+                          </div>
+                          <div className="p-3 bg-gray-100 rounded-xl">
+                            <Activity className="w-6 h-6 text-gray-500" />
+                          </div>
+                        </div>
+                      </CardBody>
+                    </Card>
+
+                    <Card className="bg-white border border-gray-200 shadow-sm">
+                      <CardBody className="p-5">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-xs text-gray-500 uppercase tracking-wide font-medium">Propuestas Enviadas</p>
+                            <p className="text-3xl font-bold text-gray-900 mt-1">{getTotalPropuestasEnviadas()}</p>
+                          </div>
+                          <div className="p-3 bg-gray-100 rounded-xl">
+                            <TrendingUp className="w-6 h-6 text-gray-500" />
+                          </div>
+                        </div>
+                      </CardBody>
+                    </Card>
+
+                    <Card className="bg-white border border-gray-200 shadow-sm">
+                      <CardBody className="p-5">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-xs text-gray-500 uppercase tracking-wide font-medium">Tasa de Aceptación</p>
+                            <p className="text-3xl font-bold text-gray-900 mt-1">{getAverageApprovalRate()}%</p>
+                          </div>
+                          <div className="p-3 bg-gray-100 rounded-xl">
+                            <Store className="w-6 h-6 text-gray-500" />
+                          </div>
+                        </div>
+                      </CardBody>
+                    </Card>
+                  </div>
+
+                  {/* Search + actions */}
+                  <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+                    <div className="flex-1">
+                      <Input
+                        type="text"
+                        placeholder="Buscar por nombre o email..."
+                        startContent={<Search className="text-gray-400 w-4 h-4" />}
+                        classNames={{
+                          inputWrapper: "bg-white border border-gray-200 hover:border-gray-300 shadow-sm",
+                        }}
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                      />
+                    </div>
+                    <div className="flex items-center gap-2">
                       <Button
-                        color="success"
+                        variant="flat"
+                        size="sm"
+                        onPress={refreshWorkers}
+                        isDisabled={isLoadingWorkers}
+                        startContent={isLoadingWorkers ? <Spinner size="sm" /> : <Activity className="w-4 h-4" />}
+                        className="bg-gray-100 text-gray-700 hover:bg-gray-200"
+                      >
+                        {isLoadingWorkers ? "Actualizando..." : "Actualizar"}
+                      </Button>
+                      <span className="text-sm text-gray-500 px-1">
+                        • {workers?.length || 0} trabajadores
+                      </span>
+                      <Button
+                        size="sm"
                         onPress={() => setIsModalOpen(true)}
-                        startContent={<PlusCircle className="w-5 h-5" />}
-                        className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-semibold px-6 py-3 h-auto rounded-xl shadow-lg hover:shadow-xl transition-all"
+                        startContent={<PlusCircle className="w-4 h-4" />}
+                        style={{ backgroundColor: "#0e3a45" }}
+                        className="text-white font-medium"
                       >
                         Nuevo Trabajador
                       </Button>
                     </div>
                   </div>
 
-                  {/* Resumen de estadísticas generales - Diseño más profesional */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-0 shadow-xl">
-                      <CardBody className="p-6">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-blue-700 font-semibold text-sm uppercase tracking-wide">
-                              Total Trabajadores
-                            </p>
-                            <p className="text-3xl font-bold text-blue-900 mt-1">
-                              {workers?.length || 0}
-                            </p>
-                            <div className="flex items-center mt-2">
-                              <div className="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
-                              <span className="text-blue-600 text-xs font-medium">
-                                Equipo completo
-                              </span>
-                            </div>
-                          </div>
-                          <div className="p-4 bg-blue-200/50 rounded-xl">
-                            <Users className="w-8 h-8 text-blue-700" />
-                          </div>
-                        </div>
-                      </CardBody>
-                    </Card>
-
-                    <Card className="bg-gradient-to-br from-green-50 to-emerald-100 border-0 shadow-xl">
-                      <CardBody className="p-6">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-green-700 font-semibold text-sm uppercase tracking-wide">
-                              Activos (7 días)
-                            </p>
-                            <p className="text-3xl font-bold text-green-900 mt-1">
-                              {getActiveWorkersCount()}
-                            </p>
-                            <div className="flex items-center mt-2">
-                              <div className="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></div>
-                              <span className="text-green-600 text-xs font-medium">
-                                Último período
-                              </span>
-                            </div>
-                          </div>
-                          <div className="p-4 bg-green-200/50 rounded-xl">
-                            <Activity className="w-8 h-8 text-green-700" />
-                          </div>
-                        </div>
-                      </CardBody>
-                    </Card>
-
-                    <Card className="bg-gradient-to-br from-amber-50 to-yellow-100 border-0 shadow-xl">
-                      <CardBody className="p-6">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-amber-700 font-semibold text-sm uppercase tracking-wide">
-                              Propuestas Enviadas
-                            </p>
-                            <p className="text-3xl font-bold text-amber-900 mt-1">
-                              {getTotalPropuestasEnviadas()}
-                            </p>
-                            <div className="flex items-center mt-2">
-                              <div className="w-2 h-2 bg-amber-500 rounded-full mr-2"></div>
-                              <span className="text-amber-600 text-xs font-medium">
-                                Total enviadas
-                              </span>
-                            </div>
-                          </div>
-                          <div className="p-4 bg-amber-200/50 rounded-xl">
-                            <TrendingUp className="w-8 h-8 text-amber-700" />
-                          </div>
-                        </div>
-                      </CardBody>
-                    </Card>
-
-                    <Card className="bg-gradient-to-br from-purple-50 to-violet-100 border-0 shadow-xl">
-                      <CardBody className="p-6">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-purple-700 font-semibold text-sm uppercase tracking-wide">
-                              Tasa Aceptación
-                            </p>
-                            <p className="text-3xl font-bold text-purple-900 mt-1">
-                              {getAverageApprovalRate()}%
-                            </p>
-                            <div className="flex items-center mt-2">
-                              <div className="w-2 h-2 bg-purple-500 rounded-full mr-2"></div>
-                              <span className="text-purple-600 text-xs font-medium">
-                                Promedio general
-                              </span>
-                            </div>
-                          </div>
-                          <div className="p-4 bg-purple-200/50 rounded-xl">
-                            <Store className="w-8 h-8 text-purple-700" />
-                          </div>
-                        </div>
-                      </CardBody>
-                    </Card>
-                  </div>
-
-                  {/* Sección de controles mejorada */}
-                  <Card className="bg-white/60 backdrop-blur-sm border-0 shadow-xl">
-                    <CardBody className="p-6">
-                      <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
-                        <div className="flex-1 max-w-md">
-                          <Input
-                            type="text"
-                            placeholder="Buscar por nombre o email..."
-                            startContent={
-                              <Search className="text-slate-400 w-5 h-5" />
-                            }
-                            className="w-full"
-                            classNames={{
-                              base: "max-w-full",
-                              mainWrapper: "h-full",
-                              input: "text-small",
-                              inputWrapper:
-                                "h-12 bg-white/70 border border-slate-200 hover:border-slate-300 focus-within:border-blue-500 rounded-xl shadow-sm transition-all",
-                            }}
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                          />
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <Button
-                            color="secondary"
-                            variant="flat"
-                            onPress={refreshWorkers}
-                            disabled={isLoadingWorkers}
-                            className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium px-6 h-12 rounded-xl transition-all"
-                            startContent={
-                              isLoadingWorkers ? (
-                                <Spinner size="sm" />
-                              ) : (
-                                <Activity className="w-4 h-4" />
-                              )
-                            }
-                          >
-                            {isLoadingWorkers
-                              ? "Actualizando..."
-                              : "Actualizar"}
-                          </Button>
-                          <div className="flex items-center gap-2 px-4 py-2 bg-slate-100/50 rounded-xl">
-                            <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                            <span className="text-slate-600 text-sm font-medium">
-                              {workers?.length || 0} trabajadores
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    </CardBody>
-                  </Card>
-
-                  {/* Sección de resultados con diseño profesional */}
+                  {/* Workers grid */}
                   {isLoadingWorkers ? (
-                    <div className="space-y-6">
-                      <AdminLoadingSkeletons.SubaccountsGrid />
-                    </div>
+                    <AdminLoadingSkeletons.SubaccountsGrid />
                   ) : workersError ? (
-                    <Card className="bg-gradient-to-r from-red-50 to-pink-50 border-0 shadow-xl">
-                      <CardBody className="p-8 text-center">
-                        <div className="p-4 bg-red-100 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
-                          <User className="w-8 h-8 text-red-600" />
-                        </div>
-                        <h3 className="text-xl font-semibold text-red-800 mb-2">
-                          Error al cargar trabajadores
-                        </h3>
-                        <p className="text-red-600 mb-6">{workersError}</p>
-                        <Button
-                          color="danger"
-                          variant="flat"
-                          onPress={refreshWorkers}
-                          className="bg-red-100 hover:bg-red-200 text-red-700 font-semibold px-8 py-3 h-auto rounded-xl"
-                          startContent={<Activity className="w-4 h-4" />}
-                        >
-                          Reintentar Conexión
-                        </Button>
-                      </CardBody>
-                    </Card>
+                    <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
+                      <User className="w-10 h-10 text-red-400 mx-auto mb-3" />
+                      <h3 className="text-base font-semibold text-gray-800 mb-1">Error al cargar trabajadores</h3>
+                      <p className="text-sm text-gray-500 mb-4">{workersError}</p>
+                      <Button size="sm" variant="flat" onPress={refreshWorkers} className="bg-red-50 text-red-600">
+                        Reintentar
+                      </Button>
+                    </div>
                   ) : (
-                    <div className="space-y-6">
-                      {/* Título de sección */}
-                      <div className="flex items-center gap-3">
-                        <div className="h-px bg-gradient-to-r from-slate-300 to-transparent flex-1"></div>
-                        <h2 className="text-lg font-semibold text-slate-700 px-4 py-2 bg-slate-100 rounded-full">
-                          Equipo de Trabajo
-                        </h2>
-                        <div className="h-px bg-gradient-to-l from-slate-300 to-transparent flex-1"></div>
-                      </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                        {workers && workers.length > 0 ? (
-                          workers
-                            .filter(
-                              (worker) =>
-                                searchTerm === "" ||
-                                worker.name
-                                  .toLowerCase()
-                                  .includes(searchTerm.toLowerCase()) ||
-                                worker.email
-                                  .toLowerCase()
-                                  .includes(searchTerm.toLowerCase())
-                            )
-                            .map((worker) => (
-                              <div
-                                key={worker.id}
-                                className="transform hover:scale-[1.02] transition-all duration-200"
-                              >
-                                <EnhancedSubaccountCard
-                                  worker={worker}
-                                  onDelete={() => {
-                                    console.log(
-                                      "TODO: Implementar eliminación de trabajador:",
-                                      worker.id
-                                    );
-                                    // TODO: Implementar API para eliminar trabajadores por string ID
-                                  }}
-                                  formatLastActivity={formatLastActivity}
-                                />
-                              </div>
-                            ))
-                        ) : (
-                          <div className="col-span-full">
-                            <Card className="bg-gradient-to-br from-slate-50 to-blue-50 border-0 shadow-xl">
-                              <CardBody className="p-12 text-center">
-                                <div className="p-6 bg-slate-100 rounded-full w-24 h-24 mx-auto mb-6 flex items-center justify-center">
-                                  <User className="w-12 h-12 text-slate-400" />
-                                </div>
-                                <h3 className="text-2xl font-bold text-slate-700 mb-3">
-                                  No se encontraron trabajadores
-                                </h3>
-                                <p className="text-slate-500 mb-8 max-w-md mx-auto">
-                                  {searchTerm
-                                    ? `No hay trabajadores que coincidan con "${searchTerm}". Intenta con otros términos de búsqueda.`
-                                    : "Aún no tienes trabajadores registrados en tu equipo. Comienza agregando tu primer trabajador."}
-                                </p>
-                                <div className="flex flex-col sm:flex-row gap-4 items-center justify-center">
-                                  <Button
-                                    color="primary"
-                                    variant="flat"
-                                    onPress={refreshWorkers}
-                                    className="bg-blue-100 hover:bg-blue-200 text-blue-700 font-semibold px-8 py-3 h-auto rounded-xl"
-                                    startContent={
-                                      <Activity className="w-4 h-4" />
-                                    }
-                                  >
-                                    Recargar Lista
-                                  </Button>
-                                  {!searchTerm && (
-                                    <Button
-                                      color="success"
-                                      onPress={() => setIsModalOpen(true)}
-                                      startContent={
-                                        <PlusCircle className="w-4 h-4" />
-                                      }
-                                      className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-semibold px-8 py-3 h-auto rounded-xl shadow-lg"
-                                    >
-                                      Crear Primer Trabajador
-                                    </Button>
-                                  )}
-                                </div>
-                              </CardBody>
-                            </Card>
-                          </div>
-                        )}
-                      </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {workers && workers.length > 0 ? (
+                        workers
+                          .filter(
+                            (worker) =>
+                              searchTerm === "" ||
+                              worker.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                              worker.email.toLowerCase().includes(searchTerm.toLowerCase())
+                          )
+                          .map((worker) => (
+                            <EnhancedSubaccountCard
+                              key={worker.id}
+                              worker={worker}
+                              onDelete={() => {
+                                // TODO: API delete por string ID de trabajador
+                              }}
+                              formatLastActivity={formatLastActivity}
+                            />
+                          ))
+                      ) : (
+                        <div className="col-span-full bg-white rounded-xl border border-gray-200 p-12 text-center">
+                          <User className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                          <h3 className="text-base font-semibold text-gray-600 mb-2">No se encontraron trabajadores</h3>
+                          <p className="text-sm text-gray-500 mb-6">
+                            {searchTerm
+                              ? `No hay trabajadores que coincidan con "${searchTerm}".`
+                              : "Aún no tienes trabajadores registrados. Crea el primero."}
+                          </p>
+                          {!searchTerm && (
+                            <Button
+                              size="sm"
+                              onPress={() => setIsModalOpen(true)}
+                              startContent={<PlusCircle className="w-4 h-4" />}
+                              style={{ backgroundColor: "#0e3a45" }}
+                              className="text-white"
+                            >
+                              Crear Primer Trabajador
+                            </Button>
+                          )}
+                        </div>
+                      )}
                     </div>
                   )}
 
@@ -527,7 +388,7 @@ export default function AdminDashboard() {
                       onPress={() =>
                         exportProposalsData(rawProposals, adminData.companyName, workerNameMap)
                       }
-                      className="border-blue-600 text-blue-700 hover:bg-blue-50"
+                      className="border-[#0e3a45] text-[#0e3a45] hover:bg-[#0e3a45]/[0.04]"
                     >
                       Exportar Propuestas CSV
                     </Button>
@@ -538,7 +399,7 @@ export default function AdminDashboard() {
                       onPress={() =>
                         exportWorkerStats(workers, adminData.companyName)
                       }
-                      className="border-purple-600 text-purple-700 hover:bg-purple-50"
+                      className="border-[#0e3a45] text-[#0e3a45] hover:bg-[#0e3a45]/[0.04]"
                     >
                       Exportar Trabajadores CSV
                     </Button>
@@ -646,23 +507,10 @@ export default function AdminDashboard() {
                       />
                     </div>
 
-                    {/* Separador y título para métricas del marketplace */}
-                    <div className="mt-12 mb-8">
-                      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-                        <div className="flex items-center gap-4">
-                          <div className="p-3 bg-gradient-to-br from-green-500 to-green-600 rounded-xl shadow-sm">
-                            <Store className="w-6 h-6 text-white" />
-                          </div>
-                          <div className="flex-1">
-                            <h3 className="text-xl font-bold text-gray-900">
-                              Métricas del Marketplace
-                            </h3>
-                            <p className="text-sm text-gray-500 mt-1">
-                              Estadísticas del mercado de préstamos
-                            </p>
-                          </div>
-                        </div>
-                      </div>
+                    <div className="mt-10 mb-6 flex items-center gap-3">
+                      <Store className="w-4 h-4 text-gray-400" />
+                      <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-widest">Métricas del Marketplace</h3>
+                      <div className="flex-1 h-px bg-gray-200" />
                     </div>
 
                     {/* Métricas del Marketplace */}
@@ -671,28 +519,15 @@ export default function AdminDashboard() {
                       loading={marketplaceLoading}
                     />
 
-                    {/* Comparison Analysis Section */}
-                    <div className="mt-12 mb-8">
-                      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-                        <div className="flex items-center gap-4">
-                          <div className="p-3 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl shadow-sm">
-                            <TrendingUp className="w-6 h-6 text-white" />
-                          </div>
-                          <div className="flex-1">
-                            <h3 className="text-xl font-bold text-gray-900">
-                              Análisis Competitivo de Propuestas
-                            </h3>
-                            <p className="text-sm text-gray-500 mt-1">
-                              Comparación de tus propuestas vs las propuestas aceptadas por los clientes
-                            </p>
-                          </div>
-                        </div>
-                      </div>
+                    <div className="mt-10 mb-6 flex items-center gap-3">
+                      <TrendingUp className="w-4 h-4 text-gray-400" />
+                      <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-widest">Análisis Competitivo</h3>
+                      <div className="flex-1 h-px bg-gray-200" />
                     </div>
 
                     {isLoadingComparisons ? (
                       <div className="flex items-center justify-center py-12">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mr-3"></div>
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0e3a45] mr-3"></div>
                         <span className="text-gray-500">Cargando análisis competitivo...</span>
                       </div>
                     ) : comparisons.length > 0 ? (
@@ -727,7 +562,110 @@ export default function AdminDashboard() {
               </div>
             )}
 
-            {activeTab === "marketplace" && <AdminMarketplaceView />}
+            {activeTab === "marketplace" && <AdminMarketplaceView loans={marketplaceLoans} loading={marketplaceLoading} />}
+
+            {activeTab === "settings" && (
+              <div className="max-w-4xl mx-auto">
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                  <div className="h-1 bg-green-500 w-full" />
+                  <div className="p-6 space-y-8">
+                    <div>
+                      <h3 className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-4">
+                        Información de la Empresa
+                      </h3>
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-xl bg-[#0e3a45]/[0.08] flex items-center justify-center flex-shrink-0">
+                          <Building2 className="w-6 h-6 text-[#0e3a45]" />
+                        </div>
+                        <div>
+                          <p className="text-base font-semibold text-gray-900">{adminData.companyName}</p>
+                          <div className="flex items-center gap-2 mt-1">
+                            <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-[#0e3a45]/[0.08] text-[#0e3a45] uppercase tracking-wide">
+                              Administrador
+                            </span>
+                            <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-green-100 text-green-700 uppercase tracking-wide">
+                              Activa
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="border-t border-gray-100 pt-8">
+                      <h3 className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-4">
+                        Notificaciones
+                      </h3>
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                          <div className="flex items-center gap-3">
+                            <div className="w-9 h-9 rounded-full bg-[#0e3a45]/[0.08] flex items-center justify-center">
+                              <Mail className="w-4 h-4 text-[#0e3a45]" />
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium text-gray-900">Notificaciones por correo</p>
+                              <p className="text-xs text-gray-500">Recibe alertas sobre actividad de tu equipo</p>
+                            </div>
+                          </div>
+                          <Switch color="success" size="sm" defaultSelected />
+                        </div>
+                        <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                          <div className="flex items-center gap-3">
+                            <div className="w-9 h-9 rounded-full bg-[#0e3a45]/[0.08] flex items-center justify-center">
+                              <Bell className="w-4 h-4 text-[#0e3a45]" />
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium text-gray-900">Notificaciones en la plataforma</p>
+                              <p className="text-xs text-gray-500">Siempre recibirás notificaciones dentro del panel</p>
+                            </div>
+                          </div>
+                          <span className="px-2.5 py-1 bg-green-100 text-green-700 text-xs font-semibold rounded-full">
+                            Siempre activas
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="border-t border-gray-100 pt-6">
+                      <p className="text-sm text-gray-500 bg-gray-50 rounded-lg p-3 text-center">
+                        Para modificar información de la empresa, contacta al super administrador.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === "help" && (
+              <div className="max-w-4xl mx-auto">
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                  <div className="h-1 bg-green-500 w-full" />
+                  <div className="p-6">
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <div className="p-5 bg-[#0e3a45]/[0.04] border border-[#0e3a45]/10 rounded-xl">
+                        <div className="w-9 h-9 rounded-lg bg-[#0e3a45]/[0.08] flex items-center justify-center mb-3">
+                          <BookOpen className="w-4 h-4 text-[#0e3a45]" />
+                        </div>
+                        <h3 className="text-sm font-semibold text-[#0e3a45] mb-2">¿Cómo funciona?</h3>
+                        <p className="text-sm text-gray-600">
+                          Gestiona tu equipo de trabajadores, monitorea el marketplace y analiza el rendimiento
+                          competitivo de las propuestas enviadas por tu institución.
+                        </p>
+                      </div>
+                      <div className="p-5 bg-gray-50 border border-gray-200 rounded-xl">
+                        <div className="w-9 h-9 rounded-lg bg-gray-200 flex items-center justify-center mb-3">
+                          <Headphones className="w-4 h-4 text-gray-600" />
+                        </div>
+                        <h3 className="text-sm font-semibold text-gray-800 mb-2">Soporte Técnico</h3>
+                        <p className="text-sm text-gray-600 mb-3">
+                          ¿Tienes problemas con la plataforma? Nuestro equipo está disponible para ayudarte.
+                        </p>
+                        <p className="text-xs font-medium text-gray-500">soporte@buscocredito.mx</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </main>
         </div>
       </div>
@@ -793,9 +731,10 @@ export default function AdminDashboard() {
               Cancelar
             </Button>
             <Button
-              color="success"
               onPress={handleCreateSubaccount}
               isLoading={isCreating}
+              style={{ backgroundColor: "#0e3a45" }}
+              className="text-white"
             >
               Crear
             </Button>

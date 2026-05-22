@@ -19,12 +19,12 @@ interface ProfessionalMetricsCardProps {
 
 const variantStyles = {
   primary: {
-    iconBg: "bg-gradient-to-br from-blue-500 to-blue-600",
+    iconBg: "bg-[#0e3a45]",
     iconColor: "text-white",
-    accentColor: "text-blue-600",
+    accentColor: "text-[#0e3a45]",
     trendPositive: "text-emerald-600 bg-emerald-50",
     trendNegative: "text-red-600 bg-red-50",
-    borderAccent: "border-blue-200"
+    borderAccent: "border-gray-200"
   },
   secondary: {
     iconBg: "bg-gradient-to-br from-slate-500 to-slate-600",
@@ -134,7 +134,7 @@ export const ProfessionalMetricsCard = ({
         )}
 
         {/* Decorative accent line */}
-        <div className={`absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r ${styles.iconBg}`}></div>
+        <div className="absolute bottom-0 left-0 right-0 h-1 bg-green-500"></div>
       </CardBody>
     </Card>
   );
