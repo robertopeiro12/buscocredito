@@ -11,14 +11,9 @@ import {
   ModalHeader,
   ModalBody,
   ModalFooter,
-  Spinner,
-  Chip,
   Switch,
 } from "@heroui/react";
 import {
-  Search,
-  PlusCircle,
-  User,
   Store,
   Activity,
   TrendingUp,
@@ -33,8 +28,6 @@ import {
 import { AdminSidebarUpdated } from "@/components/features/dashboard/AdminSidebarUpdated";
 import { AdminHeader } from "@/components/features/dashboard/AdminHeader";
 import { AdminLoadingSkeletons } from "@/components/features/dashboard/AdminLoadingSkeletons";
-import { SubaccountCard } from "@/components/features/dashboard/SubaccountCard";
-import { EnhancedSubaccountCard } from "@/components/features/dashboard/EnhancedSubaccountCard";
 import { WorkersTable } from "@/components/features/dashboard/WorkersTable";
 import { MetricsHeader } from "@/components/admin/MetricsHeader";
 import { EmptyMetricsState } from "@/components/admin/EmptyMetricsState";
@@ -60,7 +53,6 @@ export default function AdminDashboard() {
     // Auth states
     isAuthorized,
     isCheckingAuth,
-    userEmail,
     adminData,
 
     // UI states
@@ -68,11 +60,9 @@ export default function AdminDashboard() {
     setActiveTab,
     isModalOpen,
     setIsModalOpen,
-    isLoading,
     isCreating,
 
     // Subaccounts states
-    filteredSubaccounts,
     searchTerm,
     setSearchTerm,
     newSubaccount,
@@ -96,7 +86,6 @@ export default function AdminDashboard() {
 
     // Action handlers
     handleCreateSubaccount,
-    handleDeleteSubaccount,
     handleSignOut,
     handleOpenDateRangeModal,
     handleDateRangeConfirm,
@@ -117,13 +106,10 @@ export default function AdminDashboard() {
     workers,
     setWorkers,
     summary,
-    activities,
     isLoading: isLoadingWorkers,
     statsError,
     activityError,
-    hasError: workersHasError,
     refresh: refreshWorkers,
-    getActiveWorkers,
     formatLastActivity,
   } = useWorkerStats({ period: workersPeriod });
 

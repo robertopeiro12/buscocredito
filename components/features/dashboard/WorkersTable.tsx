@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import toast from "react-hot-toast";
 import {
   Button,
@@ -77,10 +77,6 @@ export function WorkersTable({
   const [isDeleting, setIsDeleting] = useState(false);
   const { isOpen, onOpen, onClose } = useDisclosure();
 
-  useEffect(() => {
-    setPage(1);
-  }, [searchTerm, period]);
-
   const filteredWorkers = workers.filter(
     (w) =>
       searchTerm === "" ||
@@ -142,7 +138,7 @@ export function WorkersTable({
                 "bg-white border border-gray-200 hover:border-gray-300 shadow-sm",
             }}
             value={searchTerm}
-            onChange={(e) => onSearchChange(e.target.value)}
+            onChange={(e) => { onSearchChange(e.target.value); setPage(1); }}
           />
         </div>
 
@@ -150,7 +146,7 @@ export function WorkersTable({
           {/* Period toggle */}
           <div className="flex rounded-lg border border-gray-200 bg-gray-50 p-0.5 gap-0.5">
             <button
-              onClick={() => onPeriodChange("month")}
+              onClick={() => { onPeriodChange("month"); setPage(1); }}
               className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${
                 period === "month"
                   ? "bg-[#0e3a45] text-white shadow-sm"
@@ -160,7 +156,7 @@ export function WorkersTable({
               Este mes
             </button>
             <button
-              onClick={() => onPeriodChange("all")}
+              onClick={() => { onPeriodChange("all"); setPage(1); }}
               className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${
                 period === "all"
                   ? "bg-[#0e3a45] text-white shadow-sm"
