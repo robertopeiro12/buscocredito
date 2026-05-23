@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
+import toast from "react-hot-toast";
 import {
   Button,
   Input,
@@ -102,9 +103,15 @@ export function WorkersTable({
     if (!deleteTarget) return;
     setIsDeleting(true);
     try {
+      const { auth } = await import("@/app/firebase");
+      const token = await auth.currentUser?.getIdToken();
       const response = await fetch("/api/users/subaccounts/delete", {
         method: "DELETE",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        credentials: "include",
         body: JSON.stringify({ userId: deleteTarget.id }),
       });
       if (!response.ok) {
@@ -114,7 +121,7 @@ export function WorkersTable({
       onDelete(deleteTarget.id);
       onClose();
     } catch (err: any) {
-      alert(`Error al eliminar: ${err.message}`);
+      toast.error(`Error al eliminar: ${err.message}`);
     } finally {
       setIsDeleting(false);
       setDeleteTarget(null);
@@ -381,7 +388,7 @@ export function WorkersTable({
           <ModalFooter>
             <Button
               variant="light"
-              onPress={onClose}
+              onPress={() => { onClose(); setDeleteTarget(null); }}
               isDisabled={isDeleting}
             >
               Cancelar
