@@ -115,15 +115,15 @@ const AdminLoanRequestCard = ({
               )}
               <div>
                 <p className="text-[10px] uppercase tracking-wide text-gray-400">País</p>
-                <p className="text-sm font-semibold text-gray-800">{userData?.country || "N/D"}</p>
+                <p className="text-sm font-semibold text-gray-800">{userData?.country || "—"}</p>
               </div>
               <div>
                 <p className="text-[10px] uppercase tracking-wide text-gray-400">Estado</p>
-                <p className="text-sm font-semibold text-gray-800">{userData?.state || "N/D"}</p>
+                <p className="text-sm font-semibold text-gray-800">{userData?.state || "—"}</p>
               </div>
               <div>
                 <p className="text-[10px] uppercase tracking-wide text-gray-400">Ciudad</p>
-                <p className="text-sm font-semibold text-gray-800">{userData?.city || "N/D"}</p>
+                <p className="text-sm font-semibold text-gray-800">{userData?.city || "—"}</p>
               </div>
             </div>
           </div>

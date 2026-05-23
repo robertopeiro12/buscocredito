@@ -2,6 +2,7 @@
 
 import { ComparisonSummary } from "@/hooks/useProposalComparison";
 import { Trophy, TrendingDown, Percent, BarChart3 } from "lucide-react";
+import { ProfessionalMetricsCard } from "./ProfessionalMetricsCard";
 
 interface Props {
   summary: ComparisonSummary;
@@ -11,45 +12,45 @@ export function ComparisonSummaryCards({ summary }: Props) {
   const cards = [
     {
       label: "Tasa de Éxito",
-      value: `${summary.winRate.toFixed(1)}%`,
       subtitle: `${summary.totalWins} de ${summary.totalProposals} ganadas`,
+      value: `${summary.winRate.toFixed(1)}%`,
       icon: Trophy,
+      variant: "success" as const,
     },
     {
       label: "Dif. Amortización Prom.",
-      value: `${summary.avgAmortizationDiff > 0 ? "+" : ""}${summary.avgAmortizationDiff.toFixed(2)}%`,
       subtitle: `${summary.proposalsWithComparison} propuestas comparadas`,
+      value: `${summary.avgAmortizationDiff > 0 ? "+" : ""}${summary.avgAmortizationDiff.toFixed(2)}%`,
       icon: BarChart3,
+      variant: "info" as const,
     },
     {
       label: "Dif. Tasa de Interés Prom.",
-      value: `${summary.avgInterestRateDiff > 0 ? "+" : ""}${summary.avgInterestRateDiff.toFixed(2)} pp`,
       subtitle: "Puntos porcentuales vs aceptada",
+      value: `${summary.avgInterestRateDiff > 0 ? "+" : ""}${summary.avgInterestRateDiff.toFixed(2)} pp`,
       icon: Percent,
+      variant: "warning" as const,
     },
     {
       label: "Dif. Monto Prom.",
-      value: `${summary.avgAmountDiff > 0 ? "+" : ""}${summary.avgAmountDiff.toFixed(2)}%`,
       subtitle: "Tu monto vs el aceptado",
+      value: `${summary.avgAmountDiff > 0 ? "+" : ""}${summary.avgAmountDiff.toFixed(2)}%`,
       icon: TrendingDown,
+      variant: "primary" as const,
     },
   ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
       {cards.map((card) => (
-        <div key={card.label} className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs text-gray-500 uppercase tracking-wide font-medium">{card.label}</p>
-              <p className="text-3xl font-bold text-gray-900 mt-1">{card.value}</p>
-              <p className="text-xs text-gray-400 mt-1">{card.subtitle}</p>
-            </div>
-            <div className="p-3 bg-gray-100 rounded-xl">
-              <card.icon className="w-6 h-6 text-gray-500" />
-            </div>
-          </div>
-        </div>
+        <ProfessionalMetricsCard
+          key={card.label}
+          title={card.label}
+          subtitle={card.subtitle}
+          value={card.value}
+          icon={card.icon}
+          variant={card.variant}
+        />
       ))}
     </div>
   );

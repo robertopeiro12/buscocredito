@@ -1,5 +1,6 @@
 import { Button } from "@heroui/react";
-import { Users, Settings, HelpCircle, BarChart, CreditCard, Store } from "lucide-react";
+import { Users, Settings, HelpCircle, BarChart, Store } from "lucide-react";
+import Image from "next/image";
 
 type AdminSidebarProps = {
   activeTab: string;
@@ -16,61 +17,39 @@ export function AdminSidebarUpdated({
     `w-full justify-start h-12 px-4 mb-2 transition-all duration-200 ease-in-out ${
       activeTab === tab
         ? "bg-[#0e3a45]/[0.08] text-[#0e3a45] border-r-[3px] border-[#0e3a45] font-semibold"
-        : "bg-transparent text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+        : "bg-transparent text-gray-500 hover:bg-gray-50 hover:text-gray-900"
     }`;
 
   const navItems = [
-    {
-      icon: Users,
-      label: "Subcuentas",
-      id: "subaccounts",
-      description: "Gestiona vendedores"
-    },
-    {
-      icon: BarChart,
-      label: "Métricas",
-      id: "metrics",
-      description: "Análisis y estadísticas"
-    },
-    {
-      icon: Store,
-      label: "Mercado",
-      id: "marketplace",
-      description: "Monitorea solicitudes"
-    },
-    {
-      icon: Settings,
-      label: "Configuración",
-      id: "settings",
-      description: "Perfil y preferencias"
-    },
-    {
-      icon: HelpCircle,
-      label: "Ayuda",
-      id: "help",
-      description: "Soporte y FAQ"
-    },
+    { icon: Users,      label: "Subcuentas",    id: "subaccounts", description: "Gestiona vendedores" },
+    { icon: BarChart,   label: "Métricas",      id: "metrics",     description: "Análisis y estadísticas" },
+    { icon: Store,      label: "Mercado",        id: "marketplace", description: "Monitorea solicitudes" },
+    { icon: Settings,   label: "Configuración", id: "settings",    description: "Perfil y preferencias" },
+    { icon: HelpCircle, label: "Ayuda",          id: "help",        description: "Soporte y FAQ" },
   ];
 
   return (
     <div className="w-64 bg-white border-r border-gray-200 shadow-sm h-screen fixed left-0 top-0 z-10 hidden md:block">
       <div className="flex flex-col h-full">
-        {/* Header Section */}
-        <div className="p-6 border-b border-gray-100">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-[#0e3a45] flex items-center justify-center shadow-md">
-              <CreditCard className="w-5 h-5 text-white" />
-            </div>
-            <div>
-              <h1 className="text-lg font-bold text-gray-900">
-                BuscoCredito
-              </h1>
-              <p className="text-sm text-gray-500">Panel Administrativo</p>
-            </div>
-          </div>
+        {/* Header */}
+        <div className="px-5 py-5 border-b border-gray-100">
+          <Image
+            src="/img/logo-buscocredito.png"
+            alt="BuscoCrédito"
+            width={160}
+            height={68}
+            className="h-11 w-auto"
+            priority
+          />
+          {companyName && (
+            <p className="text-sm font-semibold text-gray-800 truncate mt-2">{companyName}</p>
+          )}
+          <p className="text-[11px] uppercase tracking-wide text-gray-400 mt-0.5 font-medium">
+            Panel Administrativo
+          </p>
         </div>
-        
-        {/* Navigation Menu */}
+
+        {/* Navigation */}
         <nav className="flex-1 px-4 py-6">
           <div className="space-y-2">
             {navItems.map((item) => (
@@ -91,15 +70,7 @@ export function AdminSidebarUpdated({
             ))}
           </div>
         </nav>
-        
-        {/* Footer Section */}
-        <div className="p-4 border-t border-gray-100">
-          <div className="px-4 py-2.5 bg-[#0e3a45]/5 rounded-lg flex items-center gap-2">
-            <p className="text-[11px] text-[#0e3a45]/60 font-medium tracking-wide uppercase">
-              Panel Administrativo
-            </p>
-          </div>
-        </div>
+
       </div>
     </div>
   );

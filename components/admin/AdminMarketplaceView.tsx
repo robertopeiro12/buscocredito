@@ -124,10 +124,12 @@ const AdminMarketplaceView = ({ loans: loanRequests, loading: isLoading }: Admin
     currentPage * ITEMS_PER_PAGE
   );
 
+  const hasActiveFilters = Object.values(filters).some((v) => v && v !== "all");
+
   if (isLoading) return <LenderLoadingSkeletons.MarketplaceGrid />;
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6">
+    <div className="max-w-7xl mx-auto space-y-5">
       <LenderFilters
         filters={filters}
         onFilterChange={handleFilterChange}
@@ -135,20 +137,37 @@ const AdminMarketplaceView = ({ loans: loanRequests, loading: isLoading }: Admin
       />
 
       {filteredRequests.length === 0 ? (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
-          <Store className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-gray-600 mb-2">
-            No hay solicitudes
+        <div className="text-center py-20">
+          <div className="w-20 h-20 mx-auto mb-5 rounded-full bg-[#0e3a45]/[0.06] flex items-center justify-center">
+            <Store className="w-9 h-9 text-[#0e3a45]/40" />
+          </div>
+          <h3 className="text-base font-semibold text-gray-700 mb-1.5">
+            {hasActiveFilters ? "Sin resultados" : "No hay solicitudes"}
           </h3>
-          <p className="text-sm text-gray-500">
-            {Object.values(filters).some((v) => v && v !== "all")
-              ? "No se encontraron solicitudes con los filtros aplicados."
-              : "Aún no hay solicitudes de préstamos en el marketplace."}
+          <p className="text-sm text-gray-400 max-w-xs mx-auto">
+            {hasActiveFilters
+              ? "Ninguna solicitud coincide con los filtros aplicados."
+              : "Las solicitudes pendientes del mercado aparecerán aquí."}
           </p>
         </div>
       ) : (
         <>
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <div className="flex items-center justify-between px-0.5">
+            <p className="text-[10px] uppercase tracking-widest text-gray-400 font-semibold">
+              {filteredRequests.length}{" "}
+              {filteredRequests.length === 1 ? "solicitud" : "solicitudes"}
+              {hasActiveFilters && (
+                <span className="ml-1 text-[#0e3a45]/60">· filtradas</span>
+              )}
+            </p>
+            {totalPages > 1 && (
+              <p className="text-[10px] uppercase tracking-widest text-gray-400">
+                Pág. {currentPage} / {totalPages}
+              </p>
+            )}
+          </div>
+
+          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
             {paginatedRequests.map((request, index) => (
               <AdminLoanRequestCard
                 key={request.id}
@@ -158,11 +177,14 @@ const AdminMarketplaceView = ({ loans: loanRequests, loading: isLoading }: Admin
               />
             ))}
           </div>
-          <MarketplacePagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={setCurrentPage}
-          />
+
+          {totalPages > 1 && (
+            <MarketplacePagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+            />
+          )}
         </>
       )}
     </div>

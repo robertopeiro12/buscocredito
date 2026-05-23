@@ -58,10 +58,10 @@ export const InterestRateCard = ({
             }
             return 0;
           }),
-        backgroundColor: "rgba(99, 102, 241, 0.8)",
-        borderColor: "rgb(67, 56, 202)",
-        borderWidth: 1,
-        borderRadius: 6,
+        backgroundColor: "rgba(245, 158, 11, 0.75)",
+        borderColor: "rgb(245, 158, 11)",
+        borderWidth: 0,
+        borderRadius: 5,
       },
     ],
   };

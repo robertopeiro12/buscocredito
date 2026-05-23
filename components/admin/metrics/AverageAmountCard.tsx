@@ -58,10 +58,10 @@ export const AverageAmountCard = ({
             }
             return 0;
           }),
-        backgroundColor: "rgba(168, 85, 247, 0.8)",
-        borderColor: "rgb(124, 58, 237)",
-        borderWidth: 1,
-        borderRadius: 6,
+        backgroundColor: "rgba(16, 185, 129, 0.75)",
+        borderColor: "rgb(16, 185, 129)",
+        borderWidth: 0,
+        borderRadius: 5,
       },
     ],
   };

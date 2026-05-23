@@ -53,11 +53,11 @@ export const TotalProposalsCard = ({
             return year1 * 12 + month1 - (year2 * 12 + month2);
           })
           .map(([_, data]) => data.proposals),
-        backgroundColor: "rgba(34, 197, 94, 0.8)",
-        borderColor: "rgb(21, 128, 61)",
-        borderWidth: 1,
-        borderRadius: 6,
-        hoverBackgroundColor: "rgba(34, 197, 94, 1)",
+        backgroundColor: "rgba(99, 102, 241, 0.75)",
+        borderColor: "rgb(99, 102, 241)",
+        borderWidth: 0,
+        borderRadius: 5,
+        hoverBackgroundColor: "rgba(99, 102, 241, 1)",
       },
     ],
   };

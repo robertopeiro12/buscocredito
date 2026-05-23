@@ -99,14 +99,6 @@ export function LenderSidebar({
           </div>
         </nav>
 
-        <div className="p-4 border-t border-gray-100">
-          <div className="px-4 py-2.5 bg-[#0e3a45]/5 rounded-lg flex items-center gap-2">
-            <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse flex-shrink-0" />
-            <p className="text-[11px] text-[#0e3a45]/60 font-medium tracking-wide">
-              Plataforma segura
-            </p>
-          </div>
-        </div>
       </div>
     </div>
   );

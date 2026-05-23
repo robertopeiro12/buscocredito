@@ -3,8 +3,6 @@ import { useState } from "react";
 import "@/lib/chart-config"; // Registrar componentes de Chart.js
 import {
   Button,
-  Card,
-  CardBody,
   Input,
   Modal,
   ModalContent,
@@ -42,6 +40,7 @@ import { AmortizationComparisonChart } from "@/components/admin/metrics/Amortiza
 import { InterestRateComparisonChart } from "@/components/admin/metrics/InterestRateComparisonChart";
 import { ProposalDetailsTable } from "@/components/admin/metrics/ProposalDetailsTable";
 import { ComparisonSummaryCards } from "@/components/admin/metrics/ComparisonSummaryCards";
+import { ProfessionalMetricsCard } from "@/components/admin/metrics/ProfessionalMetricsCard";
 import { useAdminDashboard } from "@/hooks/useAdminDashboard";
 import { useProposalComparison } from "@/hooks/useProposalComparison";
 import { exportProposalsData, exportWorkerStats } from "@/utils/exportCsv";
@@ -182,62 +181,32 @@ export default function AdminDashboard() {
               <div className="max-w-7xl mx-auto">
                 <div className="space-y-6">
                   {/* Stats cards */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <Card className="bg-white border border-gray-200 shadow-sm">
-                      <CardBody className="p-5">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-xs text-gray-500 uppercase tracking-wide font-medium">Total Trabajadores</p>
-                            <p className="text-3xl font-bold text-gray-900 mt-1">{workers?.length || 0}</p>
-                          </div>
-                          <div className="p-3 bg-gray-100 rounded-xl">
-                            <Users className="w-6 h-6 text-gray-500" />
-                          </div>
-                        </div>
-                      </CardBody>
-                    </Card>
-
-                    <Card className="bg-white border border-gray-200 shadow-sm">
-                      <CardBody className="p-5">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-xs text-gray-500 uppercase tracking-wide font-medium">Activos (7 días)</p>
-                            <p className="text-3xl font-bold text-gray-900 mt-1">{getActiveWorkersCount()}</p>
-                          </div>
-                          <div className="p-3 bg-gray-100 rounded-xl">
-                            <Activity className="w-6 h-6 text-gray-500" />
-                          </div>
-                        </div>
-                      </CardBody>
-                    </Card>
-
-                    <Card className="bg-white border border-gray-200 shadow-sm">
-                      <CardBody className="p-5">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-xs text-gray-500 uppercase tracking-wide font-medium">Propuestas Enviadas</p>
-                            <p className="text-3xl font-bold text-gray-900 mt-1">{getTotalPropuestasEnviadas()}</p>
-                          </div>
-                          <div className="p-3 bg-gray-100 rounded-xl">
-                            <TrendingUp className="w-6 h-6 text-gray-500" />
-                          </div>
-                        </div>
-                      </CardBody>
-                    </Card>
-
-                    <Card className="bg-white border border-gray-200 shadow-sm">
-                      <CardBody className="p-5">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-xs text-gray-500 uppercase tracking-wide font-medium">Tasa de Aceptación</p>
-                            <p className="text-3xl font-bold text-gray-900 mt-1">{getAverageApprovalRate()}%</p>
-                          </div>
-                          <div className="p-3 bg-gray-100 rounded-xl">
-                            <Store className="w-6 h-6 text-gray-500" />
-                          </div>
-                        </div>
-                      </CardBody>
-                    </Card>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                    <ProfessionalMetricsCard
+                      title="Total Trabajadores"
+                      value={String(workers?.length || 0)}
+                      icon={Users}
+                      variant="primary"
+                    />
+                    <ProfessionalMetricsCard
+                      title="Activos"
+                      subtitle="Últimos 7 días"
+                      value={String(getActiveWorkersCount())}
+                      icon={Activity}
+                      variant="success"
+                    />
+                    <ProfessionalMetricsCard
+                      title="Propuestas Enviadas"
+                      value={String(getTotalPropuestasEnviadas())}
+                      icon={TrendingUp}
+                      variant="info"
+                    />
+                    <ProfessionalMetricsCard
+                      title="Tasa de Aceptación"
+                      value={`${getAverageApprovalRate()}%`}
+                      icon={Store}
+                      variant="warning"
+                    />
                   </div>
 
                   <WorkersTable
@@ -265,35 +234,10 @@ export default function AdminDashboard() {
                   selectedTimeRange={selectedTimeRange}
                   setSelectedTimeRange={setSelectedTimeRange}
                   handleOpenDateRangeModal={handleOpenDateRangeModal}
+                  showExports={!isLoadingMetrics && metricsData.totalProposals > 0}
+                  onExportProposals={() => exportProposalsData(rawProposals, adminData.companyName, workerNameMap)}
+                  onExportWorkers={() => exportWorkerStats(workers, adminData.companyName)}
                 />
-
-                {/* Export buttons */}
-                {!isLoadingMetrics && metricsData.totalProposals > 0 && (
-                  <div className="flex flex-wrap gap-3 mb-6">
-                    <Button
-                      size="sm"
-                      variant="bordered"
-                      startContent={<Download className="w-4 h-4" />}
-                      onPress={() =>
-                        exportProposalsData(rawProposals, adminData.companyName, workerNameMap)
-                      }
-                      className="border-[#0e3a45] text-[#0e3a45] hover:bg-[#0e3a45]/[0.04]"
-                    >
-                      Exportar Propuestas CSV
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="bordered"
-                      startContent={<Download className="w-4 h-4" />}
-                      onPress={() =>
-                        exportWorkerStats(workers, adminData.companyName)
-                      }
-                      className="border-[#0e3a45] text-[#0e3a45] hover:bg-[#0e3a45]/[0.04]"
-                    >
-                      Exportar Trabajadores CSV
-                    </Button>
-                  </div>
-                )}
 
                 {isLoadingMetrics ? (
                   <AdminLoadingSkeletons.MetricsCards />
@@ -301,7 +245,7 @@ export default function AdminDashboard() {
                   <EmptyMetricsState />
                 ) : (
                   <div className="transition-all duration-300 ease-in-out">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                       {/* Total de propuestas */}
                       <TotalProposalsCard
                         metricsData={metricsData}
@@ -314,18 +258,18 @@ export default function AdminDashboard() {
                         data={metricsData.loanTypeDistribution}
                         colors={{
                           backgroundColor: [
-                            "rgba(99, 102, 241, 0.85)",
-                            "rgba(245, 158, 11, 0.85)",
-                            "rgba(239, 68, 68, 0.85)",
-                            "rgba(20, 184, 166, 0.85)",
-                            "rgba(236, 72, 153, 0.85)",
+                            "rgba(99, 102, 241, 0.82)",
+                            "rgba(245, 158, 11, 0.82)",
+                            "rgba(16, 185, 129, 0.82)",
+                            "rgba(244, 63, 94, 0.82)",
+                            "rgba(14, 165, 233, 0.82)",
                           ],
                           borderColor: [
-                            "rgb(79, 70, 229)",
-                            "rgb(180, 83, 9)",
-                            "rgb(185, 28, 28)",
-                            "rgb(13, 148, 136)",
-                            "rgb(219, 39, 119)",
+                            "rgb(99, 102, 241)",
+                            "rgb(245, 158, 11)",
+                            "rgb(16, 185, 129)",
+                            "rgb(244, 63, 94)",
+                            "rgb(14, 165, 233)",
                           ],
                         }}
                         chartOptions={metricsData.chartOptions?.pie}
@@ -339,18 +283,18 @@ export default function AdminDashboard() {
                         data={metricsData.purposeDistribution}
                         colors={{
                           backgroundColor: [
-                            "rgba(245, 158, 11, 0.85)",
-                            "rgba(239, 68, 68, 0.85)",
-                            "rgba(99, 102, 241, 0.85)",
-                            "rgba(20, 184, 166, 0.85)",
-                            "rgba(236, 72, 153, 0.85)",
+                            "rgba(99, 102, 241, 0.82)",
+                            "rgba(245, 158, 11, 0.82)",
+                            "rgba(16, 185, 129, 0.82)",
+                            "rgba(244, 63, 94, 0.82)",
+                            "rgba(14, 165, 233, 0.82)",
                           ],
                           borderColor: [
-                            "rgb(180, 83, 9)",
-                            "rgb(185, 28, 28)",
-                            "rgb(79, 70, 229)",
-                            "rgb(13, 148, 136)",
-                            "rgb(219, 39, 119)",
+                            "rgb(99, 102, 241)",
+                            "rgb(245, 158, 11)",
+                            "rgb(16, 185, 129)",
+                            "rgb(244, 63, 94)",
+                            "rgb(14, 165, 233)",
                           ],
                         }}
                         chartOptions={metricsData.chartOptions?.pie}
@@ -364,18 +308,18 @@ export default function AdminDashboard() {
                         data={metricsData.paymentFrequencyDistribution}
                         colors={{
                           backgroundColor: [
-                            "rgba(245, 158, 11, 0.85)",
-                            "rgba(239, 68, 68, 0.85)",
-                            "rgba(245, 158, 11, 0.85)",
-                            "rgba(139, 92, 246, 0.85)",
-                            "rgba(239, 68, 68, 0.85)",
+                            "rgba(99, 102, 241, 0.82)",
+                            "rgba(245, 158, 11, 0.82)",
+                            "rgba(16, 185, 129, 0.82)",
+                            "rgba(244, 63, 94, 0.82)",
+                            "rgba(14, 165, 233, 0.82)",
                           ],
                           borderColor: [
-                            "rgb(180, 83, 9)",
-                            "rgb(185, 28, 28)",
-                            "rgb(180, 83, 9)",
-                            "rgb(109, 40, 217)",
-                            "rgb(185, 28, 28)",
+                            "rgb(99, 102, 241)",
+                            "rgb(245, 158, 11)",
+                            "rgb(16, 185, 129)",
+                            "rgb(244, 63, 94)",
+                            "rgb(14, 165, 233)",
                           ],
                         }}
                         chartOptions={metricsData.chartOptions?.pie}

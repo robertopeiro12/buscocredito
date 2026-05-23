@@ -149,10 +149,6 @@ const LenderHeader = ({
             <p className="text-gray-500 text-sm">{getDescription()}</p>
           </div>
           <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-              <span className="text-sm text-gray-500">En línea</span>
-            </div>
             {onSignOut && (
               <Button
                 variant="light"

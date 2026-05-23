@@ -1,5 +1,6 @@
 "use client";
 
+import { useRef } from "react";
 import { Line } from "react-chartjs-2";
 import { ProposalComparisonItem } from "@/hooks/useProposalComparison";
 
@@ -8,46 +9,51 @@ interface Props {
 }
 
 export function AmortizationComparisonChart({ comparisons }: Props) {
-  // Filter to only proposals that have a comparison (lost to another company)
+  // Unified filter: same set as InterestRateComparisonChart so "#N" always refers to the same proposal
   const withComparison = comparisons.filter(
-    (c) => c.hasAccepted && !c.adminWon && c.amortizationDiff !== null
+    (c) => c.hasAccepted && !c.adminWon
   );
+
+  // Ref updated every render — prevents stale closures in Chart.js tooltip callbacks
+  const ref = useRef(withComparison);
+  ref.current = withComparison;
 
   if (withComparison.length === 0) {
     return (
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-        <h3 className="text-lg font-bold text-gray-900 mb-2">
-          Diferencia de Amortización vs Propuesta Aceptada
-        </h3>
-        <p className="text-sm text-gray-500">
-          No hay datos de comparación disponibles. Aparecerán cuando haya
-          solicitudes con propuestas aceptadas por otras empresas.
+        <p className="text-sm font-semibold text-gray-700 mb-1">Diferencia de Amortización</p>
+        <p className="text-sm text-gray-400">
+          Aparecerán cuando haya solicitudes con propuestas aceptadas por otras empresas.
         </p>
       </div>
     );
   }
 
-  const labels = withComparison.map((c) => `#${c.proposalIndex}`);
-  const data = withComparison.map((c) => c.amortizationDiff || 0);
+  const data = withComparison.map((c) => c.amortizationDiff);
+  const validData = data.filter((v): v is number => v !== null);
+  const avgDiff = validData.length > 0
+    ? validData.reduce((a, b) => a + b, 0) / validData.length
+    : 0;
 
   const chartData = {
-    labels,
+    labels: withComparison.map((c) => `#${c.proposalIndex}`),
     datasets: [
       {
         label: "Diferencia de Amortización (%)",
         data,
-        borderColor: "rgb(59, 130, 246)",
-        backgroundColor: "rgba(59, 130, 246, 0.1)",
-        borderWidth: 3,
+        borderColor: "rgb(99, 102, 241)",
+        backgroundColor: "rgba(99, 102, 241, 0.08)",
+        borderWidth: 2.5,
         fill: true,
         tension: 0.4,
         pointBackgroundColor: data.map((v) =>
-          v > 0 ? "rgb(239, 68, 68)" : "rgb(34, 197, 94)"
+          v === null ? "#94a3b8" : v > 0 ? "rgb(244, 63, 94)" : "rgb(16, 185, 129)"
         ),
         pointBorderColor: "#fff",
         pointBorderWidth: 2,
-        pointRadius: 5,
-        pointHoverRadius: 7,
+        pointRadius: 4,
+        pointHoverRadius: 6,
+        spanGaps: false,
       },
     ],
   };
@@ -58,23 +64,35 @@ export function AmortizationComparisonChart({ comparisons }: Props) {
     plugins: {
       legend: { display: false },
       tooltip: {
-        backgroundColor: "rgba(255, 255, 255, 0.95)",
+        backgroundColor: "rgba(255, 255, 255, 0.98)",
         titleColor: "#1f2937",
         bodyColor: "#4b5563",
         borderColor: "#e5e7eb",
         borderWidth: 1,
-        padding: 12,
+        padding: 10,
         callbacks: {
+          title: (contexts: any[]) => {
+            const label = contexts[0]?.label || "";
+            const propIdx = parseInt(label.replace("#", "")) || 0;
+            const item = ref.current.find((c) => c.proposalIndex === propIdx);
+            if (!item) return label;
+            return `${label} · ${item.requestType || item.requestPurpose || "Sin tipo"}`;
+          },
           label: (context: any) => {
+            if (context.raw === null) return "Diferencia: N/D";
             const val = context.raw as number;
-            const sign = val > 0 ? "+" : "";
-            return `Diferencia: ${sign}${val.toFixed(2)}%`;
+            return `Diferencia: ${val > 0 ? "+" : ""}${val.toFixed(2)}%`;
           },
           afterLabel: (context: any) => {
-            const item = withComparison[context.dataIndex];
+            const label = context.label || "";
+            const propIdx = parseInt(label.replace("#", "")) || 0;
+            const item = ref.current.find((c) => c.proposalIndex === propIdx);
+            if (!item) return [];
             return [
-              `Tu amortización: $${item.adminAmortization.toLocaleString()}`,
-              `Aceptada: $${item.acceptedAmortization?.toLocaleString()}`,
+              `Tu amortización: $${item.adminAmortization.toLocaleString("es-MX")}`,
+              item.acceptedAmortization !== null
+                ? `Aceptada: $${item.acceptedAmortization.toLocaleString("es-MX")}`
+                : "Aceptada: N/D",
             ];
           },
         },
@@ -82,51 +100,40 @@ export function AmortizationComparisonChart({ comparisons }: Props) {
     },
     scales: {
       y: {
-        grid: { color: "rgba(0, 0, 0, 0.05)", borderDash: [3, 3] as number[] },
+        grid: { color: "rgba(0,0,0,0.04)", borderDash: [3, 3] as number[] },
         ticks: {
           callback: (value: any) => `${value}%`,
-          font: { size: 11, family: "'Inter', sans-serif" },
-          color: "#64748b",
+          font: { size: 10 },
+          color: "#94a3b8",
         },
       },
       x: {
-        title: {
-          display: true,
-          text: "Propuesta",
-          font: { size: 12, family: "'Inter', sans-serif", weight: "600" as const },
-          color: "#64748b",
-        },
         grid: { display: false },
         ticks: {
-          font: { size: 11, family: "'Inter', sans-serif" },
-          color: "#64748b",
+          font: { size: 10 },
+          color: "#94a3b8",
         },
       },
     },
   };
 
-  const avgDiff =
-    data.reduce((a, b) => a + b, 0) / data.length;
-
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-      <div className="flex items-center justify-between mb-4">
-        <div>
-          <h3 className="text-lg font-bold text-gray-900">
-            Diferencia de Amortización vs Propuesta Aceptada
-          </h3>
-          <p className="text-sm text-gray-500 mt-1">
-            Valores negativos = tu amortización fue menor (más competitiva)
-          </p>
-        </div>
-        <div className="text-right">
-          <p className="text-2xl font-bold text-gray-900">
-            {avgDiff > 0 ? "+" : ""}
-            {avgDiff.toFixed(2)}%
-          </p>
-          <p className="text-xs text-gray-500">Promedio</p>
+      <div className="mb-4">
+        <p className="text-sm font-semibold text-gray-700">Diferencia de Amortización</p>
+        <div className="flex items-center gap-4 mt-1.5">
+          <span className="text-[11px] text-gray-400">
+            Promedio:&nbsp;
+            <span className={`font-semibold ${avgDiff > 0 ? "text-rose-500" : "text-emerald-500"}`}>
+              {avgDiff > 0 ? "+" : ""}{avgDiff.toFixed(2)}%
+            </span>
+          </span>
+          <span className="text-[11px] text-gray-400">
+            Negativo = tu amortización fue <span className="text-emerald-600 font-medium">menor que la aceptada</span> (favorable)
+          </span>
         </div>
       </div>
+
       <div className="h-72">
         <Line data={chartData} options={options as any} />
       </div>
