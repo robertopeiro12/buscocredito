@@ -127,27 +127,27 @@ export function WorkersTable({
   return (
     <>
       {/* ── Header ── */}
-      <div className="flex flex-wrap items-center gap-3 mb-4">
-        <div className="flex-1 min-w-[200px]">
-          <Input
-            type="text"
-            placeholder="Buscar por nombre o email..."
-            startContent={<Search className="text-gray-400 w-4 h-4" />}
-            classNames={{
-              inputWrapper:
-                "bg-white border border-gray-200 hover:border-gray-300 shadow-sm",
-            }}
-            value={searchTerm}
-            onChange={(e) => { onSearchChange(e.target.value); setPage(1); }}
-          />
-        </div>
+      <div className="flex flex-col gap-3 mb-5">
+        {/* Row 1: search */}
+        <Input
+          type="text"
+          placeholder="Buscar por nombre o email..."
+          startContent={<Search className="text-gray-400 w-4 h-4" />}
+          classNames={{
+            inputWrapper:
+              "bg-white border border-gray-200 hover:border-gray-300 shadow-sm",
+          }}
+          value={searchTerm}
+          onChange={(e) => { onSearchChange(e.target.value); setPage(1); }}
+        />
 
-        <div className="flex items-center gap-2 ml-auto">
+        {/* Row 2: actions */}
+        <div className="flex items-center gap-3">
           {/* Period toggle */}
           <div className="flex rounded-lg border border-gray-200 bg-gray-50 p-0.5 gap-0.5">
             <button
               onClick={() => { onPeriodChange("month"); setPage(1); }}
-              className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${
+              className={`px-4 py-1.5 text-xs font-medium rounded-md transition-all ${
                 period === "month"
                   ? "bg-[#0e3a45] text-white shadow-sm"
                   : "text-gray-600 hover:text-gray-900"
@@ -157,7 +157,7 @@ export function WorkersTable({
             </button>
             <button
               onClick={() => { onPeriodChange("all"); setPage(1); }}
-              className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${
+              className={`px-4 py-1.5 text-xs font-medium rounded-md transition-all ${
                 period === "all"
                   ? "bg-[#0e3a45] text-white shadow-sm"
                   : "text-gray-600 hover:text-gray-900"
@@ -166,6 +166,8 @@ export function WorkersTable({
               Todo el tiempo
             </button>
           </div>
+
+          <div className="h-4 w-px bg-gray-200" />
 
           <Button
             variant="flat"
@@ -184,8 +186,8 @@ export function WorkersTable({
             {isLoading ? "Actualizando..." : "Actualizar"}
           </Button>
 
-          <span className="text-sm text-gray-500 whitespace-nowrap">
-            · {workers.length} trabajadores
+          <span className="text-sm text-gray-400 whitespace-nowrap ml-auto">
+            {workers.length} trabajadores
           </span>
 
           <Button
