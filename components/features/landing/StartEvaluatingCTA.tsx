@@ -17,7 +17,7 @@ const StartEvaluatingCTA = () => {
       {/* Right CTA */}
       <div className="md:col-span-1 bg-[#0e3a45] p-12 lg:p-20 flex items-center justify-center">
         <Link
-          href="/soluciones"
+          href="/login"
           className="bg-green-100 text-[#0e3a45] font-bold py-4 px-8 rounded-2xl shadow-xl text-center hover:scale-105 transition transform leading-tight"
         >
           Buscar opciones

@@ -54,7 +54,7 @@ const HowItWorks = () => {
         </div>
 
         <Link
-          href="/soluciones"
+          href="/login"
           className="inline-block bg-green-100 hover:bg-green-200 text-green-900 font-bold py-3 px-10 rounded-full transition shadow-md"
         >
           INICIAR SOLICITUD

@@ -106,14 +106,13 @@ export function useAdminDashboard() {
         setUserEmail(user.email || "");
         fetchUsers(user.uid);
         fetchAdminData(user.uid);
-      } else {
-        router.push("/login");
       }
+      // No redirect here — useRoleGuard handles unauthenticated redirects
     });
 
     // Cleanup function to unsubscribe when component unmounts
     return () => unsubscribe();
-  }, [router]);
+  }, []);
 
   // Fetch admin data
   const fetchAdminData = async (userId: string) => {
@@ -306,14 +305,9 @@ export function useAdminDashboard() {
   const handleSignOut = async () => {
     try {
       await signOut();
-      toast.success("¡Hasta pronto! Sesión cerrada exitosamente", {
-        icon: "👋",
-      });
-      router.push("/login");
     } catch (error) {
-      toast.error("No se pudo cerrar sesión. Intenta nuevamente.", {
-        icon: "❌",
-      });
+      console.error("Error signing out:", error);
+      router.push("/login");
     }
   };
 

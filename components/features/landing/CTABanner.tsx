@@ -51,7 +51,7 @@ const CTABanner = () => {
               </p>
               <div className="flex gap-2 text-sm">
                 <Link
-                  href="/soluciones"
+                  href="/login"
                   className="bg-white text-[#0e3a45] font-bold py-2 px-1.5 rounded-full hover:bg-gray-100 transition shadow-md text-sm md:text-lg text-center"
                 >
                   BUSCAR OPCIONES DE CRÉDITO
