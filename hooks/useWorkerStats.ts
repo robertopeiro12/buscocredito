@@ -63,9 +63,10 @@ export interface ActivityResponse {
 
 export interface UseWorkerStatsOptions {
   autoRefresh?: boolean;
-  refreshInterval?: number; // en segundos
+  refreshInterval?: number;
   enableActivity?: boolean;
   activityLimit?: number;
+  period?: 'month' | 'all';
 }
 
 export function useWorkerStats(options: UseWorkerStatsOptions = {}) {
@@ -73,7 +74,8 @@ export function useWorkerStats(options: UseWorkerStatsOptions = {}) {
     autoRefresh = false,
     refreshInterval = 30,
     enableActivity = false,
-    activityLimit = 20
+    activityLimit = 20,
+    period = 'month',
   } = options;
 
   // Estados para estadísticas
@@ -102,7 +104,7 @@ export function useWorkerStats(options: UseWorkerStatsOptions = {}) {
       setIsLoadingStats(true);
       setStatsError(null);
 
-      const response = await fetch('/api/admin/workers/stats', {
+      const response = await fetch(`/api/admin/workers/stats?period=${period}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -127,7 +129,7 @@ export function useWorkerStats(options: UseWorkerStatsOptions = {}) {
     } finally {
       setIsLoadingStats(false);
     }
-  }, []);
+  }, [period]);
 
   // Función para obtener actividad reciente
   const fetchActivity = useCallback(async (workerId?: string) => {
@@ -250,6 +252,7 @@ export function useWorkerStats(options: UseWorkerStatsOptions = {}) {
   return {
     // Datos
     workers,
+    setWorkers,
     summary,
     activities,
     lastUpdated,
