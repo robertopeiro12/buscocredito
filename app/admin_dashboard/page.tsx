@@ -1,4 +1,5 @@
 "use client";
+import { useState } from "react";
 import "@/lib/chart-config"; // Registrar componentes de Chart.js
 import {
   Button,
@@ -34,6 +35,7 @@ import { AdminHeader } from "@/components/features/dashboard/AdminHeader";
 import { AdminLoadingSkeletons } from "@/components/features/dashboard/AdminLoadingSkeletons";
 import { SubaccountCard } from "@/components/features/dashboard/SubaccountCard";
 import { EnhancedSubaccountCard } from "@/components/features/dashboard/EnhancedSubaccountCard";
+import { WorkersTable } from "@/components/features/dashboard/WorkersTable";
 import { MetricsHeader } from "@/components/admin/MetricsHeader";
 import { EmptyMetricsState } from "@/components/admin/EmptyMetricsState";
 import { DateRangeModal } from "@/components/admin/DateRangeModal";
@@ -109,8 +111,11 @@ export default function AdminDashboard() {
     });
 
   // Hook para estadísticas de trabajadores
+  const [workersPeriod, setWorkersPeriod] = useState<"month" | "all">("month");
+
   const {
     workers,
+    setWorkers,
     summary,
     activities,
     isLoading: isLoadingWorkers,
@@ -120,7 +125,7 @@ export default function AdminDashboard() {
     refresh: refreshWorkers,
     getActiveWorkers,
     formatLastActivity,
-  } = useWorkerStats();
+  } = useWorkerStats({ period: workersPeriod });
 
   // Hook para comparación de propuestas
   const {
@@ -249,123 +254,21 @@ export default function AdminDashboard() {
                     </Card>
                   </div>
 
-                  {/* Search + actions */}
-                  <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
-                    <div className="flex-1">
-                      <Input
-                        type="text"
-                        placeholder="Buscar por nombre o email..."
-                        startContent={<Search className="text-gray-400 w-4 h-4" />}
-                        classNames={{
-                          inputWrapper: "bg-white border border-gray-200 hover:border-gray-300 shadow-sm",
-                        }}
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                      />
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="flat"
-                        size="sm"
-                        onPress={refreshWorkers}
-                        isDisabled={isLoadingWorkers}
-                        startContent={isLoadingWorkers ? <Spinner size="sm" /> : <Activity className="w-4 h-4" />}
-                        className="bg-gray-100 text-gray-700 hover:bg-gray-200"
-                      >
-                        {isLoadingWorkers ? "Actualizando..." : "Actualizar"}
-                      </Button>
-                      <span className="text-sm text-gray-500 px-1">
-                        • {workers?.length || 0} trabajadores
-                      </span>
-                      <Button
-                        size="sm"
-                        onPress={() => setIsModalOpen(true)}
-                        startContent={<PlusCircle className="w-4 h-4" />}
-                        style={{ backgroundColor: "#0e3a45" }}
-                        className="text-white font-medium"
-                      >
-                        Nuevo Trabajador
-                      </Button>
-                    </div>
-                  </div>
-
-                  {/* Workers grid */}
-                  {isLoadingWorkers ? (
-                    <AdminLoadingSkeletons.SubaccountsGrid />
-                  ) : workersError ? (
-                    <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
-                      <User className="w-10 h-10 text-red-400 mx-auto mb-3" />
-                      <h3 className="text-base font-semibold text-gray-800 mb-1">Error al cargar trabajadores</h3>
-                      <p className="text-sm text-gray-500 mb-4">{workersError}</p>
-                      <Button size="sm" variant="flat" onPress={refreshWorkers} className="bg-red-50 text-red-600">
-                        Reintentar
-                      </Button>
-                    </div>
-                  ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {workers && workers.length > 0 ? (
-                        workers
-                          .filter(
-                            (worker) =>
-                              searchTerm === "" ||
-                              worker.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                              worker.email.toLowerCase().includes(searchTerm.toLowerCase())
-                          )
-                          .map((worker) => (
-                            <EnhancedSubaccountCard
-                              key={worker.id}
-                              worker={worker}
-                              onDelete={() => {
-                                // TODO: API delete por string ID de trabajador
-                              }}
-                              formatLastActivity={formatLastActivity}
-                            />
-                          ))
-                      ) : (
-                        <div className="col-span-full bg-white rounded-xl border border-gray-200 p-12 text-center">
-                          <User className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                          <h3 className="text-base font-semibold text-gray-600 mb-2">No se encontraron trabajadores</h3>
-                          <p className="text-sm text-gray-500 mb-6">
-                            {searchTerm
-                              ? `No hay trabajadores que coincidan con "${searchTerm}".`
-                              : "Aún no tienes trabajadores registrados. Crea el primero."}
-                          </p>
-                          {!searchTerm && (
-                            <Button
-                              size="sm"
-                              onPress={() => setIsModalOpen(true)}
-                              startContent={<PlusCircle className="w-4 h-4" />}
-                              style={{ backgroundColor: "#0e3a45" }}
-                              className="text-white"
-                            >
-                              Crear Primer Trabajador
-                            </Button>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Mostrar trabajadores usando componente legacy como fallback */}
-                  {(!workers || workers.length === 0) &&
-                    filteredSubaccounts.length > 0 && (
-                      <div>
-                        <h2 className="text-lg font-semibold text-gray-800 mb-4">
-                          Subcuentas (Vista Legacy)
-                        </h2>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                          {filteredSubaccounts.map((subaccount, index) => (
-                            <SubaccountCard
-                              key={subaccount.id || index}
-                              subaccount={subaccount}
-                              onDelete={() =>
-                                handleDeleteSubaccount(subaccount.id)
-                              }
-                            />
-                          ))}
-                        </div>
-                      </div>
-                    )}
+                  <WorkersTable
+                    workers={workers ?? []}
+                    isLoading={isLoadingWorkers}
+                    error={workersError}
+                    period={workersPeriod}
+                    onPeriodChange={setWorkersPeriod}
+                    onRefresh={refreshWorkers}
+                    onDelete={(id) =>
+                      setWorkers((prev) => prev.filter((w) => w.id !== id))
+                    }
+                    onCreateWorker={() => setIsModalOpen(true)}
+                    formatLastActivity={formatLastActivity}
+                    searchTerm={searchTerm}
+                    onSearchChange={setSearchTerm}
+                  />
                 </div>
               </div>
             )}
