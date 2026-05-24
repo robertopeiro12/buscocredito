@@ -30,8 +30,11 @@ export function InterestRateComparisonChart({ comparisons, companyName }: Props)
 
   const avgAdmin =
     withComparison.reduce((s, c) => s + c.adminInterestRate, 0) / withComparison.length;
+  const withRate = withComparison.filter((c) => c.acceptedInterestRate !== null);
   const avgAccepted =
-    withComparison.reduce((s, c) => s + (c.acceptedInterestRate || 0), 0) / withComparison.length;
+    withRate.length > 0
+      ? withRate.reduce((s, c) => s + c.acceptedInterestRate!, 0) / withRate.length
+      : 0;
 
   const chartData = {
     labels: withComparison.map((c) => `#${c.proposalIndex}`),

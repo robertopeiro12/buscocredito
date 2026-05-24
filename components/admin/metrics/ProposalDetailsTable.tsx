@@ -50,8 +50,6 @@ export function ProposalDetailsTable({ comparisons, companyName }: Props) {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [page, setPage] = useState(1);
 
-  if (comparisons.length === 0) return null;
-
   const handleSort = (field: string) => {
     if (sortField === field) {
       setSortDir(d => d === "asc" ? "desc" : "asc");
@@ -82,6 +80,8 @@ export function ProposalDetailsTable({ comparisons, companyName }: Props) {
       return 0;
     });
   }, [filtered, sortField, sortDir]);
+
+  if (comparisons.length === 0) return null;
 
   const totalPages = Math.max(1, Math.ceil(sorted.length / ITEMS_PER_PAGE));
   const paginated = sorted.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);

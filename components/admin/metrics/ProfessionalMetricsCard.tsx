@@ -30,6 +30,7 @@ export const ProfessionalMetricsCard = ({
   value,
   subtitle,
   icon: Icon,
+  trend,
   chart,
   variant = 'primary',
   children,
@@ -53,6 +54,13 @@ export const ProfessionalMetricsCard = ({
           <p className="text-4xl font-bold text-[#0e3a45] leading-none tracking-tight mt-2">
             {value}
           </p>
+          {trend && (
+            <div className={`inline-flex items-center gap-1 mt-2 text-[11px] font-medium ${trend.isPositive !== false ? "text-emerald-600" : "text-red-500"}`}>
+              <span>{trend.isPositive !== false ? "↑" : "↓"}</span>
+              <span>{trend.value > 0 ? "+" : ""}{trend.value}%</span>
+              <span className="text-gray-400">{trend.label}</span>
+            </div>
+          )}
         </div>
 
         {(chart || children) && (

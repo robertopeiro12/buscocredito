@@ -216,9 +216,10 @@ export default function AdminDashboard() {
                     period={workersPeriod}
                     onPeriodChange={setWorkersPeriod}
                     onRefresh={refreshWorkers}
-                    onDelete={(id) =>
-                      setWorkers((prev) => prev.filter((w) => w.id !== id))
-                    }
+                    onDelete={(id) => {
+                      setWorkers((prev) => prev.filter((w) => w.id !== id));
+                      refreshWorkers();
+                    }}
                     onCreateWorker={() => setIsModalOpen(true)}
                     formatLastActivity={formatLastActivity}
                     searchTerm={searchTerm}

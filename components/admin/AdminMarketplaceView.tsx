@@ -41,11 +41,11 @@ const AdminMarketplaceView = ({ loans: loanRequests, loading: isLoading }: Admin
       const uniqueIds = Array.from(
         new Set(loanRequests.map((r) => r.userId).filter(Boolean))
       );
-      const token = await auth.currentUser?.getIdToken();
       for (const userId of uniqueIds) {
         if (!userId || fetchedIds.current.has(userId)) continue;
         fetchedIds.current.add(userId);
         try {
+          const token = await auth.currentUser?.getIdToken();
           const res = await fetch("/api/users/public-profile", {
             method: "POST",
             headers: {
@@ -58,8 +58,14 @@ const AdminMarketplaceView = ({ loans: loanRequests, loading: isLoading }: Admin
           if (res.ok) {
             const data = await res.json();
             setUserDataMap((prev) => ({ ...prev, [userId]: data.data || {} }));
+          } else {
+            fetchedIds.current.delete(userId);
+            console.error(`Failed to fetch user data for ${userId}: ${res.status}`);
           }
-        } catch {}
+        } catch (err) {
+          fetchedIds.current.delete(userId);
+          console.error(`Error fetching user data for ${userId}:`, err);
+        }
       }
     };
     if (loanRequests.length > 0) loadUserData();
