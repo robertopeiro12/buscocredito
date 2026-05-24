@@ -181,10 +181,11 @@ export function useWorkerStats(options: UseWorkerStatsOptions = {}) {
 
   // Efecto para carga inicial
   useEffect(() => {
-    fetchWorkerStats();
-    if (enableActivity) {
-      fetchActivity();
-    }
+    const init = async () => {
+      await fetchWorkerStats();
+      if (enableActivity) await fetchActivity();
+    };
+    void init();
   }, [fetchWorkerStats, fetchActivity, enableActivity]);
 
   // Efecto para auto-refresh

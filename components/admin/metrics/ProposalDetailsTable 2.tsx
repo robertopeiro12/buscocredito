@@ -93,6 +93,13 @@ export function ProposalDetailsTable({ comparisons, companyName }: Props) {
   const totalPages = Math.max(1, Math.ceil(sorted.length / ITEMS_PER_PAGE));
   const paginated = sorted.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
 
+  const SortIcon = ({ field }: { field: string }) => {
+    if (sortField !== field) return <ChevronDown className="w-3 h-3 opacity-30 inline ml-0.5" />;
+    return sortDir === "asc"
+      ? <ChevronUp className="w-3 h-3 inline ml-0.5 text-[#0e3a45]" />
+      : <ChevronDown className="w-3 h-3 inline ml-0.5 text-[#0e3a45]" />;
+  };
+
   const filterButtons: { key: StatusFilter; label: string; count: number }[] = [
     { key: "all",     label: "Todas",     count: comparisons.length },
     { key: "won",     label: "Ganadas",   count: comparisons.filter(c => c.adminWon).length },
@@ -141,26 +148,26 @@ export function ProposalDetailsTable({ comparisons, companyName }: Props) {
           <thead>
             <tr className="border-b border-gray-100">
               <th className={thClass} onClick={() => handleSort("proposalIndex")}>
-                # <SortIcon field="proposalIndex" sortField={sortField} sortDir={sortDir} />
+                # <SortIcon field="proposalIndex" />
               </th>
               <th className={thClass}>Resultado</th>
               <th className={thClass} onClick={() => handleSort("requestType")}>
-                Tipo <SortIcon field="requestType" sortField={sortField} sortDir={sortDir} />
+                Tipo <SortIcon field="requestType" />
               </th>
               <th className={thClass} onClick={() => handleSort("adminAmount")}>
-                Tu Monto <SortIcon field="adminAmount" sortField={sortField} sortDir={sortDir} />
+                Tu Monto <SortIcon field="adminAmount" />
               </th>
               <th className={thClass} onClick={() => handleSort("adminInterestRate")}>
-                Tu Tasa <SortIcon field="adminInterestRate" sortField={sortField} sortDir={sortDir} />
+                Tu Tasa <SortIcon field="adminInterestRate" />
               </th>
               <th className={thClass} onClick={() => handleSort("adminAmortization")}>
-                Tu Amort. <SortIcon field="adminAmortization" sortField={sortField} sortDir={sortDir} />
+                Tu Amort. <SortIcon field="adminAmortization" />
               </th>
               <th className={thClass} onClick={() => handleSort("amortizationDiff")}>
-                Dif. Amort. <SortIcon field="amortizationDiff" sortField={sortField} sortDir={sortDir} />
+                Dif. Amort. <SortIcon field="amortizationDiff" />
               </th>
               <th className={thClass} onClick={() => handleSort("interestRateDiff")}>
-                Dif. Tasa <SortIcon field="interestRateDiff" sortField={sortField} sortDir={sortDir} />
+                Dif. Tasa <SortIcon field="interestRateDiff" />
               </th>
               <th className="w-8" />
             </tr>

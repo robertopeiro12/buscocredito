@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useEffect } from "react";
 import { Line } from "react-chartjs-2";
 import { ProposalComparisonItem } from "@/hooks/useProposalComparison";
 
@@ -14,9 +14,8 @@ export function AmortizationComparisonChart({ comparisons }: Props) {
     (c) => c.hasAccepted && !c.adminWon
   );
 
-  // Ref updated every render — prevents stale closures in Chart.js tooltip callbacks
   const ref = useRef(withComparison);
-  ref.current = withComparison;
+  useEffect(() => { ref.current = withComparison; });
 
   if (withComparison.length === 0) {
     return (

@@ -120,11 +120,14 @@ const AdminMarketplaceView = ({ loans: loanRequests, loading: isLoading }: Admin
     });
   }, [loanRequests, filters, userDataMap]);
 
-  const totalPages = Math.max(1, Math.ceil(filteredRequests.length / ITEMS_PER_PAGE));
-  const safePage = Math.min(currentPage, totalPages);
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filteredRequests]);
+
+  const totalPages = Math.ceil(filteredRequests.length / ITEMS_PER_PAGE);
   const paginatedRequests = filteredRequests.slice(
-    (safePage - 1) * ITEMS_PER_PAGE,
-    safePage * ITEMS_PER_PAGE
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
   );
 
   const hasActiveFilters = Object.values(filters).some((v) => v && v !== "all");
@@ -165,7 +168,7 @@ const AdminMarketplaceView = ({ loans: loanRequests, loading: isLoading }: Admin
             </p>
             {totalPages > 1 && (
               <p className="text-[10px] uppercase tracking-widest text-gray-400">
-                Pág. {safePage} / {totalPages}
+                Pág. {currentPage} / {totalPages}
               </p>
             )}
           </div>
@@ -176,14 +179,14 @@ const AdminMarketplaceView = ({ loans: loanRequests, loading: isLoading }: Admin
                 key={request.id}
                 request={request}
                 userData={userDataMap[request.userId || ""]}
-                index={(safePage - 1) * ITEMS_PER_PAGE + index}
+                index={(currentPage - 1) * ITEMS_PER_PAGE + index}
               />
             ))}
           </div>
 
           {totalPages > 1 && (
             <MarketplacePagination
-              currentPage={safePage}
+              currentPage={currentPage}
               totalPages={totalPages}
               onPageChange={setCurrentPage}
             />

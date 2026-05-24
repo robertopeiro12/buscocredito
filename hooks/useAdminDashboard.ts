@@ -98,22 +98,6 @@ export function useAdminDashboard() {
       account.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Authentication effect
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        setUser(user.uid);
-        setUserEmail(user.email || "");
-        fetchUsers(user.uid);
-        fetchAdminData(user.uid);
-      }
-      // No redirect here — useRoleGuard handles unauthenticated redirects
-    });
-
-    // Cleanup function to unsubscribe when component unmounts
-    return () => unsubscribe();
-  }, []);
-
   // Fetch admin data
   const fetchAdminData = async (userId: string) => {
     const db = getFirestore();
@@ -132,7 +116,7 @@ export function useAdminDashboard() {
   };
 
   // Fetch users function
-  const fetchUsers = async (userId: string) => {
+  const fetchUsers = async (_userId: string) => {
     setIsLoading(true);
     try {
       const response = await fetch('/api/getSubcuentas', {
@@ -148,7 +132,7 @@ export function useAdminDashboard() {
       }
 
       const data = await response.json();
-      
+
       const newSubaccounts: Subaccount[] = data.subcuentas.map((sub: any, index: number) => ({
         id: index + 1,
         name: sub.name,
@@ -169,6 +153,22 @@ export function useAdminDashboard() {
       setIsLoading(false);
     }
   };
+
+  // Authentication effect
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setUser(user.uid);
+        setUserEmail(user.email || "");
+        fetchUsers(user.uid);
+        fetchAdminData(user.uid);
+      }
+      // No redirect here — useRoleGuard handles unauthenticated redirects
+    });
+
+    // Cleanup function to unsubscribe when component unmounts
+    return () => unsubscribe();
+  }, []);
 
   // Form validation
   const validateForm = () => {
