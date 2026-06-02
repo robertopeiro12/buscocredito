@@ -85,6 +85,7 @@ function LenderPageContent() {
         setActiveTab={handleTabChange}
         companyName={partnerData.company}
         userId={user}
+        onSignOut={handleSignOut}
       />
 
       {/* Main Content with left margin to account for fixed sidebar */}

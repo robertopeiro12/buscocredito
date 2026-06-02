@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { useState, useEffect, useLayoutEffect, useMemo, useCallback, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { onAuthStateChanged } from 'firebase/auth';
 import { doc, getFirestore, getDoc } from 'firebase/firestore';
@@ -57,7 +57,7 @@ export const useLenderDashboard = () => {
   const [partnerData, setPartnerData] = useState<LenderInfo>(initialPartnerData);
   // Always holds the latest partnerData — safe to read inside async functions
   const partnerDataRef = useRef(partnerData);
-  partnerDataRef.current = partnerData;
+  useLayoutEffect(() => { partnerDataRef.current = partnerData; }, [partnerData]);
   // Prevents race condition if handleOpenOffer is called twice rapidly
   const isOpeningOfferRef = useRef(false);
   const [filters, setFilters] = useState<LenderFilters>(initialFilters);
@@ -163,24 +163,26 @@ export const useLenderDashboard = () => {
   }, [requests, filters, userDataMap]);
 
   // Funciones
-  const getPartnerData = async (uid: string) => {
+  const getPartnerData = async (uid: string): Promise<LenderInfo> => {
     try {
       const db = getFirestore();
       const docRef = doc(db, "cuentas", uid);
       const docSnap = await getDoc(docRef);
 
       if (docSnap.exists()) {
-        setPartnerData({
+        const data: LenderInfo = {
           name: docSnap.data().name || "",
           company: docSnap.data().companyName || "",
           adminId: docSnap.data().adminId || "",
-        });
+        };
+        setPartnerData(data);
+        return data;
       }
     } catch (error) {
       console.error("Error al obtener datos del partner:", error);
-      // Mantener valores por defecto
       setPartnerData(initialPartnerData);
     }
+    return initialPartnerData;
   };
 
   const getUserData = async (userId: string) => {
@@ -312,9 +314,11 @@ export const useLenderDashboard = () => {
       if (!request) return;
       setSelectedRequestId(requestId);
       await getUserData(request.userId);
-      // Use ref so we always get the latest partnerData even if the async
-      // getPartnerData call resolved during the await above
-      updateProposal({ company: partnerDataRef.current.company, lenderId: user });
+      // If partnerData hasn't loaded yet, fetch it now to avoid blank company
+      const partner = partnerDataRef.current.company
+        ? partnerDataRef.current
+        : await getPartnerData(user);
+      updateProposal({ company: partner.company, lenderId: user });
       setIsCreatingOffer(true);
     } finally {
       isOpeningOfferRef.current = false;

@@ -392,6 +392,7 @@ export default function DashboardPage() {
               activeTab={activeTab}
               onTabChange={setActiveTab}
               unreadNotifications={unreadNotifications}
+              onSignOut={handleSignOut}
             />
 
             {/* Main Content - Scrollable with left margin to account for fixed sidebar on desktop */}

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Button } from "@heroui/react";
-import { LogOut, Store, FileText, Settings, HelpCircle, BarChart3, Bell } from "lucide-react";
+import { LogOut, Store, FileText, Settings, HelpCircle, BarChart3, Bell } from "lucide-react"; // LogOut kept for mobile only
 import type { LenderState } from '@/app/lender/types/loan.types';
 
 type LenderTab = LenderState['activeTab'];
@@ -141,27 +141,8 @@ const LenderHeader = ({
 
       {/* Desktop Header */}
       <div className="mb-4 pb-4 border-b border-gray-200 hidden md:block">
-        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-          <div>
-            <h1 className="text-xl font-bold text-gray-900 mb-0.5">
-              {getTitle()}
-            </h1>
-            <p className="text-gray-500 text-sm">{getDescription()}</p>
-          </div>
-          <div className="flex items-center gap-4">
-            {onSignOut && (
-              <Button
-                variant="light"
-                size="sm"
-                startContent={<LogOut className="w-4 h-4" />}
-                onPress={onSignOut}
-                className="text-gray-600 hover:text-red-600 hover:bg-red-50"
-              >
-                Salir
-              </Button>
-            )}
-          </div>
-        </div>
+        <h1 className="text-xl font-bold text-gray-900 mb-0.5">{getTitle()}</h1>
+        <p className="text-gray-500 text-sm">{getDescription()}</p>
       </div>
     </>
   );

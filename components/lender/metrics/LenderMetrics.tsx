@@ -42,20 +42,22 @@ export function LenderMetrics({ proposals, requests, userId }: LenderMetricsProp
       collection(db, 'notifications'),
       where('recipientId', '==', userId)
     );
-    getDocs(q).then(snapshot => {
-      const losses: LossNotification[] = [];
-      snapshot.docs.forEach(doc => {
-        const d = doc.data();
-        if (
-          d.type === 'loan_assigned_other' &&
-          d.data?.winningOffer &&
-          d.data?.competitorOffer
-        ) {
-          losses.push({ data: d.data, createdAt: d.createdAt ?? null });
-        }
-      });
-      setLossNotifications(losses);
-    });
+    getDocs(q)
+      .then(snapshot => {
+        const losses: LossNotification[] = [];
+        snapshot.docs.forEach(doc => {
+          const d = doc.data();
+          if (
+            d.type === 'loan_assigned_other' &&
+            d.data?.winningOffer &&
+            d.data?.competitorOffer
+          ) {
+            losses.push({ data: d.data, createdAt: d.createdAt ?? null });
+          }
+        });
+        setLossNotifications(losses);
+      })
+      .catch(() => setLossNotifications([]));
   }, [userId]);
 
   const range = useMemo(() => getPeriodRange(period), [period]);

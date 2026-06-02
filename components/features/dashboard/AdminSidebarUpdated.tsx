@@ -1,17 +1,19 @@
 import { Button } from "@heroui/react";
-import { Users, Settings, HelpCircle, BarChart, Store } from "lucide-react";
+import { Users, Settings, HelpCircle, BarChart, Store, LogOut } from "lucide-react";
 import Image from "next/image";
 
 type AdminSidebarProps = {
   activeTab: string;
   setActiveTab: (tab: string) => void;
   companyName?: string;
+  onSignOut?: () => void;
 };
 
 export function AdminSidebarUpdated({
   activeTab,
   setActiveTab,
   companyName,
+  onSignOut,
 }: AdminSidebarProps) {
   const getButtonClass = (tab: string) =>
     `w-full justify-start h-12 px-4 mb-2 transition-all duration-200 ease-in-out ${
@@ -71,6 +73,18 @@ export function AdminSidebarUpdated({
           </div>
         </nav>
 
+        {onSignOut && (
+          <div className="px-4 pb-5 border-t border-gray-100 pt-4">
+            <Button
+              startContent={<LogOut className="w-4 h-4" />}
+              className="w-full justify-start text-red-500 hover:bg-red-50"
+              variant="light"
+              onPress={onSignOut}
+            >
+              Cerrar Sesión
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );

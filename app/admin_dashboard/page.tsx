@@ -164,6 +164,7 @@ export default function AdminDashboard() {
           activeTab={activeTab}
           setActiveTab={setActiveTab}
           companyName={adminData.companyName}
+          onSignOut={handleSignOut}
         />
 
         <div className="flex-1 ml-64">

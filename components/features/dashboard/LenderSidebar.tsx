@@ -2,7 +2,7 @@
 
 import { Button } from "@heroui/react";
 import Image from "next/image";
-import { Store, FileText, Settings, HelpCircle, BarChart3, Bell } from "lucide-react";
+import { Store, FileText, Settings, HelpCircle, BarChart3, Bell, LogOut } from "lucide-react";
 import { useState, useEffect } from "react";
 import { getFirestore, collection, query, where, onSnapshot } from "firebase/firestore";
 
@@ -11,6 +11,7 @@ type LenderSidebarProps = {
   setActiveTab: (tab: string) => void;
   companyName: string;
   userId: string;
+  onSignOut?: () => void;
 };
 
 export function LenderSidebar({
@@ -18,6 +19,7 @@ export function LenderSidebar({
   setActiveTab,
   companyName,
   userId,
+  onSignOut,
 }: LenderSidebarProps) {
   const [unreadCount, setUnreadCount] = useState(0);
 
@@ -99,6 +101,18 @@ export function LenderSidebar({
           </div>
         </nav>
 
+        {onSignOut && (
+          <div className="px-4 pb-5 border-t border-gray-100 pt-4">
+            <Button
+              startContent={<LogOut className="w-4 h-4" />}
+              className="w-full justify-start text-red-500 hover:bg-red-50"
+              variant="light"
+              onPress={onSignOut}
+            >
+              Cerrar Sesión
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );

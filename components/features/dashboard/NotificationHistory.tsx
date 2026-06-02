@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { getFirestore, collection, query, where, onSnapshot, orderBy, limit } from "firebase/firestore";
+import { getFirestore, collection, query, where, onSnapshot, orderBy } from "firebase/firestore";
 import { auth } from "@/app/firebase";
 import {
   Button,
@@ -17,6 +17,7 @@ import {
   ModalHeader,
   ModalBody,
   ModalFooter,
+  Pagination,
   Spinner,
 } from "@heroui/react";
 import {
@@ -76,10 +77,13 @@ interface NotificationHistoryProps {
 
 type FilterType = "all" | "unread" | "read";
 
+const ITEMS_PER_PAGE = 15;
+
 export default function NotificationHistory({ userId, isLender = false }: NotificationHistoryProps) {
   const [notifications, setNotifications] = useState<NotificationData[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<FilterType>("all");
+  const [page, setPage] = useState(1);
   const [showClearModal, setShowClearModal] = useState(false);
   const [clearingType, setClearingType] = useState<"all" | "read">("read");
   const [actionLoading, setActionLoading] = useState(false);
@@ -93,8 +97,7 @@ export default function NotificationHistory({ userId, isLender = false }: Notifi
     const db = getFirestore();
     const notificationsQuery = query(
       collection(db, "notifications"),
-      where("recipientId", "==", userId),
-      limit(50)
+      where("recipientId", "==", userId)
     );
 
     const unsubscribe = onSnapshot(
@@ -230,6 +233,16 @@ export default function NotificationHistory({ userId, isLender = false }: Notifi
     if (filter === "read") return n.read;
     return true;
   });
+
+  // Pagination
+  const totalPages = Math.ceil(filteredNotifications.length / ITEMS_PER_PAGE);
+  const paginatedNotifications = filteredNotifications.slice(
+    (page - 1) * ITEMS_PER_PAGE,
+    page * ITEMS_PER_PAGE
+  );
+
+  // Reset to page 1 when filter changes
+  useEffect(() => { setPage(1); }, [filter]);
 
   // Stats
   const unreadCount = notifications.filter((n) => !n.read).length;
@@ -463,7 +476,7 @@ export default function NotificationHistory({ userId, isLender = false }: Notifi
         </Card>
       ) : (
         <div className="space-y-3">
-          {filteredNotifications.map((notification) => {
+          {paginatedNotifications.map((notification) => {
             const style = getNotificationStyle(notification.type);
 
             const { Icon, accentColor, iconBg, iconColor, dotColor, label } = style;
@@ -509,6 +522,22 @@ export default function NotificationHistory({ userId, isLender = false }: Notifi
               </button>
             );
           })}
+
+          {totalPages > 1 && (
+            <div className="flex justify-center pt-4 pb-2">
+              <Pagination
+                total={totalPages}
+                page={page}
+                onChange={setPage}
+                color="success"
+                size="sm"
+                showControls
+                classNames={{
+                  cursor: "bg-[#0e3a45] text-white",
+                }}
+              />
+            </div>
+          )}
         </div>
       )}
 
