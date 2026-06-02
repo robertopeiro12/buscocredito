@@ -40,32 +40,48 @@ const AdminMarketplaceView = ({ loans: loanRequests, loading: isLoading }: Admin
     const loadUserData = async () => {
       const uniqueIds = Array.from(
         new Set(loanRequests.map((r) => r.userId).filter(Boolean))
-      );
-      for (const userId of uniqueIds) {
-        if (!userId || fetchedIds.current.has(userId)) continue;
-        fetchedIds.current.add(userId);
-        try {
-          const token = await auth.currentUser?.getIdToken();
-          const res = await fetch("/api/users/public-profile", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              ...(token ? { Authorization: `Bearer ${token}` } : {}),
-            },
-            credentials: "include",
-            body: JSON.stringify({ userId }),
-          });
-          if (res.ok) {
-            const data = await res.json();
-            setUserDataMap((prev) => ({ ...prev, [userId]: data.data || {} }));
-          } else {
+      ).filter((id) => id && !fetchedIds.current.has(id));
+
+      if (uniqueIds.length === 0) return;
+
+      // Mark all as in-flight before any await to avoid duplicate fetches
+      uniqueIds.forEach((id) => fetchedIds.current.add(id));
+
+      // Fetch token once, then fire all requests in parallel
+      const token = await auth.currentUser?.getIdToken();
+      const results = await Promise.all(
+        uniqueIds.map(async (userId) => {
+          try {
+            const res = await fetch("/api/users/public-profile", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                ...(token ? { Authorization: `Bearer ${token}` } : {}),
+              },
+              credentials: "include",
+              body: JSON.stringify({ userId }),
+            });
+            if (res.ok) {
+              const data = await res.json();
+              return { userId, userData: data.data || {} };
+            }
             fetchedIds.current.delete(userId);
-            console.error(`Failed to fetch user data for ${userId}: ${res.status}`);
+            return null;
+          } catch (err) {
+            fetchedIds.current.delete(userId);
+            console.error(`Error fetching user data for ${userId}:`, err);
+            return null;
           }
-        } catch (err) {
-          fetchedIds.current.delete(userId);
-          console.error(`Error fetching user data for ${userId}:`, err);
-        }
+        })
+      );
+
+      const newEntries = results.filter(Boolean) as { userId: string; userData: any }[];
+      if (newEntries.length > 0) {
+        setUserDataMap((prev) => {
+          const next = { ...prev };
+          newEntries.forEach(({ userId, userData }) => { next[userId] = userData; });
+          return next;
+        });
       }
     };
     if (loanRequests.length > 0) loadUserData();

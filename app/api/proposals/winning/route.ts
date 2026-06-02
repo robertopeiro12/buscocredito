@@ -55,15 +55,20 @@ export async function GET(request: NextRequest) {
 
     if (snapshot.empty) return createSuccessResponse(null, 'No se encontró propuesta ganadora');
 
-    const doc = snapshot.docs[0].data();
+    const winningDoc = snapshot.docs[0].data();
+    const callerWon = winningDoc.lenderId === user.uid;
+
+    // Return winning terms to all participants (so losers understand why they lost)
+    // but never expose the winner's lender identity to competitors
     return createSuccessResponse({
-      amount: doc.amount,
-      interestRate: doc.interestRate,
-      amortizationFrequency: doc.amortizationFrequency,
-      amortization: doc.amortization,
-      term: doc.deadline,
-      comision: doc.comision,
-      medicalBalance: doc.medicalBalance,
+      won: callerWon,
+      amount: winningDoc.amount,
+      interestRate: winningDoc.interestRate,
+      amortizationFrequency: winningDoc.amortizationFrequency,
+      amortization: winningDoc.amortization,
+      term: winningDoc.deadline,
+      comision: winningDoc.comision,
+      medicalBalance: winningDoc.medicalBalance,
     });
   } catch (error) {
     console.error('Error fetching winning proposal:', error);

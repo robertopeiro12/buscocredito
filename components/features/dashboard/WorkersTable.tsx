@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from "react";
-import toast from "react-hot-toast";
+import { addToast } from "@heroui/react";
 import {
   Button,
   Input,
@@ -117,7 +117,7 @@ export function WorkersTable({
       onDelete(deleteTarget.id);
       onClose();
     } catch (err: any) {
-      toast.error(`Error al eliminar: ${err.message}`);
+      addToast({ title: `Error al eliminar: ${err.message}`, color: "danger" });
     } finally {
       setIsDeleting(false);
       setDeleteTarget(null);

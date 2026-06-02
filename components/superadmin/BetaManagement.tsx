@@ -34,7 +34,7 @@ import {
   Calendar,
   Zap,
 } from "lucide-react";
-import toast from "react-hot-toast";
+import { addToast } from "@heroui/react";
 
 interface BetaToken {
   id: string;
@@ -76,11 +76,11 @@ export function BetaManagement({ getAuthToken }: BetaManagementProps) {
         const data = await response.json();
         setTokens(data);
       } else {
-        toast.error("Error al cargar tokens beta");
+        addToast({ title: "Error al cargar tokens beta", color: "danger" });
       }
     } catch (error) {
       console.error("Error fetching tokens:", error);
-      toast.error("Error de conexión");
+      addToast({ title: "Error de conexión", color: "danger" });
     } finally {
       setIsLoading(false);
     }
@@ -88,7 +88,7 @@ export function BetaManagement({ getAuthToken }: BetaManagementProps) {
 
   const generateToken = async () => {
     if (!newTokenAssignedTo.trim()) {
-      toast.error("Ingresa a quién se le asignará el token");
+      addToast({ title: "Ingresa a quién se le asignará el token", color: "warning" });
       return;
     }
 
@@ -105,16 +105,16 @@ export function BetaManagement({ getAuthToken }: BetaManagementProps) {
       });
 
       if (response.ok) {
-        toast.success("Token generado con éxito");
+        addToast({ title: "Token generado con éxito", color: "success" });
         setNewTokenAssignedTo("");
         onClose();
         fetchTokens();
       } else {
-        toast.error("Error al generar token");
+        addToast({ title: "Error al generar token", color: "danger" });
       }
     } catch (error) {
       console.error("Error generating token:", error);
-      toast.error("Error de conexión");
+      addToast({ title: "Error de conexión", color: "danger" });
     } finally {
       setIsGenerating(false);
     }
@@ -133,20 +133,20 @@ export function BetaManagement({ getAuthToken }: BetaManagementProps) {
       });
 
       if (response.ok) {
-        toast.success(`Token ${!currentStatus ? "activado" : "desactivado"}`);
+        addToast({ title: `Token ${!currentStatus ? "activado" : "desactivado"}`, color: "success" });
         fetchTokens();
       } else {
-        toast.error("Error al actualizar token");
+        addToast({ title: "Error al actualizar token", color: "danger" });
       }
     } catch (error) {
       console.error("Error updating token:", error);
-      toast.error("Error de conexión");
+      addToast({ title: "Error de conexión", color: "danger" });
     }
   };
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
-    toast.success("Token copiado al portapapeles");
+    addToast({ title: "Token copiado al portapapeles", color: "success" });
   };
 
   const filteredTokens = tokens.filter(

@@ -1,6 +1,3 @@
-// import Navbar from '../components/Navbar';
-import { Toaster } from "react-hot-toast";
-
 export default function LenderLayout({
   children,
 }: {
@@ -8,27 +5,6 @@ export default function LenderLayout({
 }) {
   return (
     <div className="min-h-screen flex flex-col">
-      {/* <Navbar /> */}
-      <Toaster
-        position="top-center"
-        toastOptions={{
-          duration: 4000,
-          style: {
-            background: "#333",
-            color: "#fff",
-          },
-          success: {
-            style: {
-              background: "#10B981",
-            },
-          },
-          error: {
-            style: {
-              background: "#EF4444",
-            },
-          },
-        }}
-      />
       <div className="flex-grow bg-gray-50">
         {children}
       </div>

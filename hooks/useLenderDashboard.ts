@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { onAuthStateChanged } from 'firebase/auth';
 import { doc, getFirestore, getDoc } from 'firebase/firestore';
@@ -7,7 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useLenderGuard } from '@/hooks/useRoleGuard';
 import { useLoan } from '@/hooks/useLoans';
 import { useProposal } from '@/app/lender/hooks/useProposal';
-import toast from 'react-hot-toast';
+import { addToast } from '@heroui/react';
 import type {
   LenderState,
   LenderFilters,
@@ -55,6 +55,11 @@ export const useLenderDashboard = () => {
   const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
   const [isCreatingOffer, setIsCreatingOffer] = useState(false);
   const [partnerData, setPartnerData] = useState<LenderInfo>(initialPartnerData);
+  // Always holds the latest partnerData — safe to read inside async functions
+  const partnerDataRef = useRef(partnerData);
+  partnerDataRef.current = partnerData;
+  // Prevents race condition if handleOpenOffer is called twice rapidly
+  const isOpeningOfferRef = useRef(false);
   const [filters, setFilters] = useState<LenderFilters>(initialFilters);
   const [userData, setUserData] = useState<PublicUserData | null>(null);
   const [lenderProposals, setLenderProposals] = useState<LenderProposal[]>([]);
@@ -212,10 +217,7 @@ export const useLenderDashboard = () => {
     const success = await submitProposal();
     if (success) {
       // Mostrar notificación de éxito
-      toast.success("Tu propuesta ha sido enviada exitosamente", {
-        duration: 4000,
-        position: "top-center",
-      });
+      addToast({ title: "Tu propuesta ha sido enviada exitosamente", color: "success", timeout: 4000 });
 
       // Cerrar el formulario de propuesta
       setIsCreatingOffer(false);
@@ -279,12 +281,12 @@ export const useLenderDashboard = () => {
         setLenderProposals(Array.isArray(proposals) ? proposals : []);
       } else {
         console.error("Error fetching proposals:", response.statusText);
-        toast.error('Error al cargar tus propuestas');
+        addToast({ title: 'Error al cargar tus propuestas', color: 'danger' });
         setLenderProposals([]);
       }
     } catch (error) {
       console.error("Error fetching proposals:", error);
-      toast.error('Error al cargar tus propuestas');
+      addToast({ title: 'Error al cargar tus propuestas', color: 'danger' });
       setLenderProposals([]);
     } finally {
       setLoadingProposals(false);
@@ -303,12 +305,20 @@ export const useLenderDashboard = () => {
   };
 
   const handleOpenOffer = async (requestId: string) => {
-    const request = requests.find((r) => r.id === requestId);
-    if (!request) return;
-    setSelectedRequestId(requestId);
-    await getUserData(request.userId);
-    updateProposal({ company: partnerData.company, lenderId: user });
-    setIsCreatingOffer(true);
+    if (isOpeningOfferRef.current) return;
+    isOpeningOfferRef.current = true;
+    try {
+      const request = requests.find((r) => r.id === requestId);
+      if (!request) return;
+      setSelectedRequestId(requestId);
+      await getUserData(request.userId);
+      // Use ref so we always get the latest partnerData even if the async
+      // getPartnerData call resolved during the await above
+      updateProposal({ company: partnerDataRef.current.company, lenderId: user });
+      setIsCreatingOffer(true);
+    } finally {
+      isOpeningOfferRef.current = false;
+    }
   };
 
   const handleCancelOffer = () => {
@@ -332,7 +342,7 @@ export const useLenderDashboard = () => {
           console.error("Error al cargar datos del partner:", error);
           // Si hay error de permisos, intentar mantener funcionalidad básica
           if (error && typeof error === 'object' && 'code' in error && error.code !== 'permission-denied') {
-            toast.error("Error al cargar configuración de empresa");
+            addToast({ title: "Error al cargar configuración de empresa", color: "danger" });
           }
         }
       } else {
@@ -420,7 +430,7 @@ export const useLenderDashboard = () => {
         }
       }
 
-      setUserDataMap(dataMap);
+      setUserDataMap((prev) => ({ ...prev, ...dataMap }));
     };
 
     if (requests.length > 0 && !loading) {

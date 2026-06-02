@@ -35,6 +35,17 @@ export async function DELETE(req: NextRequest) {
     // Initialize admin
     await initAdmin();
 
+    // Verify the target worker belongs to this admin's company before deleting
+    const { getFirestore } = await import('firebase-admin/firestore');
+    const db = getFirestore();
+    const workerDoc = await db.collection('cuentas').doc(userId).get();
+    if (!workerDoc.exists || workerDoc.data()?.adminId !== user.uid) {
+      return new Response(
+        JSON.stringify({ error: 'No tienes permiso para eliminar este usuario' }),
+        { status: 403, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
     // First delete the user from Authentication
     const authResult = await delete_subaccount(userId);
     if (authResult.status !== 200) {

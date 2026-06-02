@@ -53,7 +53,12 @@ export async function POST(request: NextRequest) {
 
     const userRef = db.collection("cuentas").doc(body.userId);
     const userDoc = await userRef.get();
-    const currentAddress = userDoc.exists ? userDoc.data()?.address || {} : {};
+
+    if (!userDoc.exists) {
+      return createErrorResponse('Usuario no encontrado', 404);
+    }
+
+    const currentAddress = userDoc.data()?.address || {};
 
     await userRef.update({
       address: { ...currentAddress, ...addressUpdate },

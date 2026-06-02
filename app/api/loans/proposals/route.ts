@@ -64,8 +64,9 @@ export async function POST(request: NextRequest) {
       .add(propuestaData);
 
     // Crear notificación para el usuario (web + email)
+    // Use the verified Firestore owner — never the client-supplied body.userId
     await createNotification({
-      recipientId: body.userId,
+      recipientId: solicitudData?.userId,
       type: 'nueva_propuesta',
       title: 'Nueva propuesta recibida',
       message: `Has recibido una nueva propuesta para tu solicitud de préstamo de $${propuestaData.amount?.toLocaleString()}`,

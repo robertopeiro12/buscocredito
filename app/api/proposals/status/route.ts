@@ -30,16 +30,39 @@ export async function POST(request: NextRequest) {
       return createErrorResponse('Estado no válido. Debe ser "accepted" o "rejected"', 400);
     }
 
+    if (user.userType !== 'borrower') {
+      return createErrorResponse('Solo prestatarios pueden aceptar o rechazar propuestas', 403);
+    }
+
     await initAdmin();
     const db = getFirestore();
 
-    const solicitudDoc = await db.collection('solicitudes').doc(loanId).get();
+    // Fetch both the solicitud and the proposal in parallel
+    const [solicitudDoc, proposalDoc] = await Promise.all([
+      db.collection('solicitudes').doc(loanId).get(),
+      db.collection('propuestas').doc(proposalId).get(),
+    ]);
+
     if (!solicitudDoc.exists) {
       return ApiResponses.loanNotFound();
     }
 
     if (solicitudDoc.data()?.userId !== user.uid) {
       return createErrorResponse('Solo el dueño de la solicitud puede actualizar propuestas', 403);
+    }
+
+    // Guard against double-acceptance
+    if (status === 'accepted' && solicitudDoc.data()?.status === 'approved') {
+      return createErrorResponse('Esta solicitud ya fue aprobada', 409);
+    }
+
+    // Verify the proposal actually belongs to this loan (prevents cross-loan IDOR)
+    if (!proposalDoc.exists) {
+      return createErrorResponse('Propuesta no encontrada', 404);
+    }
+    const proposalLoanId = proposalDoc.data()?.loanId || proposalDoc.data()?.solicitudId;
+    if (proposalLoanId !== loanId) {
+      return createErrorResponse('La propuesta no pertenece a esta solicitud', 403);
     }
 
     const batch = db.batch();

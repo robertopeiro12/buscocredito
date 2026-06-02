@@ -11,7 +11,7 @@ import {
 } from "@heroui/react";
 import { Lock, ShieldCheck, ArrowRight, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import toast from "react-hot-toast";
+import { addToast } from "@heroui/react";
 
 export default function BetaAccessPage() {
   const [token, setToken] = useState("");
@@ -21,7 +21,7 @@ export default function BetaAccessPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!token.trim()) {
-      toast.error("Por favor ingresa un token");
+      addToast({ title: "Por favor ingresa un token", color: "warning" });
       return;
     }
 
@@ -36,15 +36,15 @@ export default function BetaAccessPage() {
       const data = await response.json();
 
       if (response.ok) {
-        toast.success("¡Acceso concedido!");
+        addToast({ title: "¡Acceso concedido!", color: "success" });
         router.push("/");
         router.refresh(); // Forzar recarga para que el middleware reconozca la cookie
       } else {
-        toast.error(data.error || "Token inválido");
+        addToast({ title: data.error || "Token inválido", color: "danger" });
       }
     } catch (error) {
       console.error("Error validando token:", error);
-      toast.error("Error al validar el token. Inténtalo de nuevo.");
+      addToast({ title: "Error al validar el token. Inténtalo de nuevo.", color: "danger" });
     } finally {
       setIsLoading(false);
     }

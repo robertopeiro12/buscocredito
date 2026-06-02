@@ -11,7 +11,7 @@ import type {
   SuperAdminDashboardState,
   AccountActionResult,
 } from "@/types/superadmin";
-import toast from "react-hot-toast";
+import { addToast } from "@heroui/react";
 
 interface DatabaseInfo {
   collections: { name: string; documentCount: number }[];
@@ -253,7 +253,7 @@ export function useSuperAdminDashboard() {
     } catch (err: any) {
       console.error("Error fetching accounts:", err);
       setError(err.message);
-      toast.error("Error al cargar los datos");
+      addToast({ title: "Error al cargar los datos", color: "danger" });
     } finally {
       setIsLoading(false);
     }
@@ -306,11 +306,11 @@ export function useSuperAdminDashboard() {
           throw new Error(data.error || "Failed to deactivate account");
         }
 
-        toast.success("Cuenta desactivada exitosamente");
+        addToast({ title: "Cuenta desactivada exitosamente", color: "success" });
         // Real-time listener will update the data automatically
         return { success: true, message: data.message };
       } catch (err: any) {
-        toast.error(err.message || "Error al desactivar la cuenta");
+        addToast({ title: err.message || "Error al desactivar la cuenta", color: "danger" });
         return { success: false, message: "", error: err.message };
       }
     },
@@ -338,11 +338,11 @@ export function useSuperAdminDashboard() {
           throw new Error(data.error || "Failed to activate account");
         }
 
-        toast.success("Cuenta activada exitosamente");
+        addToast({ title: "Cuenta activada exitosamente", color: "success" });
         // Real-time listener will update the data automatically
         return { success: true, message: data.message };
       } catch (err: any) {
-        toast.error(err.message || "Error al activar la cuenta");
+        addToast({ title: err.message || "Error al activar la cuenta", color: "danger" });
         return { success: false, message: "", error: err.message };
       }
     },
@@ -368,11 +368,11 @@ export function useSuperAdminDashboard() {
           throw new Error(data.error || "Failed to delete account");
         }
 
-        toast.success("Cuenta eliminada exitosamente");
+        addToast({ title: "Cuenta eliminada exitosamente", color: "success" });
         // Real-time listener will update the data automatically
         return { success: true, message: data.message };
       } catch (err: any) {
-        toast.error(err.message || "Error al eliminar la cuenta");
+        addToast({ title: err.message || "Error al eliminar la cuenta", color: "danger" });
         return { success: false, message: "", error: err.message };
       }
     },
@@ -438,7 +438,7 @@ export function useSuperAdminDashboard() {
       router.push("/login");
     } catch (error) {
       console.error("Error signing out:", error);
-      toast.error("Error al cerrar sesión");
+      addToast({ title: "Error al cerrar sesión", color: "danger" });
     }
   }, [router]);
 
