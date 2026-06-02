@@ -31,9 +31,11 @@ export default function TermsContent() {
       <section>
         <h3 className="text-base font-semibold text-gray-800 mb-2">4. Registro y Uso de la Plataforma</h3>
         <ul className="list-disc list-inside text-gray-600 ml-4 space-y-1">
+          <li>El uso de la plataforma está reservado a personas mayores de 18 años con plena capacidad legal para contratar.</li>
           <li>Para acceder a la plataforma, los prestatarios deben proporcionar información personal, incluyendo nombre completo, RFC, domicilio y demás datos necesarios.</li>
           <li>Los prestamistas deben registrarse a través de un Administrador de su institución financiera.</li>
           <li>El token de registro empresarial es intransferible y su uso indebido resultará en la cancelación inmediata de la cuenta.</li>
+          <li>Al registrarse, los prestatarios autorizan a BuscoCrédito a consultar su historial crediticio ante las sociedades de información crediticia. Dicha consulta es de tipo &quot;suave&quot; y no afecta su historial crediticio.</li>
         </ul>
       </section>
 

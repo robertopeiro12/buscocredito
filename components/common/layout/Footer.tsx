@@ -54,24 +54,32 @@ const Footer = () => {
               </ul>
             </div>
 
-            {/* Compañía */}
+            {/* Acceso */}
             <div>
-              <h4 className="font-bold text-gray-900 mb-3">Compañía</h4>
+              <h4 className="font-bold text-gray-900 mb-3">Acceso</h4>
               <ul className="space-y-2 text-sm text-gray-600">
                 <li>
                   <Link
-                    href="/acerca-de"
+                    href="/signup"
                     className="hover:text-[#0e3a45] transition"
                   >
-                    Acerca de
+                    Solicitar crédito
                   </Link>
                 </li>
                 <li>
                   <Link
-                    href="/transparencia"
+                    href="/prestamista"
                     className="hover:text-[#0e3a45] transition"
                   >
-                    Transparencia
+                    Soy institución financiera
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/login"
+                    className="hover:text-[#0e3a45] transition"
+                  >
+                    Iniciar sesión
                   </Link>
                 </li>
                 <li>
