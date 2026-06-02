@@ -1,12 +1,10 @@
 "use client";
 
-import { useState } from "react";
-import { Card, CardBody, CardHeader, Button } from "@heroui/react";
+import { Card, CardBody, Button } from "@heroui/react";
 import { RefreshCw, AlertCircle } from "lucide-react";
 import { useSuperAdminDashboard } from "@/hooks/useSuperAdminDashboard";
 import {
   SuperAdminSidebar,
-  SuperAdminHeader,
   SuperAdminLoadingScreen,
   StatsCards,
   AccountsTable,
@@ -23,7 +21,6 @@ export default function SuperAdminDashboard() {
     // Auth states
     isAuthorized,
     isCheckingAuth,
-    userEmail,
 
     // Data
     accounts,
@@ -62,8 +59,6 @@ export default function SuperAdminDashboard() {
     handleSignOut,
   } = useSuperAdminDashboard();
 
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
   // Handle view account
   const handleViewAccount = (account: AccountInfo) => {
     setSelectedAccount(account);
@@ -91,16 +86,36 @@ export default function SuperAdminDashboard() {
     return <SuperAdminLoadingScreen />;
   }
 
+  const TAB_META: Record<string, { title: string; description: string }> = {
+    overview:  { title: "Resumen del Sistema",  description: "Vista general de cuentas y actividad de la plataforma" },
+    accounts:  { title: "Gestión de Cuentas",   description: "Administra y supervisa todas las cuentas registradas" },
+    tokens:    { title: "Tokens de Registro",   description: "Gestiona tokens de acceso para nuevas instituciones" },
+    beta:      { title: "Accesos Beta",          description: "Controla el acceso a la demo privada" },
+    stats:     { title: "Estadísticas",          description: "Métricas detalladas de la plataforma" },
+    database:  { title: "Base de Datos",         description: "Información de colecciones de Firestore" },
+    system:    { title: "Estado del Sistema",    description: "Salud y rendimiento del servidor" },
+    settings:  { title: "Configuración",         description: "Ajustes avanzados del sistema" },
+  };
+
+  const TabHeader = () => {
+    const meta = TAB_META[activeTab];
+    if (!meta) return null;
+    return (
+      <div className="mb-4 pb-4 border-b border-gray-200">
+        <h1 className="text-xl font-bold text-gray-900 mb-0.5">{meta.title}</h1>
+        <p className="text-gray-500 text-sm">{meta.description}</p>
+      </div>
+    );
+  };
+
   // Render content based on active tab
   const renderContent = () => {
     switch (activeTab) {
       case "overview":
         return (
           <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-bold text-gray-800">
-                Resumen del Sistema
-              </h2>
+            <TabHeader />
+            <div className="flex justify-end">
               <Button
                 size="sm"
                 variant="bordered"
@@ -120,9 +135,7 @@ export default function SuperAdminDashboard() {
       case "accounts":
         return (
           <div className="space-y-6">
-            <h2 className="text-2xl font-bold text-gray-800">
-              Gestión de Cuentas
-            </h2>
+            <TabHeader />
             <AccountsTable
               accounts={filteredAccounts}
               isLoading={isLoading}
@@ -142,17 +155,25 @@ export default function SuperAdminDashboard() {
         );
 
       case "tokens":
-        return <TokenManagement />;
+        return (
+          <div className="space-y-6">
+            <TabHeader />
+            <TokenManagement />
+          </div>
+        );
 
       case "beta":
-        return <BetaManagement getAuthToken={getAuthToken} />;
+        return (
+          <div className="space-y-6">
+            <TabHeader />
+            <BetaManagement getAuthToken={getAuthToken} />
+          </div>
+        );
 
       case "stats":
         return (
           <div className="space-y-6">
-            <h2 className="text-2xl font-bold text-gray-800">
-              Estadísticas Detalladas
-            </h2>
+            <TabHeader />
             <StatsCards stats={stats} isLoading={isLoading} />
           </div>
         );
@@ -160,10 +181,8 @@ export default function SuperAdminDashboard() {
       case "database":
         return (
           <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-bold text-gray-800">
-                Información de Base de Datos
-              </h2>
+            <TabHeader />
+            <div className="flex justify-end">
               <Button
                 size="sm"
                 variant="bordered"
@@ -184,10 +203,8 @@ export default function SuperAdminDashboard() {
       case "system":
         return (
           <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-bold text-gray-800">
-                Estado del Sistema
-              </h2>
+            <TabHeader />
+            <div className="flex justify-end">
               <Button
                 size="sm"
                 variant="bordered"
@@ -198,7 +215,7 @@ export default function SuperAdminDashboard() {
               </Button>
             </div>
             <SystemInfoCards
-              databaseInfo={databaseInfo}
+              databaseInfo={null}
               serverHealth={serverHealth}
               isLoading={isLoading}
             />
@@ -208,26 +225,21 @@ export default function SuperAdminDashboard() {
       case "settings":
         return (
           <div className="space-y-6">
-            <h2 className="text-2xl font-bold text-gray-800">Configuración</h2>
+            <TabHeader />
             <Card>
-              <CardHeader>
-                <h3 className="text-lg font-semibold">Configuración del Sistema</h3>
-              </CardHeader>
               <CardBody>
                 <p className="text-gray-500">
                   La configuración avanzada estará disponible próximamente.
                 </p>
-                <div className="mt-4 space-y-4">
-                  <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                    <div className="flex items-center gap-2 text-yellow-700">
-                      <AlertCircle className="w-5 h-5" />
-                      <span className="font-medium">Zona de Precaución</span>
-                    </div>
-                    <p className="text-sm text-yellow-600 mt-2">
-                      Las opciones de configuración que afectan a todo el sistema
-                      estarán protegidas con confirmación adicional.
-                    </p>
+                <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                  <div className="flex items-center gap-2 text-yellow-700">
+                    <AlertCircle className="w-5 h-5" />
+                    <span className="font-medium">Zona de Precaución</span>
                   </div>
+                  <p className="text-sm text-yellow-600 mt-2">
+                    Las opciones de configuración que afectan a todo el sistema
+                    estarán protegidas con confirmación adicional.
+                  </p>
                 </div>
               </CardBody>
             </Card>
@@ -244,47 +256,15 @@ export default function SuperAdminDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Sidebar */}
+    <div className="flex min-h-screen bg-gray-50">
       <SuperAdminSidebar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         onSignOut={handleSignOut}
       />
 
-      {/* Mobile sidebar overlay */}
-      {isMobileMenuOpen && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
-          onClick={() => setIsMobileMenuOpen(false)}
-        >
-          <div
-            className="w-64 h-full bg-white"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <SuperAdminSidebar
-              activeTab={activeTab}
-              setActiveTab={(tab) => {
-                setActiveTab(tab);
-                setIsMobileMenuOpen(false);
-              }}
-              onSignOut={handleSignOut}
-            />
-          </div>
-        </div>
-      )}
-
-      {/* Main content */}
-      <div className="md:ml-64">
-        {/* Header */}
-        <SuperAdminHeader
-          userEmail={userEmail}
-          onSignOut={handleSignOut}
-          onMenuToggle={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-        />
-
-        {/* Page content */}
-        <main className="p-4 md:p-6 lg:p-8">
+      <div className="flex-1 ml-64">
+        <main className="px-4 lg:px-6 pb-4 lg:pb-6 pt-4 lg:pt-6">
           {error && (
             <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
               <div className="flex items-center gap-2 text-red-700">
@@ -294,12 +274,10 @@ export default function SuperAdminDashboard() {
               <p className="text-sm text-red-600 mt-1">{error}</p>
             </div>
           )}
-
           {renderContent()}
         </main>
       </div>
 
-      {/* Account Detail Modal */}
       <AccountDetailModal
         account={selectedAccount}
         isOpen={isAccountModalOpen}
@@ -312,15 +290,14 @@ export default function SuperAdminDashboard() {
         onDelete={handleDelete}
       />
 
-      {/* Confirm Action Modal */}
       <ConfirmActionModal
         isOpen={isConfirmModalOpen}
+        action={confirmAction}
+        onConfirm={handleConfirmAction}
         onClose={() => {
           setIsConfirmModalOpen(false);
           setConfirmAction(null);
         }}
-        onConfirm={handleConfirmAction}
-        action={confirmAction}
       />
     </div>
   );
