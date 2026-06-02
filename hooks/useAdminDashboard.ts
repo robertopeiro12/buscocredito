@@ -119,10 +119,12 @@ export function useAdminDashboard() {
   const fetchUsers = async (_userId: string) => {
     setIsLoading(true);
     try {
+      const token = await auth.currentUser?.getIdToken();
       const response = await fetch('/api/getSubcuentas', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
         credentials: 'include',
       });
@@ -211,19 +213,26 @@ export function useAdminDashboard() {
   // Create subaccount
   const createSubaccount = async (newSubaccount: Omit<Subaccount, "id">) => {
     try {
+      const token = await auth.currentUser?.getIdToken();
       const response = await fetch("/api/users/subaccounts", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
+        credentials: "include",
         body: JSON.stringify(newSubaccount),
       });
 
       if (response.ok) {
         const data = await response.json();
+        // Use max existing id + 1 to avoid collisions after deletions
+        const nextId = subaccounts.length > 0
+          ? Math.max(...subaccounts.map((a) => a.id)) + 1
+          : 1;
         setSubaccounts([
           ...subaccounts,
-          { ...newSubaccount, id: subaccounts.length + 1, userId: data.userId },
+          { ...newSubaccount, id: nextId, userId: data.userId },
         ]);
         setIsModalOpen(false);
       } else {

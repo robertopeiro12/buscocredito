@@ -107,7 +107,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               uid: firebaseUser.uid,
               email: firebaseUser.email,
               type:
-                (customClaims.userType as "borrower" | "companyAdmin" | "lender") ||
+                (customClaims.userType as "borrower" | "companyAdmin" | "lender" | "superAdmin") ||
                 "borrower",
               companyName: undefined,
               adminId: undefined,
