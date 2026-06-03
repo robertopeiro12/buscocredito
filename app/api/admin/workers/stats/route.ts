@@ -29,6 +29,20 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // Read ?period=month|all (default: month)
+    const { searchParams } = new URL(request.url);
+    const period = searchParams.get('period') === 'all' ? 'all' : 'month';
+
+    const startOfMonth =
+      period === 'month'
+        ? (() => {
+            const d = new Date();
+            d.setDate(1);
+            d.setHours(0, 0, 0, 0);
+            return d;
+          })()
+        : null;
+
     await initAdmin();
     const db = getFirestore();
     
@@ -68,7 +82,10 @@ export async function GET(request: NextRequest) {
       try {
         // Obtener propuestas donde este trabajador es el partner (maneja la propuesta)
         const propuestasRef = db.collection('propuestas');
-        const propuestasQuery = propuestasRef.where('lenderId', '==', workerId);
+        let propuestasQuery: FirebaseFirestore.Query = propuestasRef.where('lenderId', '==', workerId);
+        if (startOfMonth) {
+          propuestasQuery = propuestasQuery.where('createdAt', '>=', startOfMonth);
+        }
         const propuestasSnapshot = await propuestasQuery.get();
         
         console.log(`📈 Trabajador ${workerId} (${workerData.name}): ${propuestasSnapshot.size} propuestas`);
@@ -245,8 +262,6 @@ export async function GET(request: NextRequest) {
           : 0
       }
     };
-    
-    console.log(`📤 Enviando respuesta:`, JSON.stringify(response, null, 2));
     
     return NextResponse.json(response, { status: 200 });
     

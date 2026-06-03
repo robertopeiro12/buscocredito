@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { getFirestore, collection, query, where, getDocs } from "firebase/firestore";
-import toast from "react-hot-toast";
+import { addToast } from "@heroui/react";
 
 type MetricsData = {
   totalProposals: number;
@@ -356,13 +356,11 @@ export const useAdminMetrics = ({
         startDate = new Date(firstYearOfQuarter, firstMonthOfQuarter, 1);
 
         // Toast para mostrar al usuario
-        toast.success(
-          `Mostrando datos del trimestre: ${getMonthName(
-            firstMonthOfQuarter + 1
-          )} a ${getMonthName(currentMonth + 1)}`,
-          {
-            duration: 3000,
-          }
+        addToast({
+          title: `Mostrando datos del trimestre: ${getMonthName(firstMonthOfQuarter + 1)} a ${getMonthName(currentMonth + 1)}`,
+          color: "success",
+          timeout: 3000,
+        }
         );
 
         // Periodo anterior: los 3 meses antes del trimestre actual
@@ -732,10 +730,7 @@ export const useAdminMetrics = ({
       });
     } catch (error) {
       console.error("Error al cargar métricas:", error);
-      toast.error("Error al cargar las métricas. Verifica tu conexión.", {
-        icon: "🔄",
-        duration: 5000,
-      });
+      addToast({ title: "Error al cargar las métricas. Verifica tu conexión.", color: "danger", timeout: 5000 });
     } finally {
       setIsLoadingMetrics(false);
     }

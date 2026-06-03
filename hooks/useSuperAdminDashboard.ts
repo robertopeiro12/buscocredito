@@ -11,7 +11,7 @@ import type {
   SuperAdminDashboardState,
   AccountActionResult,
 } from "@/types/superadmin";
-import toast from "react-hot-toast";
+import { addToast } from "@heroui/react";
 
 interface DatabaseInfo {
   collections: { name: string; documentCount: number }[];
@@ -105,7 +105,9 @@ export function useSuperAdminDashboard() {
             type: data.type || "borrower",
             companyName: data.companyName,
             adminId: data.adminId,
-            createdAt: data.created_at?.toDate?.()?.toISOString() || data.createdAt,
+            createdAt: data.created_at?.toDate?.()?.toISOString()
+              || data.createdAt?.toDate?.()?.toISOString()
+              || (typeof data.createdAt === "string" ? data.createdAt : null),
             lastLoginAt: data.lastLoginAt,
             isActive: data.isActive !== false,
             disabled: data.isActive === false,
@@ -119,6 +121,7 @@ export function useSuperAdminDashboard() {
         console.log("📊 Accounts updated in real-time:", accountsList.length);
       },
       (err) => {
+        if (err.code === "permission-denied") return;
         console.error("Error listening to accounts:", err);
         setError("Error al cargar las cuentas en tiempo real");
         setIsLoading(false);
@@ -146,6 +149,7 @@ export function useSuperAdminDashboard() {
         console.log("📊 Solicitudes updated in real-time:", solicitudes.length);
       },
       (err) => {
+        if (err.code === "permission-denied") return;
         console.error("Error listening to solicitudes:", err);
       }
     );
@@ -167,6 +171,7 @@ export function useSuperAdminDashboard() {
         console.log("📊 Propuestas updated in real-time:", snapshot.size);
       },
       (err) => {
+        if (err.code === "permission-denied") return;
         console.error("Error listening to propuestas:", err);
       }
     );
@@ -188,22 +193,31 @@ export function useSuperAdminDashboard() {
       (s) => s.status === "rejected"
     ).length;
 
-    // Calculate recent signups (last 7 days)
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
     const recentSignups = accounts.filter((acc) => {
       if (!acc.createdAt) return false;
-      const createdDate = new Date(acc.createdAt);
-      return createdDate >= sevenDaysAgo;
+      return new Date(acc.createdAt) >= sevenDaysAgo;
     }).length;
 
-    // Calculate recent logins (last 24 hours)
     const oneDayAgo = new Date();
     oneDayAgo.setHours(oneDayAgo.getHours() - 24);
     const recentLogins = accounts.filter((acc) => {
       if (!acc.lastLoginAt) return false;
-      const loginDate = new Date(acc.lastLoginAt);
-      return loginDate >= oneDayAgo;
+      return new Date(acc.lastLoginAt) >= oneDayAgo;
+    }).length;
+
+    const toDate = (v: any): Date | null => {
+      if (!v) return null;
+      if (v.toDate) return v.toDate();
+      const d = new Date(v);
+      return isNaN(d.getTime()) ? null : d;
+    };
+
+    const solicitudesThisWeek = solicitudesData.filter((s) => {
+      const d = toDate(s.createdAt || s.fecha);
+      return d && d >= sevenDaysAgo;
     }).length;
 
     return {
@@ -223,6 +237,9 @@ export function useSuperAdminDashboard() {
       rejectedSolicitudes,
       recentSignups,
       recentLogins,
+      solicitudesThisWeek,
+      propuestasThisWeek: 0,
+      matchingRate: 0,
     };
   }, [accounts, solicitudesData, propuestasCount, stats]);
 
@@ -242,18 +259,13 @@ export function useSuperAdminDashboard() {
         },
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to fetch accounts");
-      }
+      if (!response.ok) return;
 
       const data = await response.json();
-      // API data will be overwritten by real-time listeners, but useful for initial disabled status
       setStats(data.stats);
     } catch (err: any) {
       console.error("Error fetching accounts:", err);
-      setError(err.message);
-      toast.error("Error al cargar los datos");
+      // Real-time listeners already provide this data — API failure is non-fatal
     } finally {
       setIsLoading(false);
     }
@@ -272,16 +284,13 @@ export function useSuperAdminDashboard() {
         },
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to fetch system info");
-      }
+      if (!response.ok) return;
 
       const data = await response.json();
       setDatabaseInfo(data.database);
       setServerHealth(data.server);
     } catch (err: any) {
-      console.error("Error fetching system info:", err);
+      console.error("Error fetching system info (non-fatal):", err);
     }
   }, [isAuthorized, getAuthToken]);
 
@@ -306,11 +315,11 @@ export function useSuperAdminDashboard() {
           throw new Error(data.error || "Failed to deactivate account");
         }
 
-        toast.success("Cuenta desactivada exitosamente");
+        addToast({ title: "Cuenta desactivada exitosamente", color: "success" });
         // Real-time listener will update the data automatically
         return { success: true, message: data.message };
       } catch (err: any) {
-        toast.error(err.message || "Error al desactivar la cuenta");
+        addToast({ title: err.message || "Error al desactivar la cuenta", color: "danger" });
         return { success: false, message: "", error: err.message };
       }
     },
@@ -338,11 +347,11 @@ export function useSuperAdminDashboard() {
           throw new Error(data.error || "Failed to activate account");
         }
 
-        toast.success("Cuenta activada exitosamente");
+        addToast({ title: "Cuenta activada exitosamente", color: "success" });
         // Real-time listener will update the data automatically
         return { success: true, message: data.message };
       } catch (err: any) {
-        toast.error(err.message || "Error al activar la cuenta");
+        addToast({ title: err.message || "Error al activar la cuenta", color: "danger" });
         return { success: false, message: "", error: err.message };
       }
     },
@@ -368,11 +377,11 @@ export function useSuperAdminDashboard() {
           throw new Error(data.error || "Failed to delete account");
         }
 
-        toast.success("Cuenta eliminada exitosamente");
+        addToast({ title: "Cuenta eliminada exitosamente", color: "success" });
         // Real-time listener will update the data automatically
         return { success: true, message: data.message };
       } catch (err: any) {
-        toast.error(err.message || "Error al eliminar la cuenta");
+        addToast({ title: err.message || "Error al eliminar la cuenta", color: "danger" });
         return { success: false, message: "", error: err.message };
       }
     },
@@ -438,7 +447,7 @@ export function useSuperAdminDashboard() {
       router.push("/login");
     } catch (error) {
       console.error("Error signing out:", error);
-      toast.error("Error al cerrar sesión");
+      addToast({ title: "Error al cerrar sesión", color: "danger" });
     }
   }, [router]);
 

@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useLayoutEffect, useMemo, useCallback, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { onAuthStateChanged } from 'firebase/auth';
 import { doc, getFirestore, getDoc } from 'firebase/firestore';
@@ -7,7 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useLenderGuard } from '@/hooks/useRoleGuard';
 import { useLoan } from '@/hooks/useLoans';
 import { useProposal } from '@/app/lender/hooks/useProposal';
-import toast from 'react-hot-toast';
+import { addToast } from '@heroui/react';
 import type {
   LenderState,
   LenderFilters,
@@ -55,11 +55,17 @@ export const useLenderDashboard = () => {
   const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
   const [isCreatingOffer, setIsCreatingOffer] = useState(false);
   const [partnerData, setPartnerData] = useState<LenderInfo>(initialPartnerData);
+  // Always holds the latest partnerData — safe to read inside async functions
+  const partnerDataRef = useRef(partnerData);
+  useLayoutEffect(() => { partnerDataRef.current = partnerData; }, [partnerData]);
+  // Prevents race condition if handleOpenOffer is called twice rapidly
+  const isOpeningOfferRef = useRef(false);
   const [filters, setFilters] = useState<LenderFilters>(initialFilters);
   const [userData, setUserData] = useState<PublicUserData | null>(null);
   const [lenderProposals, setLenderProposals] = useState<LenderProposal[]>([]);
   const [loadingProposals, setLoadingProposals] = useState(false);
   const [userDataMap, setUserDataMap] = useState<Record<string, PublicUserData>>({});
+  const [lenderEmailNotifications, setLenderEmailNotifications] = useState(true);
 
   // Hooks de datos
   const {
@@ -157,33 +163,38 @@ export const useLenderDashboard = () => {
   }, [requests, filters, userDataMap]);
 
   // Funciones
-  const getPartnerData = async (uid: string) => {
+  const getPartnerData = async (uid: string): Promise<LenderInfo> => {
     try {
       const db = getFirestore();
       const docRef = doc(db, "cuentas", uid);
       const docSnap = await getDoc(docRef);
 
       if (docSnap.exists()) {
-        setPartnerData({
+        const data: LenderInfo = {
           name: docSnap.data().name || "",
           company: docSnap.data().companyName || "",
           adminId: docSnap.data().adminId || "",
-        });
+        };
+        setPartnerData(data);
+        return data;
       }
     } catch (error) {
       console.error("Error al obtener datos del partner:", error);
-      // Mantener valores por defecto
       setPartnerData(initialPartnerData);
     }
+    return initialPartnerData;
   };
 
   const getUserData = async (userId: string) => {
     try {
+      const token = await auth.currentUser?.getIdToken();
       const response = await fetch("/api/users/public-profile", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
+        credentials: "include",
         body: JSON.stringify({ userId }),
       });
 
@@ -204,33 +215,11 @@ export const useLenderDashboard = () => {
     }
   };
 
-  const updateOffer = async (id: string) => {
-    try {
-      const response = await fetch("/api/loans/accept", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ id: id, offer_data: proposalData }),
-      });
-
-      if (response.ok) {
-      } else {
-        console.error("Error fetching user data:", response.statusText);
-      }
-    } catch (error) {
-      console.error("Error getting data:", error);
-    }
-  };
-
   const handleSubmitOffer = async () => {
     const success = await submitProposal();
     if (success) {
       // Mostrar notificación de éxito
-      toast.success("Tu propuesta ha sido enviada exitosamente", {
-        duration: 4000,
-        position: "top-center",
-      });
+      addToast({ title: "Tu propuesta ha sido enviada exitosamente", color: "success", timeout: 4000 });
 
       // Cerrar el formulario de propuesta
       setIsCreatingOffer(false);
@@ -269,17 +258,20 @@ export const useLenderDashboard = () => {
 
     setLoadingProposals(true);
     try {
+      const token = await auth.currentUser?.getIdToken();
       const response = await fetch("/api/proposals/lender", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
+        credentials: "include",
         body: JSON.stringify({ lenderId: user }),
       });
 
       if (response.ok) {
         const data = await response.json();
-        
+
         // Manejar la estructura de respuesta correcta: data.data.proposals o data.data
         let proposals = [];
         if (data.data) {
@@ -287,14 +279,16 @@ export const useLenderDashboard = () => {
         } else {
           proposals = data.proposals || [];
         }
-        
+
         setLenderProposals(Array.isArray(proposals) ? proposals : []);
       } else {
         console.error("Error fetching proposals:", response.statusText);
+        addToast({ title: 'Error al cargar tus propuestas', color: 'danger' });
         setLenderProposals([]);
       }
     } catch (error) {
       console.error("Error fetching proposals:", error);
+      addToast({ title: 'Error al cargar tus propuestas', color: 'danger' });
       setLenderProposals([]);
     } finally {
       setLoadingProposals(false);
@@ -312,12 +306,23 @@ export const useLenderDashboard = () => {
     }));
   };
 
-  const handleMakeOffer = () => {
-    updateProposal({
-      company: partnerData.company,
-      lenderId: user,
-    });
-    setIsCreatingOffer(true);
+  const handleOpenOffer = async (requestId: string) => {
+    if (isOpeningOfferRef.current) return;
+    isOpeningOfferRef.current = true;
+    try {
+      const request = requests.find((r) => r.id === requestId);
+      if (!request) return;
+      setSelectedRequestId(requestId);
+      await getUserData(request.userId);
+      // If partnerData hasn't loaded yet, fetch it now to avoid blank company
+      const partner = partnerDataRef.current.company
+        ? partnerDataRef.current
+        : await getPartnerData(user);
+      updateProposal({ company: partner.company, lenderId: user });
+      setIsCreatingOffer(true);
+    } finally {
+      isOpeningOfferRef.current = false;
+    }
   };
 
   const handleCancelOffer = () => {
@@ -341,7 +346,7 @@ export const useLenderDashboard = () => {
           console.error("Error al cargar datos del partner:", error);
           // Si hay error de permisos, intentar mantener funcionalidad básica
           if (error && typeof error === 'object' && 'code' in error && error.code !== 'permission-denied') {
-            toast.error("Error al cargar configuración de empresa");
+            addToast({ title: "Error al cargar configuración de empresa", color: "danger" });
           }
         }
       } else {
@@ -359,47 +364,101 @@ export const useLenderDashboard = () => {
     }
   }, [partnerData.company, refreshLoans]);
 
-  // Cargar las propuestas del lender cuando se activa la pestaña "myoffers"
+  // Cargar las propuestas del lender cuando se activa la pestaña "myoffers" o "metrics"
   useEffect(() => {
-    if (activeTab === "myoffers" && user) {
+    if ((activeTab === "myoffers" || activeTab === "metrics") && user) {
       fetchLenderProposals();
     }
   }, [activeTab, user, fetchLenderProposals]);
 
+  // Cargar preferencia de notificaciones por correo cuando el usuario está disponible
+  useEffect(() => {
+    if (!user) return;
+    auth.currentUser?.getIdToken().then((token) => {
+      fetch("/api/users/preferences", {
+        credentials: "include",
+        headers: {
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+      })
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data) => {
+          if (data?.data?.emailNotifications !== undefined) {
+            setLenderEmailNotifications(data.data.emailNotifications);
+          }
+        })
+        .catch(() => {
+          // Silently ignore — UI will default to true
+        });
+    });
+  }, [user]);
+
   useEffect(() => {
     // Cargar datos de usuario para todas las solicitudes
     const loadAllUserData = async () => {
-      const userIds = Array.from(new Set(requests.map((req) => req.userId)));
+      const allUserIds = Array.from(new Set(requests.map((req) => req.userId)));
+      const userIds = allUserIds.filter((id) => !userDataMap[id]);
+      if (userIds.length === 0) return;
       const dataMap: Record<string, PublicUserData> = {};
+      const token = await auth.currentUser?.getIdToken();
 
-      for (const userId of userIds) {
-        try {
-          const response = await fetch("/api/users/public-profile", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ userId }),
-          });
+      const results = await Promise.all(
+        userIds.map(async (userId) => {
+          try {
+            const response = await fetch("/api/users/public-profile", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                ...(token ? { Authorization: `Bearer ${token}` } : {}),
+              },
+              credentials: "include",
+              body: JSON.stringify({ userId }),
+            });
 
-          if (response.ok) {
-            const data = await response.json();
-            if (data.data) {
-              dataMap[userId] = data.data;
+            if (response.ok) {
+              const data = await response.json();
+              if (data.data) {
+                return { userId, userData: data.data as PublicUserData };
+              }
             }
+          } catch (error) {
+            console.error(`Error getting data for user ${userId}:`, error);
           }
-        } catch (error) {
-          console.error(`Error getting data for user ${userId}:`, error);
+          return null;
+        })
+      );
+
+      for (const result of results) {
+        if (result) {
+          dataMap[result.userId] = result.userData;
         }
       }
 
-      setUserDataMap(dataMap);
+      setUserDataMap((prev) => ({ ...prev, ...dataMap }));
     };
 
     if (requests.length > 0 && !loading) {
       loadAllUserData();
     }
   }, [requests, loading]);
+
+  const handleEmailNotificationsChange = async (value: boolean) => {
+    setLenderEmailNotifications(value);
+    try {
+      const token = await auth.currentUser?.getIdToken();
+      await fetch("/api/users/preferences", {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ userId: user, emailNotifications: value }),
+      });
+    } catch {
+      // Silently ignore — optimistic update already applied
+    }
+  };
 
   const handleTabChange = (tab: string) => {
     setActiveTab(tab as LenderState['activeTab']);
@@ -450,12 +509,15 @@ export const useLenderDashboard = () => {
     handleSignOut,
     handleFilterChange,
     clearFilters,
-    handleMakeOffer,
+    handleOpenOffer,
     handleCancelOffer,
     handleBackToMarket,
-    updateOffer,
     refreshLoans,
-    
+
+    // Email notifications
+    lenderEmailNotifications,
+    handleEmailNotificationsChange,
+
     // Funciones de proposal
     updateProposal,
     resetProposal,

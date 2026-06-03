@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from "framer-motion";
 import { Card, Button } from "@heroui/react";
 import { CreditCard, ChevronRight, Store } from "lucide-react";
@@ -6,14 +6,15 @@ import LenderFilters from './LenderFilters';
 import LoanRequestCard from './LoanRequestCard';
 import LoanRequestDetails from "@/components/features/loans/LoanRequestDetails";
 import { ProposalForm } from "@/components/features/loans/ProposalForm";
-import { LenderStats } from "@/components/features/dashboard/LenderStats";
 import { MarketplacePagination } from "@/components/features/dashboard/MarketplacePagination";
 import { LenderLoadingSkeletons } from "@/components/features/dashboard/LenderLoadingSkeletons";
-import type { 
-  LoanRequest, 
-  PublicUserData, 
-  LenderFilters as LenderFiltersType 
+import type {
+  LoanRequest,
+  LenderProposal,
+  PublicUserData,
+  LenderFilters as LenderFiltersType
 } from '@/app/lender/types/loan.types';
+import type { ProposalFormData } from '@/app/lender/hooks/useProposal';
 
 interface MarketplaceViewProps {
   // Datos
@@ -29,10 +30,10 @@ interface MarketplaceViewProps {
   filters: LenderFiltersType;
   
   // Props del proposal form
-  proposalData: any;
+  proposalData: ProposalFormData;
   submitting: boolean;
   submitError: string | null;
-  
+
   // Funciones
   onFilterChange: (key: keyof LenderFiltersType, value: string) => void;
   onClearFilters: () => void;
@@ -40,8 +41,8 @@ interface MarketplaceViewProps {
   onSubmitOffer: () => void;
   onCancelOffer: () => void;
   onBackToMarket: () => void;
-  updateProposal: (data: any) => void;
-  
+  updateProposal: (data: Partial<ProposalFormData>) => void;
+
   // Datos del partner
   partnerData: {
     company: string;
@@ -49,9 +50,9 @@ interface MarketplaceViewProps {
     adminId: string;
   };
   user: string;
-  
+
   // Datos adicionales para stats
-  lenderProposals?: any[];
+  lenderProposals?: LenderProposal[];
 }
 
 const MarketplaceView = ({
@@ -87,6 +88,10 @@ const MarketplaceView = ({
   const endIndex = startIndex + itemsPerPage;
   const currentRequests = filteredRequests.slice(startIndex, endIndex);
 
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filteredRequests]);
+
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
   };
@@ -104,8 +109,8 @@ const MarketplaceView = ({
         <LenderLoadingSkeletons.MarketplaceGrid />
       ) : filteredRequests.length === 0 ? (
         <div className="text-center py-16">
-          <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center">
-            <Store className="w-12 h-12 text-blue-600" />
+          <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-[#0e3a45]/[0.06] flex items-center justify-center">
+            <Store className="w-12 h-12 text-[#0e3a45]" />
           </div>
           <h3 className="text-2xl font-semibold text-gray-900 mb-3">
             {allRequests.length === 0 ? "No hay solicitudes disponibles" : "No se encontraron solicitudes"}
@@ -117,10 +122,9 @@ const MarketplaceView = ({
           </p>
           {allRequests.length > 0 && (
             <Button
-              color="primary"
               size="md"
               onClick={onClearFilters}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2"
+              className="bg-[#0e3a45] hover:opacity-90 text-white font-semibold px-6 py-2"
             >
               Limpiar Filtros
             </Button>
@@ -133,7 +137,7 @@ const MarketplaceView = ({
               <LoanRequestCard
                 key={request.id}
                 request={request}
-                index={index}
+                index={startIndex + index}
                 userData={userDataMap[request.userId]}
                 onMakeOffer={() => onMakeOffer(request.id)}
               />
@@ -156,7 +160,7 @@ const MarketplaceView = ({
       {/* Offer Modal */}
       {isCreatingOffer && selectedRequest && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border-t-4 border-green-500">
             <ProposalForm
               proposal={proposalData}
               loading={submitting}

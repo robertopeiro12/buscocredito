@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { HeroUIProvider } from "@heroui/system";
+import { ToastProvider } from "@heroui/react";
 import { useRouter } from "next/navigation";
 import { ThemeProvider as NextThemesProvider, type ThemeProviderProps } from "next-themes";
 import { AuthProvider } from "../contexts/AuthContext";
@@ -17,6 +18,7 @@ export function Providers({ children, themeProps }: ProvidersProps) {
   return (
     <HeroUIProvider navigate={router.push}>
       <NextThemesProvider {...themeProps}>
+        <ToastProvider placement="top-center" />
         <AuthProvider>{children}</AuthProvider>
       </NextThemesProvider>
     </HeroUIProvider>

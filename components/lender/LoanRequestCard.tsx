@@ -1,10 +1,7 @@
 import React from "react";
 import { Button, Card, Chip, CardBody } from "@heroui/react";
-import { DollarSign, Target, User } from "lucide-react";
-import type {
-  LoanRequest,
-  PublicUserData,
-} from "@/app/lender/types/loan.types";
+import { DollarSign, MapPin, User } from "lucide-react";
+import type { LoanRequest, PublicUserData } from "@/app/lender/types/loan.types";
 
 interface LoanRequestCardProps {
   request: LoanRequest;
@@ -13,147 +10,101 @@ interface LoanRequestCardProps {
   onMakeOffer: (requestId: string) => void;
 }
 
-const LoanRequestCard = ({
-  request,
-  userData,
-  index,
-  onMakeOffer,
-}: LoanRequestCardProps) => {
+const LoanRequestCard = ({ request, userData, index, onMakeOffer }: LoanRequestCardProps) => {
   return (
-    <Card
-      key={request.id}
-      className="overflow-hidden shadow-sm border border-gray-100 hover:border-gray-200 transition-all duration-200"
-    >
-      {/* Encabezado de la tarjeta */}
+    <Card className="overflow-hidden border border-gray-100 hover:border-[#0e3a45]/20 hover:shadow-md transition-all duration-200">
+      <div className="h-1 bg-green-500 w-full" />
       <CardBody className="p-0">
         <div className="p-5 border-b border-gray-100">
-          <div className="flex justify-between items-center">
-            <h3 className="text-lg font-semibold text-gray-700">
-              Solicitud #{index + 1}
-            </h3>
-          </div>
-          <p className="text-3xl font-bold mt-2 text-green-600">
-            ${request.amount.toLocaleString()}
+          <p className="text-xs uppercase tracking-widest text-gray-400 mb-1">
+            Solicitud #{index + 1}
+          </p>
+          <p className="text-3xl font-bold text-[#0e3a45]">
+            ${request.amount.toLocaleString("es-MX")}
           </p>
         </div>
 
-        <div className="p-5">
-          {/* Detalles de la solicitud */}
-          <div className="mb-6">
-            <h4 className="text-md font-semibold mb-3 flex items-center border-b border-gray-100 pb-2 text-gray-700">
-              <DollarSign className="h-4 w-4 text-gray-500 mr-2" />
-              Detalles de la Solicitud
+        <div className="p-5 space-y-5">
+          <div>
+            <h4 className="text-[10px] font-semibold uppercase tracking-widest text-gray-400 flex items-center gap-1.5 mb-3">
+              <DollarSign className="w-3.5 h-3.5" />
+              Detalles del Crédito
             </h4>
-
             <div className="grid grid-cols-2 gap-x-4 gap-y-3">
               <div>
-                <p className="text-sm text-gray-500">Monto Solicitado</p>
-                <p className="font-medium text-gray-800">
-                  ${request.amount.toLocaleString()}
+                <p className="text-[10px] uppercase tracking-wide text-gray-400">Ingresos Mensuales</p>
+                <p className="text-sm font-semibold text-gray-800">
+                  ${Number(request.income).toLocaleString("es-MX")}
                 </p>
               </div>
-
               <div>
-                <p className="text-sm text-gray-500">
-                  Ingresos Mensuales Comprobables
-                </p>
-                <p className="font-medium text-gray-800">
-                  ${request.income.toLocaleString()}
-                </p>
+                <p className="text-[10px] uppercase tracking-wide text-gray-400">Frecuencia de Pago</p>
+                <p className="text-sm font-semibold text-gray-800 capitalize">{request.payment}</p>
               </div>
-
               <div>
-                <p className="text-sm text-gray-500">Frecuencia de Pago</p>
-                <p className="font-medium text-gray-800 capitalize">
-                  {request.payment}
-                </p>
+                <p className="text-[10px] uppercase tracking-wide text-gray-400">Plazo</p>
+                <p className="text-sm font-semibold text-gray-800">{request.term}</p>
               </div>
-
               <div>
-                <p className="text-sm text-gray-500">Plazo</p>
-                <p className="font-medium text-gray-800">{request.term}</p>
+                <p className="text-[10px] uppercase tracking-wide text-gray-400">Propósito</p>
+                <p className="text-sm font-semibold text-gray-800">{request.purpose || "No especificado"}</p>
               </div>
-
               <div>
-                <p className="text-sm text-gray-500">Propósito</p>
-                <p className="font-medium text-gray-800">
-                  {request.purpose || "No especificado"}
-                </p>
+                <p className="text-[10px] uppercase tracking-wide text-gray-400">Tipo</p>
+                <p className="text-sm font-semibold text-gray-800">{request.type || "No especificado"}</p>
               </div>
-
-              <div>
-                <p className="text-sm text-gray-500">Tipo</p>
-                <p className="font-medium text-gray-800">
-                  {request.type || "No especificado"}
-                </p>
-              </div>
-
-              {userData?.creditScore && (
-                <div>
-                  <p className="text-sm text-gray-500">Score Crediticio</p>
-                  <div className="flex items-center gap-2 mt-1">
-                    <p className="font-medium text-gray-800">
-                      {userData.creditScore.score}
-                    </p>
-                    <Chip
-                      size="sm"
-                      className={`${
-                        userData.creditScore.classification === "Excelente"
-                          ? "bg-emerald-100 text-emerald-800"
-                          : userData.creditScore.classification === "Bueno"
-                          ? "bg-green-100 text-green-800"
-                          : userData.creditScore.classification === "Regular"
-                          ? "bg-orange-100 text-orange-800"
-                          : "bg-red-100 text-red-800"
-                      }`}
-                      variant="flat"
-                    >
-                      {userData.creditScore.classification}
-                    </Chip>
-                  </div>
-                </div>
-              )}
             </div>
           </div>
 
-          {/* Información del solicitante */}
-          <div className="mb-5">
-            <h4 className="text-md font-semibold mb-3 flex items-center border-b border-gray-100 pb-2 text-gray-700">
-              <User className="h-4 w-4 text-gray-500 mr-2" />
-              Información del Solicitante
-            </h4>
+          {userData?.creditScore && (
+            <div className="bg-[#0e3a45]/[0.04] rounded-lg px-3 py-2.5 flex items-center justify-between">
+              <p className="text-[10px] uppercase tracking-wide text-gray-500 font-semibold">Score Crediticio</p>
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-bold text-[#0e3a45]">{userData.creditScore.score}</span>
+                <Chip
+                  size="sm"
+                  variant="flat"
+                  className={
+                    userData.creditScore.classification === "Excelente"
+                      ? "bg-emerald-100 text-emerald-800"
+                      : userData.creditScore.classification === "Bueno"
+                      ? "bg-green-100 text-green-800"
+                      : userData.creditScore.classification === "Regular"
+                      ? "bg-orange-100 text-orange-800"
+                      : "bg-red-100 text-red-800"
+                  }
+                >
+                  {userData.creditScore.classification}
+                </Chip>
+              </div>
+            </div>
+          )}
 
+          <div className="border-t border-gray-100 pt-4">
+            <h4 className="text-[10px] font-semibold uppercase tracking-widest text-gray-400 flex items-center gap-1.5 mb-3">
+              <User className="w-3.5 h-3.5" />
+              Solicitante
+            </h4>
             <div className="grid grid-cols-3 gap-x-4 gap-y-3">
               <div>
-                <p className="text-sm text-gray-500">País</p>
-                <p className="font-medium text-gray-800">
-                  {userData?.country || "No disponible"}
-                </p>
+                <p className="text-[10px] uppercase tracking-wide text-gray-400">País</p>
+                <p className="text-sm font-semibold text-gray-800">{userData?.country || "N/D"}</p>
               </div>
-
               <div>
-                <p className="text-sm text-gray-500">Estado</p>
-                <p className="font-medium text-gray-800">
-                  {userData?.state || "No disponible"}
-                </p>
+                <p className="text-[10px] uppercase tracking-wide text-gray-400">Estado</p>
+                <p className="text-sm font-semibold text-gray-800">{userData?.state || "N/D"}</p>
               </div>
-
               <div>
-                <p className="text-sm text-gray-500">Ciudad</p>
-                <p className="font-medium text-gray-800">
-                  {userData?.city || "No disponible"}
-                </p>
+                <p className="text-[10px] uppercase tracking-wide text-gray-400">Ciudad</p>
+                <p className="text-sm font-semibold text-gray-800">{userData?.city || "N/D"}</p>
               </div>
             </div>
           </div>
 
-          {/* Botón de acción */}
           <Button
-            color="success"
-            className="w-full bg-green-600 hover:bg-green-700 text-white"
+            className="w-full bg-[#0e3a45] text-white hover:opacity-90"
             onClick={() => onMakeOffer(request.id)}
           >
-            <Target className="h-4 w-4 mr-2" />
             Hacer Oferta
           </Button>
         </div>

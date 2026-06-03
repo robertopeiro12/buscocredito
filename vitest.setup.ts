@@ -128,21 +128,11 @@ vi.mock("@/db/FireAuthFunc", () => ({
   delete_subaccount: vi.fn(),
 }));
 
-// Mock react-hot-toast
-vi.mock("react-hot-toast", () => ({
-  default: {
-    success: vi.fn(),
-    error: vi.fn(),
-    loading: vi.fn(),
-    dismiss: vi.fn(),
-  },
-  toast: {
-    success: vi.fn(),
-    error: vi.fn(),
-    loading: vi.fn(),
-    dismiss: vi.fn(),
-  },
-}));
+// Mock @heroui/react addToast
+vi.mock("@heroui/react", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@heroui/react")>();
+  return { ...actual, addToast: vi.fn() };
+});
 
 // Mock global fetch
 global.fetch = vi.fn();

@@ -17,7 +17,7 @@ export function ConditionalNavBar() {
   return (
     <>
       <NavBar />
-      <div className="h-16" /> {/* Spacer para compensar navbar fixed */}
+      <div className="h-16" />
     </>
   );
 }

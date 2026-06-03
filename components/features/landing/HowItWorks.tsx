@@ -1,5 +1,3 @@
-"use client";
-
 import Image from "next/image";
 import Link from "next/link";
 
@@ -11,6 +9,7 @@ const HowItWorks = () => {
       description:
         "Indica el tipo de crédito que necesitas y proporciona tu información básica.",
       borderColor: "border-t-green-500",
+      objectPosition: "object-top",
     },
     {
       image: "/img/landing/magnifying-glass.jpg",
@@ -18,6 +17,7 @@ const HowItWorks = () => {
       description:
         "Los prestamistas registrados revisan tu solicitud según sus propios criterios.",
       borderColor: "border-t-yellow-500",
+      objectPosition: "object-right",
     },
     {
       image: "/img/landing/excited-woman.jpg",
@@ -25,6 +25,7 @@ const HowItWorks = () => {
       description:
         "Recibe todas las alternativas disponibles y decide si alguna se ajusta a lo que buscas.",
       borderColor: "border-t-red-500",
+      objectPosition: "object-center",
     },
   ];
 
@@ -43,7 +44,8 @@ const HowItWorks = () => {
                   src={step.image}
                   alt={step.title}
                   fill
-                  className="object-cover transform group-hover:scale-110 transition duration-500"
+                  sizes="(max-width: 768px) 100vw, 33vw"
+                  className={`object-cover ${step.objectPosition} transform group-hover:scale-110 transition duration-500`}
                 />
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-2">
@@ -55,7 +57,7 @@ const HowItWorks = () => {
         </div>
 
         <Link
-          href="/prestamos"
+          href="/login"
           className="inline-block bg-green-100 hover:bg-green-200 text-green-900 font-bold py-3 px-10 rounded-full transition shadow-md"
         >
           INICIAR SOLICITUD

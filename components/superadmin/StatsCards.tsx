@@ -6,12 +6,12 @@ import {
   UserCheck,
   UserX,
   FileText,
-  Send,
   Clock,
   CheckCircle,
   XCircle,
   TrendingUp,
-  Activity,
+  Send,
+  ArrowUpRight,
 } from "lucide-react";
 import type { SystemStats } from "@/types/superadmin";
 
@@ -41,34 +41,34 @@ export function StatsCards({ stats, isLoading }: StatsCardsProps) {
       title: "Total Cuentas",
       value: stats.totalAccounts,
       icon: Users,
-      color: "bg-blue-500",
-      bgColor: "bg-blue-50",
-      textColor: "text-blue-600",
+      iconBg: "bg-[#0e3a45]/[0.08]",
+      iconColor: "text-[#0e3a45]",
+      valueColor: "text-[#0e3a45]",
     },
     {
       title: "Cuentas Activas",
       value: stats.activeAccounts,
       icon: UserCheck,
-      color: "bg-green-500",
-      bgColor: "bg-green-50",
-      textColor: "text-green-600",
+      iconBg: "bg-green-50",
+      iconColor: "text-green-600",
+      valueColor: "text-green-600",
     },
     {
       title: "Cuentas Desactivadas",
       value: stats.disabledAccounts,
       icon: UserX,
-      color: "bg-red-500",
-      bgColor: "bg-red-50",
-      textColor: "text-red-600",
+      iconBg: "bg-red-50",
+      iconColor: "text-red-500",
+      valueColor: "text-red-600",
     },
     {
       title: "Registros Recientes",
       value: stats.recentSignups,
       subtitle: "Últimos 7 días",
       icon: TrendingUp,
-      color: "bg-purple-500",
-      bgColor: "bg-purple-50",
-      textColor: "text-purple-600",
+      iconBg: "bg-[#0e3a45]/[0.08]",
+      iconColor: "text-[#0e3a45]",
+      valueColor: "text-[#0e3a45]",
     },
   ];
 
@@ -77,56 +77,53 @@ export function StatsCards({ stats, isLoading }: StatsCardsProps) {
       title: "Total Solicitudes",
       value: stats.totalSolicitudes,
       icon: FileText,
-      color: "bg-indigo-500",
-      bgColor: "bg-indigo-50",
-      textColor: "text-indigo-600",
+      iconBg: "bg-[#0e3a45]/[0.08]",
+      iconColor: "text-[#0e3a45]",
+      valueColor: "text-[#0e3a45]",
     },
     {
       title: "Pendientes",
       value: stats.pendingSolicitudes,
       icon: Clock,
-      color: "bg-yellow-500",
-      bgColor: "bg-yellow-50",
-      textColor: "text-yellow-600",
+      iconBg: "bg-yellow-50",
+      iconColor: "text-yellow-600",
+      valueColor: "text-yellow-600",
     },
     {
       title: "Aprobadas",
       value: stats.approvedSolicitudes,
       icon: CheckCircle,
-      color: "bg-emerald-500",
-      bgColor: "bg-emerald-50",
-      textColor: "text-emerald-600",
+      iconBg: "bg-green-50",
+      iconColor: "text-green-600",
+      valueColor: "text-green-600",
     },
     {
       title: "Rechazadas",
       value: stats.rejectedSolicitudes,
       icon: XCircle,
-      color: "bg-rose-500",
-      bgColor: "bg-rose-50",
-      textColor: "text-rose-600",
+      iconBg: "bg-red-50",
+      iconColor: "text-red-500",
+      valueColor: "text-red-600",
     },
   ];
 
-  const userTypeStats = [
+  const marketplaceStats = [
     {
-      title: "Super Admins",
-      value: stats.accountsByType.superAdmin,
-      color: "bg-purple-600",
+      title: "Total Propuestas",
+      value: stats.totalPropuestas,
+      icon: Send,
+      iconBg: "bg-[#0e3a45]/[0.08]",
+      iconColor: "text-[#0e3a45]",
+      valueColor: "text-[#0e3a45]",
     },
     {
-      title: "Admin Empresa",
-      value: stats.accountsByType.companyAdmin,
-      color: "bg-blue-600",
-    },
-    {
-      title: "Prestamistas",
-      value: stats.accountsByType.lender,
-      color: "bg-cyan-600",
-    },
-    {
-      title: "Solicitantes",
-      value: stats.accountsByType.borrower,
-      color: "bg-green-600",
+      title: "Solicitudes esta semana",
+      value: stats.solicitudesThisWeek ?? 0,
+      subtitle: "Últimos 7 días",
+      icon: TrendingUp,
+      iconBg: "bg-[#0e3a45]/[0.08]",
+      iconColor: "text-[#0e3a45]",
+      valueColor: "text-[#0e3a45]",
     },
   ];
 
@@ -135,25 +132,26 @@ export function StatsCards({ stats, isLoading }: StatsCardsProps) {
       {/* Main Stats */}
       <div>
         <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-          <Users className="w-5 h-5 text-purple-500" />
+          <Users className="w-5 h-5 text-[#0e3a45]" />
           Resumen de Cuentas
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {mainStats.map((stat, index) => (
-            <Card key={index} className="hover:shadow-lg transition-shadow">
+            <Card key={index} className="overflow-hidden hover:shadow-md transition-shadow">
+              <div className="h-1 bg-green-500 w-full" />
               <CardBody className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-gray-500">{stat.title}</p>
-                    <p className={`text-3xl font-bold ${stat.textColor}`}>
+                    <p className={`text-3xl font-bold ${stat.valueColor}`}>
                       {stat.value.toLocaleString()}
                     </p>
                     {stat.subtitle && (
                       <p className="text-xs text-gray-400 mt-1">{stat.subtitle}</p>
                     )}
                   </div>
-                  <div className={`p-3 rounded-full ${stat.bgColor}`}>
-                    <stat.icon className={`w-6 h-6 ${stat.textColor}`} />
+                  <div className={`p-3 rounded-full ${stat.iconBg}`}>
+                    <stat.icon className={`w-6 h-6 ${stat.iconColor}`} />
                   </div>
                 </div>
               </CardBody>
@@ -165,22 +163,23 @@ export function StatsCards({ stats, isLoading }: StatsCardsProps) {
       {/* Solicitudes Stats */}
       <div>
         <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-          <FileText className="w-5 h-5 text-indigo-500" />
+          <FileText className="w-5 h-5 text-[#0e3a45]" />
           Resumen de Solicitudes
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {solicitudStats.map((stat, index) => (
-            <Card key={index} className="hover:shadow-lg transition-shadow">
+            <Card key={index} className="overflow-hidden hover:shadow-md transition-shadow">
+              <div className="h-1 bg-green-500 w-full" />
               <CardBody className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-gray-500">{stat.title}</p>
-                    <p className={`text-3xl font-bold ${stat.textColor}`}>
+                    <p className={`text-3xl font-bold ${stat.valueColor}`}>
                       {stat.value.toLocaleString()}
                     </p>
                   </div>
-                  <div className={`p-3 rounded-full ${stat.bgColor}`}>
-                    <stat.icon className={`w-6 h-6 ${stat.textColor}`} />
+                  <div className={`p-3 rounded-full ${stat.iconBg}`}>
+                    <stat.icon className={`w-6 h-6 ${stat.iconColor}`} />
                   </div>
                 </div>
               </CardBody>
@@ -189,30 +188,35 @@ export function StatsCards({ stats, isLoading }: StatsCardsProps) {
         </div>
       </div>
 
-      {/* User Types Distribution */}
+      {/* Marketplace Activity */}
       <div>
         <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-          <Activity className="w-5 h-5 text-cyan-500" />
-          Distribución por Tipo de Usuario
+          <ArrowUpRight className="w-5 h-5 text-[#0e3a45]" />
+          Actividad del Marketplace
         </h3>
-        <Card>
-          <CardBody className="p-6">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {userTypeStats.map((stat, index) => (
-                <div key={index} className="text-center">
-                  <div
-                    className={`w-16 h-16 mx-auto rounded-full ${stat.color} flex items-center justify-center mb-2`}
-                  >
-                    <span className="text-2xl font-bold text-white">
-                      {stat.value}
-                    </span>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {marketplaceStats.map((stat, index) => (
+            <Card key={index} className="overflow-hidden hover:shadow-md transition-shadow">
+              <div className="h-1 bg-green-500 w-full" />
+              <CardBody className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-500">{stat.title}</p>
+                    <p className={`text-3xl font-bold ${stat.valueColor}`}>
+                      {stat.value.toLocaleString()}
+                    </p>
+                    {stat.subtitle && (
+                      <p className="text-xs text-gray-400 mt-1">{stat.subtitle}</p>
+                    )}
                   </div>
-                  <p className="text-sm text-gray-600">{stat.title}</p>
+                  <div className={`p-3 rounded-full ${stat.iconBg}`}>
+                    <stat.icon className={`w-6 h-6 ${stat.iconColor}`} />
+                  </div>
                 </div>
-              ))}
-            </div>
-          </CardBody>
-        </Card>
+              </CardBody>
+            </Card>
+          ))}
+        </div>
       </div>
     </div>
   );

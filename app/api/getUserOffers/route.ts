@@ -27,8 +27,6 @@ export async function GET(request: NextRequest) {
     
     // Obtener ofertas específicas del usuario autenticado
     const offers = await getUserOffersByUserId(user.uid);
-    console.log('User offers for', user.uid, ':', offers);
-    
     return NextResponse.json({ offers: offers.offers }, { status: 200 });
   } catch (e) {
     console.error('Error in getUserOffers:', e);

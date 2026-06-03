@@ -59,7 +59,7 @@ export const DistributionPieCard = ({
         cornerRadius: 8,
         callbacks: {
           label: (context: any) => {
-            const percentage = ((context.raw / totalItems) * 100).toFixed(1);
+            const percentage = totalItems > 0 ? ((context.raw / totalItems) * 100).toFixed(1) : "0.0";
             return `${context.label}: ${context.raw} (${percentage}%)`;
           },
         },
@@ -80,18 +80,18 @@ export const DistributionPieCard = ({
         </div>
       </div>
       {/* Custom Legend */}
-      <div className="mt-3 space-y-1">
+      <div className="mt-3 space-y-1.5">
         {topItems.slice(0, 3).map((item, index) => (
-          <div key={item.name} className="flex items-center justify-between text-xs">
-            <div className="flex items-center gap-2">
-              <div 
-                className="w-2 h-2 rounded-full" 
-                style={{ backgroundColor: colors.backgroundColor[index] }}
-              ></div>
-              <span className="text-gray-600 truncate max-w-20">{item.name}</span>
+          <div key={item.name} className="flex items-center justify-between">
+            <div className="flex items-center gap-2 min-w-0">
+              <div
+                className="w-2 h-2 rounded-sm flex-shrink-0"
+                style={{ backgroundColor: colors.borderColor[index] }}
+              />
+              <span className="text-[10px] text-gray-500 truncate">{item.name}</span>
             </div>
-            <span className="font-medium text-gray-800">
-              {((item.value / totalItems) * 100).toFixed(0)}%
+            <span className="text-[10px] font-semibold text-gray-700 ml-2 flex-shrink-0">
+              {totalItems > 0 ? ((item.value / totalItems) * 100).toFixed(0) : "0"}%
             </span>
           </div>
         ))}
@@ -104,7 +104,7 @@ export const DistributionPieCard = ({
   );
 
   // Calcular el valor principal para mostrar
-  const mainValue = topItem ? `${((topItem.value / totalItems) * 100).toFixed(0)}%` : "0%";
+  const mainValue = topItem && totalItems > 0 ? `${((topItem.value / totalItems) * 100).toFixed(0)}%` : "0%";
   const subtitle = topItem ? `${topItem.name} (principal)` : "Sin datos";
 
   return (

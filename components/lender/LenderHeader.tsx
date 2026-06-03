@@ -1,8 +1,9 @@
 import React from 'react';
 import { Button } from "@heroui/react";
-import { LogOut, Store, FileText, Settings, HelpCircle, BarChart3 } from "lucide-react";
+import { LogOut, Store, FileText, Settings, HelpCircle, BarChart3, Bell } from "lucide-react"; // LogOut kept for mobile only
+import type { LenderState } from '@/app/lender/types/loan.types';
 
-type LenderTab = "marketplace" | "myoffers" | "metrics" | "notifications" | "settings" | "help";
+type LenderTab = LenderState['activeTab'];
 
 interface LenderHeaderProps {
   activeTab: LenderTab;
@@ -25,6 +26,8 @@ const LenderHeader = ({
         return 'Mis Propuestas';
       case 'metrics':
         return 'Métricas y Análisis';
+      case 'notifications':
+        return 'Notificaciones';
       case 'settings':
         return 'Configuración';
       case 'help':
@@ -42,6 +45,8 @@ const LenderHeader = ({
         return 'Gestiona y monitorea tus propuestas enviadas';
       case 'metrics':
         return 'Analiza tu rendimiento como prestamista y encuentra oportunidades de mejora';
+      case 'notifications':
+        return 'Historial de alertas y novedades de tus propuestas';
       case 'settings':
         return 'Administra tu perfil y configuración de cuenta';
       case 'help':
@@ -66,6 +71,11 @@ const LenderHeader = ({
       tab: "metrics" as LenderTab,
       icon: BarChart3,
       label: "Métricas"
+    },
+    {
+      tab: "notifications" as LenderTab,
+      icon: Bell,
+      label: "Notificaciones"
     },
     {
       tab: "settings" as LenderTab,
@@ -107,7 +117,7 @@ const LenderHeader = ({
             )}
           </div>
           
-          <div className="flex gap-2">
+          <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
             {menuItems.map((item) => (
               <Button
                 key={item.tab}
@@ -130,35 +140,9 @@ const LenderHeader = ({
       )}
 
       {/* Desktop Header */}
-      <div className="mb-8 pb-6 border-b border-gray-200 hidden md:block">
-        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              {getTitle()}
-            </h1>
-            <p className="text-gray-600 text-lg">
-              {getDescription()}
-            </p>
-          </div>
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-              <span className="text-sm text-gray-500">En línea</span>
-            </div>
-            
-            {onSignOut && (
-              <Button
-                variant="light"
-                size="sm"
-                startContent={<LogOut className="w-4 h-4" />}
-                onPress={onSignOut}
-                className="text-gray-600 hover:text-red-600 hover:bg-red-50"
-              >
-                Salir
-              </Button>
-            )}
-          </div>
-        </div>
+      <div className="mb-4 pb-4 border-b border-gray-200 hidden md:block">
+        <h1 className="text-xl font-bold text-gray-900 mb-0.5">{getTitle()}</h1>
+        <p className="text-gray-500 text-sm">{getDescription()}</p>
       </div>
     </>
   );

@@ -13,12 +13,31 @@ export default function LoginLayout({
   }, []);
 
   return (
-    <section className="relative min-h-screen bg-white">
-      {/* Elementos decorativos mejorados */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-1/4 -left-1/4 w-[500px] h-[500px] bg-[#55A555] rounded-full mix-blend-multiply blur-3xl opacity-10" />
-        <div className="absolute bottom-1/4 -right-1/4 w-[500px] h-[500px] bg-[#55A555] rounded-full mix-blend-multiply blur-3xl opacity-10" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-[#55A555] rounded-full mix-blend-multiply blur-3xl opacity-5" />
+    <section className="relative min-h-screen bg-gray-50">
+      {/* Franja superior de acento */}
+      <div className="absolute top-0 left-0 right-0 h-1 bg-[#0e3a45]" />
+
+      {/* Patrón geométrico sutil */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <svg
+          className="absolute right-0 top-0 h-full opacity-[0.03]"
+          viewBox="0 0 400 800"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <circle cx="350" cy="150" r="200" stroke="#0e3a45" strokeWidth="60" />
+          <circle cx="350" cy="500" r="140" stroke="#0e3a45" strokeWidth="40" />
+          <circle cx="350" cy="750" r="80" stroke="#0e3a45" strokeWidth="30" />
+        </svg>
+        <svg
+          className="absolute left-0 bottom-0 h-full opacity-[0.03]"
+          viewBox="0 0 400 800"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <circle cx="50" cy="650" r="200" stroke="#0e3a45" strokeWidth="60" />
+          <circle cx="50" cy="300" r="120" stroke="#0e3a45" strokeWidth="40" />
+        </svg>
       </div>
 
       <div

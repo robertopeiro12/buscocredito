@@ -63,22 +63,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
             setUser(userInfo);
 
-            // Configurar cookies para el middleware
-            const token = tokenResult.token;
-            setAuthCookies(token, userType, false); // Default no remember
+            // Configurar cookies para el middleware — force refresh garantiza
+            // un token fresco con ~1h de vida, evitando loops de 401 por JWT expirado
+            const freshToken = await firebaseUser.getIdToken(true);
+            setAuthCookies(freshToken, userType, false); // Default no remember
 
             // Si el usuario no tiene custom claims pero tiene tipo en Firestore,
             // configurar los claims automáticamente
             if (!customClaims.userType && userData.type) {
-              console.log(
-                "🔄 Setting up missing custom claims for user:",
-                firebaseUser.uid
-              );
               try {
+                const rawToken = tokenResult.token;
                 await fetch("/api/auth/setup-user-claims", {
                   method: "POST",
                   headers: {
                     "Content-Type": "application/json",
+                    "Authorization": `Bearer ${rawToken}`,
                   },
                   body: JSON.stringify({
                     userId: firebaseUser.uid,
@@ -104,7 +103,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               uid: firebaseUser.uid,
               email: firebaseUser.email,
               type:
-                (customClaims.userType as "borrower" | "companyAdmin" | "lender") ||
+                (customClaims.userType as "borrower" | "companyAdmin" | "lender" | "superAdmin") ||
                 "borrower",
               companyName: undefined,
               adminId: undefined,

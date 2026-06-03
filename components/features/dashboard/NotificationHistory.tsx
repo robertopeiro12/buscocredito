@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { getFirestore, collection, query, where, onSnapshot, orderBy, limit } from "firebase/firestore";
+import { getFirestore, collection, query, where, onSnapshot, orderBy } from "firebase/firestore";
+import { auth } from "@/app/firebase";
 import {
   Button,
   Card,
@@ -16,20 +17,21 @@ import {
   ModalHeader,
   ModalBody,
   ModalFooter,
-  Tooltip,
+  Pagination,
   Spinner,
 } from "@heroui/react";
 import {
   Bell,
   BellOff,
   Check,
+  CheckCircle2,
   CheckCheck,
   Clock,
-  Filter,
   Info,
   Mail,
   MailOpen,
-  MoreVertical,
+  TrendingDown,
+  Banknote,
   Trash2,
   X,
 } from "lucide-react";
@@ -75,10 +77,13 @@ interface NotificationHistoryProps {
 
 type FilterType = "all" | "unread" | "read";
 
+const ITEMS_PER_PAGE = 15;
+
 export default function NotificationHistory({ userId, isLender = false }: NotificationHistoryProps) {
   const [notifications, setNotifications] = useState<NotificationData[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<FilterType>("all");
+  const [page, setPage] = useState(1);
   const [showClearModal, setShowClearModal] = useState(false);
   const [clearingType, setClearingType] = useState<"all" | "read">("read");
   const [actionLoading, setActionLoading] = useState(false);
@@ -92,8 +97,7 @@ export default function NotificationHistory({ userId, isLender = false }: Notifi
     const db = getFirestore();
     const notificationsQuery = query(
       collection(db, "notifications"),
-      where("recipientId", "==", userId),
-      limit(50)
+      where("recipientId", "==", userId)
     );
 
     const unsubscribe = onSnapshot(
@@ -126,11 +130,14 @@ export default function NotificationHistory({ userId, isLender = false }: Notifi
   // Mark notification as read
   const markAsRead = async (notificationId: string) => {
     try {
+      const token = await auth.currentUser?.getIdToken();
       const response = await fetch("/api/markNotificationRead", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
+        credentials: "include",
         body: JSON.stringify({ notificationId }),
       });
 
@@ -148,12 +155,17 @@ export default function NotificationHistory({ userId, isLender = false }: Notifi
   const markAllAsRead = async () => {
     setActionLoading(true);
     try {
+      const token = await auth.currentUser?.getIdToken();
       const unreadNotifications = notifications.filter((n) => !n.read);
       await Promise.all(
         unreadNotifications.map((n) =>
           fetch("/api/markNotificationRead", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: {
+              "Content-Type": "application/json",
+              ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            },
+            credentials: "include",
             body: JSON.stringify({ notificationId: n.id }),
           })
         )
@@ -222,6 +234,16 @@ export default function NotificationHistory({ userId, isLender = false }: Notifi
     return true;
   });
 
+  // Pagination
+  const totalPages = Math.ceil(filteredNotifications.length / ITEMS_PER_PAGE);
+  const paginatedNotifications = filteredNotifications.slice(
+    (page - 1) * ITEMS_PER_PAGE,
+    page * ITEMS_PER_PAGE
+  );
+
+  // Reset to page 1 when filter changes
+  useEffect(() => { setPage(1); }, [filter]);
+
   // Stats
   const unreadCount = notifications.filter((n) => !n.read).length;
   const readCount = notifications.filter((n) => n.read).length;
@@ -257,39 +279,43 @@ export default function NotificationHistory({ userId, isLender = false }: Notifi
     });
   };
 
-  // Get notification icon and colors
+  // Get notification style config
   const getNotificationStyle = (type: string) => {
     switch (type) {
       case "loan_accepted":
         return {
-          icon: "✅",
-          bgColor: "bg-green-50",
-          borderColor: "border-green-500",
-          chipColor: "success" as const,
-          label: "Propuesta Aceptada",
+          Icon: CheckCircle2,
+          accentColor: "border-[#0e3a45]",
+          iconBg: "bg-[#0e3a45]/8",
+          iconColor: "text-[#0e3a45]",
+          dotColor: "bg-[#0e3a45]",
+          label: "Propuesta aceptada",
         };
       case "loan_assigned_other":
         return {
-          icon: "ℹ️",
-          bgColor: "bg-blue-50",
-          borderColor: "border-blue-500",
-          chipColor: "primary" as const,
-          label: "Otra Propuesta Elegida",
+          Icon: TrendingDown,
+          accentColor: "border-slate-400",
+          iconBg: "bg-slate-100",
+          iconColor: "text-slate-500",
+          dotColor: "bg-slate-400",
+          label: "Otra propuesta elegida",
         };
       case "nueva_propuesta":
         return {
-          icon: "💰",
-          bgColor: "bg-yellow-50",
-          borderColor: "border-yellow-500",
-          chipColor: "warning" as const,
-          label: "Nueva Propuesta",
+          Icon: Banknote,
+          accentColor: "border-amber-500",
+          iconBg: "bg-amber-50",
+          iconColor: "text-amber-600",
+          dotColor: "bg-amber-500",
+          label: "Nueva propuesta",
         };
       default:
         return {
-          icon: "📢",
-          bgColor: "bg-gray-50",
-          borderColor: "border-gray-500",
-          chipColor: "default" as const,
+          Icon: Bell,
+          accentColor: "border-gray-300",
+          iconBg: "bg-gray-100",
+          iconColor: "text-gray-400",
+          dotColor: "bg-gray-400",
           label: "Notificación",
         };
     }
@@ -300,14 +326,16 @@ export default function NotificationHistory({ userId, isLender = false }: Notifi
       {/* Header */}
       <div className="mb-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-1">
-              Centro de Notificaciones
-            </h1>
-            <p className="text-gray-600">
-              Historial de todas tus notificaciones y alertas
-            </p>
-          </div>
+          {!isLender && (
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900 mb-1">
+                Centro de Notificaciones
+              </h1>
+              <p className="text-gray-600">
+                Historial de todas tus notificaciones y alertas
+              </p>
+            </div>
+          )}
 
           {/* Stats */}
           <div className="flex items-center gap-3">
@@ -448,106 +476,68 @@ export default function NotificationHistory({ userId, isLender = false }: Notifi
         </Card>
       ) : (
         <div className="space-y-3">
-          {filteredNotifications.map((notification) => {
+          {paginatedNotifications.map((notification) => {
             const style = getNotificationStyle(notification.type);
 
+            const { Icon, accentColor, iconBg, iconColor, dotColor, label } = style;
+            const isUnread = !notification.read;
+
             return (
-              <Card
+              <button
                 key={notification.id}
-                isPressable
-                onPress={() => {
-                  if (!notification.read) {
-                    markAsRead(notification.id);
-                  }
+                onClick={() => {
+                  if (isUnread) markAsRead(notification.id);
                   setSelectedNotification(notification);
                 }}
-                className={`transition-all ${
-                  !notification.read
-                    ? "border-l-4 " + style.borderColor + " shadow-md"
-                    : "border-l-4 border-gray-200 opacity-75 hover:opacity-100"
+                className={`w-full text-left group rounded-xl border transition-all ${
+                  isUnread
+                    ? `border-l-[3px] ${accentColor} border-t-gray-200 border-r-gray-200 border-b-gray-200 bg-white shadow-sm hover:shadow-md`
+                    : "border-gray-200 bg-gray-50 hover:bg-white hover:border-gray-300 hover:shadow-sm"
                 }`}
               >
-                <CardBody className={`p-4 ${!notification.read ? style.bgColor : ""}`}>
-                  <div className="flex items-start gap-4">
-                    {/* Icon */}
-                    <div
-                      className={`w-10 h-10 rounded-full flex items-center justify-center text-xl ${
-                        !notification.read ? "bg-white shadow-sm" : "bg-gray-100"
-                      }`}
-                    >
-                      {style.icon}
-                    </div>
-
-                    {/* Content */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h4
-                          className={`font-medium ${
-                            !notification.read ? "text-gray-900" : "text-gray-600"
-                          }`}
-                        >
-                          {notification.title}
-                        </h4>
-                        <Chip size="sm" color={style.chipColor} variant="flat">
-                          {style.label}
-                        </Chip>
-                        {notification.emailSent && (
-                          <Tooltip content="Notificación enviada por email">
-                            <Mail className="w-4 h-4 text-gray-400" />
-                          </Tooltip>
-                        )}
-                      </div>
-
-                      <p
-                        className={`text-sm ${
-                          !notification.read ? "text-gray-700" : "text-gray-500"
-                        } line-clamp-2`}
-                      >
-                        {notification.message}
-                      </p>
-
-                      {/* Quick info for proposals */}
-                      {notification.type === "nueva_propuesta" && notification.data?.amount && (
-                        <div className="mt-2 flex items-center gap-3 text-xs text-gray-500 flex-wrap">
-                          <span>
-                            <strong>Monto:</strong> $
-                            {notification.data.amount.toLocaleString("es-MX")}
-                          </span>
-                          {notification.data.interestRate && (
-                            <span>
-                              <strong>Tasa:</strong> {notification.data.interestRate}%
-                            </span>
-                          )}
-                          {notification.data.term && (
-                            <span>
-                              <strong>Plazo:</strong> {notification.data.term} meses
-                            </span>
-                          )}
-                          {notification.data.amortization !== undefined && notification.data.amortization > 0 && (
-                            <span>
-                              <strong>Monto de amortización:</strong> $
-                              {notification.data.amortization.toLocaleString("es-MX")}
-                            </span>
-                          )}
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Meta */}
-                    <div className="flex flex-col items-end gap-2">
-                      <span className="text-xs text-gray-400 flex items-center gap-1">
-                        <Clock className="w-3 h-3" />
-                        {formatDate(notification.createdAt)}
-                      </span>
-                      {!notification.read && (
-                        <span className="w-2 h-2 rounded-full bg-red-500"></span>
-                      )}
-                    </div>
+                <div className="flex items-center gap-3 px-4 py-3.5">
+                  {/* Icon */}
+                  <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${iconBg}`}>
+                    <Icon className={`w-4.5 h-4.5 ${iconColor}`} strokeWidth={1.75} />
                   </div>
-                </CardBody>
-              </Card>
+
+                  {/* Content */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-baseline gap-2 mb-0.5">
+                      <span className={`text-xs font-semibold uppercase tracking-wide ${isUnread ? iconColor : "text-gray-500"}`}>
+                        {label}
+                      </span>
+                    </div>
+                    <p className={`text-sm leading-snug line-clamp-1 ${isUnread ? "text-gray-900 font-medium" : "text-gray-600"}`}>
+                      {notification.message}
+                    </p>
+                  </div>
+
+                  {/* Meta */}
+                  <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
+                    <span className="text-xs text-gray-500 tabular-nums">{formatDate(notification.createdAt)}</span>
+                    {isUnread && <span className={`w-1.5 h-1.5 rounded-full ${dotColor}`} />}
+                  </div>
+                </div>
+              </button>
             );
           })}
+
+          {totalPages > 1 && (
+            <div className="flex justify-center pt-4 pb-2">
+              <Pagination
+                total={totalPages}
+                page={page}
+                onChange={setPage}
+                color="success"
+                size="sm"
+                showControls
+                classNames={{
+                  cursor: "bg-[#0e3a45] text-white",
+                }}
+              />
+            </div>
+          )}
         </div>
       )}
 
@@ -586,203 +576,149 @@ export default function NotificationHistory({ userId, isLender = false }: Notifi
       <Modal
         isOpen={!!selectedNotification}
         onClose={() => setSelectedNotification(null)}
-        size="lg"
+        size="md"
+        hideCloseButton
+        classNames={{ base: "overflow-hidden" }}
       >
         <ModalContent>
-          {selectedNotification && (
-            <>
-              <ModalHeader>
-                <div className="flex items-center gap-3">
-                  <span className="text-2xl">
-                    {getNotificationStyle(selectedNotification.type).icon}
-                  </span>
-                  <div>
-                    <h3 className="text-lg font-semibold">{selectedNotification.title}</h3>
-                    <p className="text-sm text-gray-500 font-normal">
-                      {formatDate(selectedNotification.createdAt)}
-                    </p>
+          {selectedNotification && (() => {
+            const type = selectedNotification.type;
+            const d = selectedNotification.data;
+            const proposalData = type === "loan_assigned_other" ? d?.winningOffer : d;
+
+            const isAccepted = type === "loan_accepted";
+            const isLost = type === "loan_assigned_other";
+
+            const headerBg = isAccepted ? "bg-[#0e3a45]" : isLost ? "bg-slate-700" : "bg-amber-600";
+            const HeaderIcon = isAccepted ? CheckCircle2 : isLost ? TrendingDown : Banknote;
+
+            const rows: { label: string; value: string }[] = [];
+            if (proposalData?.interestRate !== undefined)
+              rows.push({ label: "Tasa de interés", value: `${proposalData.interestRate}% anual` });
+            if (proposalData?.term !== undefined)
+              rows.push({ label: "Plazo", value: `${proposalData.term} meses` });
+            if (proposalData?.amortizationFrequency)
+              rows.push({ label: "Frecuencia de pago", value: proposalData.amortizationFrequency });
+            if (proposalData?.comision !== undefined)
+              rows.push({ label: "Comisión apertura", value: `$${proposalData.comision?.toLocaleString("es-MX")}` });
+            if (proposalData?.medicalBalance !== undefined && proposalData.medicalBalance > 0)
+              rows.push({ label: "Seguro de vida", value: `$${proposalData.medicalBalance?.toLocaleString("es-MX")}` });
+            if (isLender && proposalData?.amortization !== undefined && proposalData.amortization > 0)
+              rows.push({ label: "Amortización", value: `$${proposalData.amortization?.toLocaleString("es-MX")}` });
+            if (!isLender && proposalData?.amortization !== undefined && proposalData.amortization > 0)
+              rows.push({ label: "Pago periódico", value: `$${proposalData.amortization?.toLocaleString("es-MX")}` });
+            if (d?.lenderName)
+              rows.push({ label: "Institución", value: d.lenderName });
+            if (d?.purpose)
+              rows.push({ label: "Propósito", value: d.purpose });
+
+            return (
+              <>
+                {/* Colored header banner — outside ModalHeader to go edge to edge */}
+                <div className={`${headerBg} px-6 pt-6 pb-5`}>
+                  <button
+                    onClick={() => setSelectedNotification(null)}
+                    className="absolute top-4 right-4 w-7 h-7 rounded-full flex items-center justify-center bg-white/15 hover:bg-white/25 transition-colors"
+                  >
+                    <X className="w-4 h-4 text-white" />
+                  </button>
+
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-2xl bg-white/15 flex items-center justify-center flex-shrink-0">
+                      <HeaderIcon className="w-6 h-6 text-white" />
+                    </div>
+                    <div>
+                      <p className="text-white/60 text-xs uppercase tracking-widest font-semibold mb-0.5">
+                        {isAccepted ? "Propuesta aceptada" : isLost ? "Otra propuesta elegida" : "Nueva propuesta"}
+                      </p>
+                      <h3 className="text-white font-bold text-lg leading-tight">
+                        {selectedNotification.title}
+                      </h3>
+                    </div>
                   </div>
-                </div>
-              </ModalHeader>
-              <ModalBody>
-                <p className="text-gray-700 mb-4">{selectedNotification.message}</p>
 
-                {/* Detailed info for proposals */}
-                {selectedNotification.data && (
-                  <Card className="bg-gray-50">
-                    <CardBody>
-                      <h4 className="font-medium text-gray-800 mb-3">
-                        {selectedNotification.type === "loan_assigned_other" 
-                          ? "Detalles de la propuesta ganadora" 
-                          : "Información de la Propuesta"}
-                      </h4>
-                      {(() => {
-                        // For loan_assigned_other, use winningOffer data; otherwise use direct data
-                        const proposalData = selectedNotification.type === "loan_assigned_other" 
-                          ? selectedNotification.data.winningOffer 
-                          : selectedNotification.data;
-                        
-                        if (!proposalData) return null;
-                        
-                        return (
-                          <>
-                            <div className="space-y-3 text-sm">
-                              {proposalData.amount !== undefined && (
-                                <div className="flex justify-between">
-                                  <span className="text-gray-600">{isLender ? "Monto:" : "Cantidad que te prestan:"}</span>
-                                  <span className="font-semibold text-gray-900">
-                                    ${proposalData.amount?.toLocaleString("es-MX")}
-                                  </span>
-                                </div>
-                              )}
-                              {proposalData.comision !== undefined && (
-                                <div className="flex justify-between">
-                                  <span className="text-gray-600">Comisión por apertura:</span>
-                                  <span className="font-semibold text-gray-900">
-                                    ${proposalData.comision?.toLocaleString("es-MX")}
-                                  </span>
-                                </div>
-                              )}
-                              {selectedNotification.data.lenderName && (
-                                <div className="flex justify-between">
-                                  <span className="text-gray-600">Compañía:</span>
-                                  <span className="font-semibold text-gray-900">
-                                    {selectedNotification.data.lenderName}
-                                  </span>
-                                </div>
-                              )}
-                              {proposalData.interestRate !== undefined && (
-                                <div className="flex justify-between">
-                                  <span className="text-gray-600">Tasa de interés:</span>
-                                  <span className="font-semibold text-gray-900">
-                                    {proposalData.interestRate}% anual
-                                  </span>
-                                </div>
-                              )}
-                              {proposalData.term !== undefined && (
-                                <div className="flex justify-between">
-                                  <span className="text-gray-600">Plazo:</span>
-                                  <span className="font-semibold text-gray-900">
-                                    {proposalData.term} meses
-                                  </span>
-                                </div>
-                              )}
-                              {proposalData.amortizationFrequency && (
-                                <div className="flex justify-between">
-                                  <span className="text-gray-600">Frecuencia de pago:</span>
-                                  <span className="font-semibold text-gray-900 capitalize">
-                                    {proposalData.amortizationFrequency}
-                                  </span>
-                                </div>
-                              )}
-                              {proposalData.medicalBalance !== undefined && proposalData.medicalBalance > 0 && (
-                                <div className="flex justify-between">
-                                  <span className="text-gray-600">Seguro de vida saldo deudor:</span>
-                                  <span className="font-semibold text-gray-900">
-                                    ${proposalData.medicalBalance?.toLocaleString("es-MX")}
-                                  </span>
-                                </div>
-                              )}
-                              {selectedNotification.data.loanType && (
-                                <div className="flex justify-between">
-                                  <span className="text-gray-600">Tipo de préstamo:</span>
-                                  <span className="font-semibold text-gray-900">
-                                    {selectedNotification.data.loanType}
-                                  </span>
-                                </div>
-                              )}
-                              {selectedNotification.data.purpose && (
-                                <div className="flex justify-between">
-                                  <span className="text-gray-600">Propósito:</span>
-                                  <span className="font-semibold text-gray-900">
-                                    {selectedNotification.data.purpose}
-                                  </span>
-                                </div>
-                              )}
-                              {/* Amortización field - only shown for workers/lenders */}
-                              {isLender && proposalData.amortization !== undefined && proposalData.amortization > 0 && (
-                                <div className="flex justify-between">
-                                  <span className="text-gray-600">Amortización:</span>
-                                  <span className="font-semibold text-gray-900">
-                                    ${proposalData.amortization?.toLocaleString("es-MX")}
-                                  </span>
-                                </div>
-                              )}
-                              {/* Pago field - only shown for regular users, not workers/lenders */}
-                              {!isLender && proposalData.amortization !== undefined && proposalData.amortization > 0 && (
-                                <div className="flex justify-between">
-                                  <span className="text-gray-600">Pago:</span>
-                                  <span className="font-semibold text-gray-900">
-                                    ${proposalData.amortization?.toLocaleString("es-MX")}
-                                  </span>
-                                </div>
-                              )}
-                            </div>
-                            
-                            {/* Payment summary - only shown for regular users, not workers/lenders */}
-                            {!isLender && proposalData.amortization !== undefined && proposalData.amortization > 0 && proposalData.amortizationFrequency && proposalData.term && (
-                              <div className="mt-4 bg-green-50 rounded-lg p-4 border border-green-200">
-                                <p className="text-gray-900 font-medium text-sm">
-                                  Pagarás{" "}
-                                  <span className="font-bold text-green-600">
-                                    ${proposalData.amortization?.toLocaleString("es-MX")}
-                                  </span>{" "}
-                                  de forma{" "}
-                                  <span className="font-bold capitalize">
-                                    {proposalData.amortizationFrequency}
-                                  </span>{" "}
-                                  durante <span className="font-bold">{proposalData.term} meses</span>
-                                </p>
-                              </div>
-                            )}
-                          </>
-                        );
-                      })()}
-                    </CardBody>
-                  </Card>
-                )}
-
-                {/* Email status */}
-                <div className="mt-4 flex items-center gap-2 text-sm text-gray-500">
-                  {selectedNotification.emailSent ? (
-                    <>
-                      <Mail className="w-4 h-4 text-green-500" />
-                      <span>Esta notificación también fue enviada a tu correo electrónico</span>
-                    </>
-                  ) : (
-                    <>
-                      <Info className="w-4 h-4" />
-                      <span>Notificación solo visible en el panel</span>
-                    </>
+                  {/* Amount — main KPI */}
+                  {proposalData?.amount !== undefined && (
+                    <div className="mt-5 pt-5 border-t border-white/10">
+                      <p className="text-white/50 text-xs uppercase tracking-widest font-semibold mb-1">
+                        {isLender ? "Monto de la propuesta" : "Cantidad que te prestan"}
+                      </p>
+                      <p className="text-white font-bold text-3xl tabular-nums">
+                        ${proposalData.amount.toLocaleString("es-MX")}
+                      </p>
+                    </div>
                   )}
                 </div>
-              </ModalBody>
-              <ModalFooter>
-                <Button variant="light" onPress={() => setSelectedNotification(null)}>
-                  Cerrar
-                </Button>
-                <Button
-                  color="success"
-                  onPress={() => {
-                    // Navigate based on notification type
-                    // loan_accepted and loan_assigned_other are for lenders/workers
-                    // nueva_propuesta is for regular users
-                    if (selectedNotification?.type === "loan_accepted" || 
-                        selectedNotification?.type === "loan_assigned_other") {
-                      window.location.href = "/lender?tab=myoffers";
-                    } else {
-                      window.location.href = "/user_dashboard";
-                    }
-                  }}
-                >
-                  {selectedNotification?.type === "loan_accepted" || 
-                   selectedNotification?.type === "loan_assigned_other" 
-                    ? "Ver Mis Ofertas" 
-                    : "Ver en Dashboard"}
-                </Button>
-              </ModalFooter>
-            </>
-          )}
+
+                <ModalBody className="px-6 py-5">
+                  {/* Message */}
+                  <p className="text-gray-600 text-sm">{selectedNotification.message}</p>
+
+                  {/* Detail rows */}
+                  {rows.length > 0 && (
+                    <div className="mt-4 divide-y divide-gray-100 rounded-xl border border-gray-100 overflow-hidden">
+                      {rows.map(({ label, value }) => (
+                        <div key={label} className="flex justify-between items-center px-4 py-3">
+                          <span className="text-xs text-gray-500 font-medium uppercase tracking-wide">{label}</span>
+                          <span className="text-sm font-semibold text-gray-900 capitalize">{value}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Payment summary for borrowers */}
+                  {!isLender && proposalData?.amortization !== undefined && proposalData.amortization > 0 && proposalData.amortizationFrequency && proposalData.term && (
+                    <div className="mt-3 bg-green-50 rounded-xl p-4 border border-green-100">
+                      <p className="text-sm text-gray-700">
+                        Pagarás{" "}
+                        <span className="font-bold text-green-700">
+                          ${proposalData.amortization.toLocaleString("es-MX")}
+                        </span>{" "}
+                        de forma{" "}
+                        <span className="font-semibold capitalize">{proposalData.amortizationFrequency}</span>{" "}
+                        durante <span className="font-semibold">{proposalData.term} meses</span>
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Email note */}
+                  {selectedNotification.emailSent && (
+                    <div className="mt-3 flex items-center gap-2 text-xs text-gray-400">
+                      <Mail className="w-3.5 h-3.5" />
+                      <span>Esta notificación también fue enviada a tu correo</span>
+                    </div>
+                  )}
+
+                  {/* Timestamp */}
+                  <div className="mt-2 flex items-center gap-1.5 text-xs text-gray-400">
+                    <Clock className="w-3.5 h-3.5" />
+                    <span>{formatDate(selectedNotification.createdAt)}</span>
+                  </div>
+                </ModalBody>
+
+                <ModalFooter className="pt-0 pb-5 px-6 gap-2">
+                  <Button variant="flat" size="sm" onPress={() => setSelectedNotification(null)}>
+                    Cerrar
+                  </Button>
+                  <Button
+                    size="sm"
+                    className="bg-[#0e3a45] text-white font-semibold"
+                    onPress={() => {
+                      if (type === "loan_accepted" || type === "loan_assigned_other") {
+                        window.location.href = "/lender?tab=myoffers";
+                      } else {
+                        window.location.href = "/user_dashboard";
+                      }
+                    }}
+                  >
+                    {type === "loan_accepted" || type === "loan_assigned_other"
+                      ? "Ver Mis Ofertas"
+                      : "Ver en Dashboard"}
+                  </Button>
+                </ModalFooter>
+              </>
+            );
+          })()}
         </ModalContent>
       </Modal>
     </div>

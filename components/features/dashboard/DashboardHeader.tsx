@@ -17,6 +17,8 @@ export const DashboardHeader = ({
     switch (activeTab) {
       case "loans":
         return "Mis Préstamos";
+      case "notifications":
+        return "Notificaciones";
       case "settings":
         return "Configuración";
       case "help":
@@ -30,6 +32,8 @@ export const DashboardHeader = ({
     switch (activeTab) {
       case "loans":
         return "Gestiona tus solicitudes y revisa las propuestas recibidas";
+      case "notifications":
+        return "Historial de alertas y novedades de tus solicitudes";
       case "settings":
         return "Administra tu perfil y preferencias de cuenta";
       case "help":
@@ -64,7 +68,7 @@ export const DashboardHeader = ({
         <div className="md:hidden bg-white border-b border-gray-200 p-4 sticky top-0 z-20">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center">
+              <div className="w-8 h-8 rounded-full bg-[#0e3a45] flex items-center justify-center">
                 <CreditCard className="w-4 h-4 text-white" />
               </div>
               <h1 className="text-lg font-bold text-gray-900">BuscoCredito</h1>
@@ -90,12 +94,11 @@ export const DashboardHeader = ({
                 key={item.tab}
                 size="sm"
                 variant={activeTab === item.tab ? "solid" : "light"}
-                color={activeTab === item.tab ? "success" : "default"}
                 startContent={<item.icon className="w-4 h-4" />}
                 onPress={() => onTabChange(item.tab)}
                 className={`flex-1 ${
                   activeTab === item.tab
-                    ? "bg-green-600 text-white"
+                    ? "bg-[#0e3a45] text-white"
                     : "text-gray-600"
                 }`}
               >
@@ -107,33 +110,9 @@ export const DashboardHeader = ({
       )}
 
       {/* Desktop Header */}
-      <div className="mb-8 pb-6 border-b border-gray-200 hidden md:block">
-        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              {getTitle()}
-            </h1>
-            <p className="text-gray-600 text-lg">{getDescription()}</p>
-          </div>
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-              <span className="text-sm text-gray-500">En línea</span>
-            </div>
-
-            {onSignOut && (
-              <Button
-                variant="light"
-                size="sm"
-                startContent={<LogOut className="w-4 h-4" />}
-                onPress={onSignOut}
-                className="text-gray-600 hover:text-red-600 hover:bg-red-50"
-              >
-                Salir
-              </Button>
-            )}
-          </div>
-        </div>
+      <div className="mb-4 pb-4 border-b border-gray-200 hidden md:block">
+        <h1 className="text-xl font-bold text-gray-900 mb-0.5">{getTitle()}</h1>
+        <p className="text-gray-500 text-sm">{getDescription()}</p>
       </div>
     </>
   );

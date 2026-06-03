@@ -157,11 +157,11 @@ export function EnhancedSubaccountCard({
             {/* Estadísticas en grid */}
             <div className="grid grid-cols-4 gap-3 text-center">
               <Tooltip content="Total de propuestas enviadas">
-                <div className="p-2 bg-purple-50 rounded-lg cursor-help">
-                  <div className="text-lg font-bold text-purple-600">
+                <div className="p-2 bg-[#0e3a45]/[0.06] rounded-lg cursor-help">
+                  <div className="text-lg font-bold text-[#0e3a45]">
                     {stats.totalPropuestas}
                   </div>
-                  <div className="text-xs text-purple-500">Propuestas</div>
+                  <div className="text-xs text-[#0e3a45]/70">Propuestas</div>
                 </div>
               </Tooltip>
 
@@ -199,9 +199,9 @@ export function EnhancedSubaccountCard({
                 <Clock className="w-4 h-4" />
                 <span>{formatLastActivity(stats.lastActivity)}</span>
                 {stats.averageDailyActivity > 0 && (
-                  <Chip size="sm" variant="flat" color="primary">
+                  <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-[#0e3a45]/[0.08] text-[#0e3a45]">
                     {stats.averageDailyActivity}/día
-                  </Chip>
+                  </span>
                 )}
               </div>
             )}

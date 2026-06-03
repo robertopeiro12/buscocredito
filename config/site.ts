@@ -10,7 +10,7 @@ export const siteConfig = {
 		},
     {
       label: "Préstamos",
-      href: "/prestamos",
+      href: "/soluciones",
     },
     {
       label: "Cómo Funciona",

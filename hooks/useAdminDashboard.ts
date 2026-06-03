@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import toast from "react-hot-toast";
+import { addToast } from "@heroui/react";
 import { auth } from "@/app/firebase";
 import { onAuthStateChanged } from "firebase/auth";
 import { useAuth } from "@/contexts/AuthContext";
@@ -98,23 +98,6 @@ export function useAdminDashboard() {
       account.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Authentication effect
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        setUser(user.uid);
-        setUserEmail(user.email || "");
-        fetchUsers(user.uid);
-        fetchAdminData(user.uid);
-      } else {
-        router.push("/login");
-      }
-    });
-
-    // Cleanup function to unsubscribe when component unmounts
-    return () => unsubscribe();
-  }, [router]);
-
   // Fetch admin data
   const fetchAdminData = async (userId: string) => {
     const db = getFirestore();
@@ -133,13 +116,15 @@ export function useAdminDashboard() {
   };
 
   // Fetch users function
-  const fetchUsers = async (userId: string) => {
+  const fetchUsers = async (_userId: string) => {
     setIsLoading(true);
     try {
+      const token = await auth.currentUser?.getIdToken();
       const response = await fetch('/api/getSubcuentas', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
         credentials: 'include',
       });
@@ -149,7 +134,7 @@ export function useAdminDashboard() {
       }
 
       const data = await response.json();
-      
+
       const newSubaccounts: Subaccount[] = data.subcuentas.map((sub: any, index: number) => ({
         id: index + 1,
         name: sub.name,
@@ -162,14 +147,27 @@ export function useAdminDashboard() {
       setSubaccounts(newSubaccounts);
     } catch (error: any) {
       console.error('fetchUsers: Error occurred:', error);
-      toast.error("Error al cargar las subcuentas. Verifica tu conexión.", {
-        icon: "🔄",
-        duration: 5000,
-      });
+      addToast({ title: "Error al cargar las subcuentas. Verifica tu conexión.", color: "danger", timeout: 5000 });
     } finally {
       setIsLoading(false);
     }
   };
+
+  // Authentication effect
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setUser(user.uid);
+        setUserEmail(user.email || "");
+        fetchUsers(user.uid);
+        fetchAdminData(user.uid);
+      }
+      // No redirect here — useRoleGuard handles unauthenticated redirects
+    });
+
+    // Cleanup function to unsubscribe when component unmounts
+    return () => unsubscribe();
+  }, []);
 
   // Form validation
   const validateForm = () => {
@@ -215,19 +213,26 @@ export function useAdminDashboard() {
   // Create subaccount
   const createSubaccount = async (newSubaccount: Omit<Subaccount, "id">) => {
     try {
+      const token = await auth.currentUser?.getIdToken();
       const response = await fetch("/api/users/subaccounts", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
+        credentials: "include",
         body: JSON.stringify(newSubaccount),
       });
 
       if (response.ok) {
         const data = await response.json();
+        // Use max existing id + 1 to avoid collisions after deletions
+        const nextId = subaccounts.length > 0
+          ? Math.max(...subaccounts.map((a) => a.id)) + 1
+          : 1;
         setSubaccounts([
           ...subaccounts,
-          { ...newSubaccount, id: subaccounts.length + 1, userId: data.userId },
+          { ...newSubaccount, id: nextId, userId: data.userId },
         ]);
         setIsModalOpen(false);
       } else {
@@ -242,9 +247,7 @@ export function useAdminDashboard() {
   // Handle create subaccount
   const handleCreateSubaccount = async () => {
     if (!validateForm()) {
-      toast.error("Por favor, completa todos los campos correctamente", {
-        icon: "⚠️",
-      });
+      addToast({ title: "Por favor, completa todos los campos correctamente", color: "warning" });
       return;
     }
 
@@ -263,13 +266,9 @@ export function useAdminDashboard() {
         companyName: "",
       });
       setFormErrors({ name: "", email: "", password: "" });
-      toast.success("¡Subcuenta creada exitosamente!", {
-        icon: "✅",
-      });
+      addToast({ title: "¡Subcuenta creada exitosamente!", color: "success" });
     } catch (error: any) {
-      toast.error("No se pudo crear la subcuenta. Intenta nuevamente.", {
-        icon: "❌",
-      });
+      addToast({ title: "No se pudo crear la subcuenta. Intenta nuevamente.", color: "danger" });
     } finally {
       setIsCreating(false);
       setIsModalOpen(false);
@@ -278,27 +277,34 @@ export function useAdminDashboard() {
 
   // Handle delete subaccount
   const handleDeleteSubaccount = async (id: number) => {
+    const subaccount = subaccounts.find((acc) => acc.id === id);
+    if (!subaccount) {
+      addToast({ title: "No se encontró la subcuenta", color: "danger" });
+      return;
+    }
+
     try {
-      const subaccount = subaccounts.find((acc) => acc.id === id);
-      if (!subaccount) {
-        toast.error("No se encontró la subcuenta", {
-          icon: "❌",
-        });
-        return;
+      const token = await auth.currentUser?.getIdToken();
+      const response = await fetch('/api/users/subaccounts/delete', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        credentials: 'include',
+        body: JSON.stringify({ userId: subaccount.userId }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data.error || `Error ${response.status}`);
       }
 
-      setSubaccounts((prevAccounts) =>
-        prevAccounts.filter((account) => account.id !== id)
-      );
-      toast.success("Subcuenta eliminada correctamente", {
-        icon: "✅",
-      });
-      await fetchUsers(user);
+      setSubaccounts((prev) => prev.filter((acc) => acc.id !== id));
+      addToast({ title: "Subcuenta eliminada correctamente", color: "success" });
     } catch (error: any) {
-      toast.error("Error al eliminar la subcuenta. Intenta nuevamente.", {
-        icon: "❌",
-      });
-      await fetchUsers(user);
+      console.error("Error deleting subaccount:", error);
+      addToast({ title: error.message || "Error al eliminar la subcuenta. Intenta nuevamente.", color: "danger" });
     }
   };
 
@@ -306,14 +312,9 @@ export function useAdminDashboard() {
   const handleSignOut = async () => {
     try {
       await signOut();
-      toast.success("¡Hasta pronto! Sesión cerrada exitosamente", {
-        icon: "👋",
-      });
-      router.push("/login");
     } catch (error) {
-      toast.error("No se pudo cerrar sesión. Intenta nuevamente.", {
-        icon: "❌",
-      });
+      console.error("Error signing out:", error);
+      router.push("/login");
     }
   };
 
@@ -325,10 +326,7 @@ export function useAdminDashboard() {
 
   const handleDateRangeConfirm = () => {
     if (customDateRange.startDate > customDateRange.endDate) {
-      toast.error("La fecha de inicio debe ser anterior a la fecha de fin", {
-        icon: "⚠️",
-        duration: 3000,
-      });
+      addToast({ title: "La fecha de inicio debe ser anterior a la fecha de fin", color: "warning", timeout: 3000 });
       return;
     }
     setIsDateRangeModalOpen(false);

@@ -13,7 +13,6 @@ export async function POST(req: NextRequest) {
     }
 
     const { loanId } = await req.json();
-    console.log('Fetching offers for loan:', loanId, 'by user:', user.uid); 
     
     if (!loanId) {
       return NextResponse.json({ error: "Missing loan ID" }, { status: 400 });

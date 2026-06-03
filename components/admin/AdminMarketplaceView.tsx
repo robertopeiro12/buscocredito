@@ -1,225 +1,211 @@
-import React, { useState, useEffect, useMemo } from "react";
-import { Card, CardBody, Spinner } from "@heroui/react";
-import { Store, TrendingUp, Users, DollarSign } from "lucide-react";
-import { useAdminLoans } from "@/hooks/useAdminLoans";
-import { useAdminDashboard } from "@/hooks/useAdminDashboard";
-import type {
-  LoanRequest,
-  PublicUserData,
-} from "@/types/entities/business.types";
+"use client";
+import React, { useState, useEffect, useRef, useMemo } from "react";
+import { Store } from "lucide-react";
+import { auth } from "@/app/firebase";
+import type { LoanRequest } from "@/types/entities/business.types";
+import type { LenderFilters as LenderFiltersType } from "@/app/lender/types/loan.types";
+import LenderFilters from "@/components/lender/LenderFilters";
+import { LenderLoadingSkeletons } from "@/components/features/dashboard/LenderLoadingSkeletons";
+import { MarketplacePagination } from "@/components/features/dashboard/MarketplacePagination";
 import AdminLoanRequestCard from "./AdminLoanRequestCard";
-import AdminMarketplaceFilters from "./AdminMarketplaceFilters";
-
-// Extender el tipo para incluir campos adicionales
-interface ExtendedPublicUserData extends PublicUserData {
-  name?: string;
-  lastName?: string;
-  age?: number;
-  location?: string;
-}
 
 interface AdminMarketplaceViewProps {
-  // Props opcionales para futuras extensiones
+  loans: LoanRequest[];
+  loading: boolean;
 }
 
-const AdminMarketplaceView = ({}: AdminMarketplaceViewProps = {}) => {
-  const [userDataMap, setUserDataMap] = useState<
-    Record<string, ExtendedPublicUserData>
-  >({});
+const ITEMS_PER_PAGE = 6;
 
-  // Estados de filtros
-  const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [amountRangeFilter, setAmountRangeFilter] = useState("all");
-  const [termFilter, setTermFilter] = useState("all");
+const TYPE_LABEL_MAP: Record<string, string> = {
+  consumo: "Crédito al consumo",
+  deudas: "Liquidación deudas",
+  capital: "Capital de trabajo",
+  maquinaria: "Adquisición de maquinaria o equipo",
+};
 
-  // Obtener información del admin para pasar al hook
-  const { adminData } = useAdminDashboard();
-
-  // Usar hook específico para admin que puede obtener todas las solicitudes
-  const {
-    loans: loanRequests,
-    loading: isLoading,
-    fetchLoans: refreshLoans,
-  } = useAdminLoans({
-    status: "pending", // Solo solicitudes pendientes
-    enableRealtime: true,
-    adminCompany: adminData.companyName, // Pasar la empresa del admin
+const AdminMarketplaceView = ({ loans: loanRequests, loading: isLoading }: AdminMarketplaceViewProps) => {
+  const [filters, setFilters] = useState<LenderFiltersType>({
+    search: "",
+    state: "",
+    city: "",
+    purpose: "all",
+    type: "all",
+    amountRange: "all",
   });
+  const [userDataMap, setUserDataMap] = useState<Record<string, any>>({});
+  const [currentPage, setCurrentPage] = useState(1);
+  const fetchedIds = useRef<Set<string>>(new Set());
 
-  // Cargar datos de usuarios para las solicitudes
   useEffect(() => {
     const loadUserData = async () => {
-      const userIds = loanRequests
-        .map((request) => request.userId)
-        .filter(Boolean);
-      const uniqueUserIds = Array.from(new Set(userIds));
+      const uniqueIds = Array.from(
+        new Set(loanRequests.map((r) => r.userId).filter(Boolean))
+      ).filter((id) => id && !fetchedIds.current.has(id));
 
-      for (const userId of uniqueUserIds) {
-        if (userId && !userDataMap[userId]) {
+      if (uniqueIds.length === 0) return;
+
+      // Mark all as in-flight before any await to avoid duplicate fetches
+      uniqueIds.forEach((id) => fetchedIds.current.add(id));
+
+      // Fetch token once, then fire all requests in parallel
+      const token = await auth.currentUser?.getIdToken();
+      const results = await Promise.all(
+        uniqueIds.map(async (userId) => {
           try {
-            const response = await fetch("/api/users/public-profile", {
+            const res = await fetch("/api/users/public-profile", {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
+                ...(token ? { Authorization: `Bearer ${token}` } : {}),
               },
+              credentials: "include",
               body: JSON.stringify({ userId }),
             });
-
-            if (response.ok) {
-              const data = await response.json();
-              setUserDataMap((prev) => ({
-                ...prev,
-                [userId]: data.data || {},
-              }));
+            if (res.ok) {
+              const data = await res.json();
+              return { userId, userData: data.data || {} };
             }
-          } catch (error) {
-            console.error("Error fetching user data:", error);
+            fetchedIds.current.delete(userId);
+            return null;
+          } catch (err) {
+            fetchedIds.current.delete(userId);
+            console.error(`Error fetching user data for ${userId}:`, err);
+            return null;
           }
-        }
+        })
+      );
+
+      const newEntries = results.filter(Boolean) as { userId: string; userData: any }[];
+      if (newEntries.length > 0) {
+        setUserDataMap((prev) => {
+          const next = { ...prev };
+          newEntries.forEach(({ userId, userData }) => { next[userId] = userData; });
+          return next;
+        });
       }
     };
+    if (loanRequests.length > 0) loadUserData();
+  }, [loanRequests]);
 
-    if (loanRequests.length > 0) {
-      loadUserData();
-    }
-  }, [loanRequests, userDataMap]);
-
-  // Filtrar solicitudes usando la misma lógica que el lender
-  const filteredRequests = useMemo(() => {
-    return loanRequests.filter((request) => {
-      // Filtro de búsqueda
-      if (searchTerm) {
-        const searchLower = searchTerm.toLowerCase();
-        const matchesSearch =
-          request.id.toLowerCase().includes(searchLower) ||
-          request.amount.toString().includes(searchLower) ||
-          request.purpose?.toLowerCase().includes(searchLower) ||
-          request.type.toLowerCase().includes(searchLower) ||
-          request.term.toLowerCase().includes(searchLower);
-
-        if (!matchesSearch) return false;
-      }
-
-      // Filtro de estado - para admin, status se determina por la presencia de ofertas
-      // Por simplicidad, consideramos todas como "activas" ya que son solicitudes pendientes
-      if (statusFilter !== "all") {
-        // Aquí podrías agregar lógica más específica basada en el estado real
-        const requestStatus = "active"; // Por defecto, las solicitudes del marketplace están activas
-        if (requestStatus !== statusFilter) {
-          return false;
-        }
-      }
-
-      // Filtro de monto
-      if (amountRangeFilter !== "all") {
-        const amount = request.amount;
-        switch (amountRangeFilter) {
-          case "0-50000":
-            if (amount < 0 || amount > 50000) return false;
-            break;
-          case "50000-100000":
-            if (amount < 50000 || amount > 100000) return false;
-            break;
-          case "100000-250000":
-            if (amount < 100000 || amount > 250000) return false;
-            break;
-          case "250000-500000":
-            if (amount < 250000 || amount > 500000) return false;
-            break;
-          case "500000+":
-            if (amount < 500000) return false;
-            break;
-        }
-      }
-
-      // Filtro de plazo
-      if (termFilter !== "all") {
-        if (request.term !== termFilter) {
-          return false;
-        }
-      }
-
-      return true;
-    });
-  }, [loanRequests, searchTerm, statusFilter, amountRangeFilter, termFilter]);
-
-  const handleClearFilters = () => {
-    setSearchTerm("");
-    setStatusFilter("all");
-    setAmountRangeFilter("all");
-    setTermFilter("all");
+  const handleFilterChange = (key: keyof LenderFiltersType, value: string) => {
+    setFilters((prev) => ({ ...prev, [key]: value }));
+    setCurrentPage(1);
   };
 
-  if (isLoading) {
-    return (
-      <div className="max-w-7xl mx-auto">
-        <div className="flex justify-center items-center h-64">
-          <Spinner size="lg" />
-        </div>
-      </div>
-    );
-  }
+  const handleClearFilters = () => {
+    setFilters({ search: "", state: "", city: "", purpose: "all", type: "all", amountRange: "all" });
+    setCurrentPage(1);
+  };
+
+  const filteredRequests = useMemo(() => {
+    return loanRequests.filter((request) => {
+      if (filters.search) {
+        const s = filters.search.toLowerCase();
+        const match =
+          request.amount.toString().includes(s) ||
+          request.purpose?.toLowerCase().includes(s) ||
+          request.type?.toLowerCase().includes(s);
+        if (!match) return false;
+      }
+      if (filters.state) {
+        const ud = userDataMap[request.userId || ""];
+        if (ud?.state !== filters.state) return false;
+      }
+      if (filters.city) {
+        const ud = userDataMap[request.userId || ""];
+        if (!ud?.city?.toLowerCase().includes(filters.city.toLowerCase())) return false;
+      }
+      if (filters.purpose !== "all" && request.purpose !== filters.purpose) return false;
+      if (filters.type !== "all") {
+        const expectedLabel = TYPE_LABEL_MAP[filters.type] ?? filters.type;
+        if (request.type !== expectedLabel && request.type !== filters.type) return false;
+      }
+      if (filters.amountRange !== "all") {
+        const amt = request.amount;
+        const ranges: Record<string, [number, number]> = {
+          "0-50000": [0, 50000],
+          "50000-100000": [50000, 100000],
+          "100000-250000": [100000, 250000],
+          "250000-500000": [250000, 500000],
+          "500000+": [500000, Infinity],
+        };
+        const [min, max] = ranges[filters.amountRange] ?? [0, Infinity];
+        if (amt < min || amt > max) return false;
+      }
+      return true;
+    });
+  }, [loanRequests, filters, userDataMap]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredRequests.length / ITEMS_PER_PAGE));
+  const safePage = Math.min(currentPage, totalPages);
+  const paginatedRequests = filteredRequests.slice(
+    (safePage - 1) * ITEMS_PER_PAGE,
+    safePage * ITEMS_PER_PAGE
+  );
+
+  const hasActiveFilters = Object.values(filters).some((v) => v && v !== "all");
+
+  if (isLoading) return <LenderLoadingSkeletons.MarketplaceGrid />;
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6">
-      {/* Filtros */}
-      <AdminMarketplaceFilters
-        searchTerm={searchTerm}
-        setSearchTerm={setSearchTerm}
-        statusFilter={statusFilter}
-        setStatusFilter={setStatusFilter}
-        amountRangeFilter={amountRangeFilter}
-        setAmountRangeFilter={setAmountRangeFilter}
-        termFilter={termFilter}
-        setTermFilter={setTermFilter}
+    <div className="max-w-7xl mx-auto space-y-5">
+      <LenderFilters
+        filters={filters}
+        onFilterChange={handleFilterChange}
         onClearFilters={handleClearFilters}
       />
 
-      {/* Lista de solicitudes */}
       {filteredRequests.length === 0 ? (
-        <Card className="bg-white shadow-sm border border-gray-200">
-          <CardBody className="p-12 text-center">
-            <Store className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-gray-600 mb-2">
-              No hay solicitudes que mostrar
-            </h3>
-            <p className="text-gray-500">
-              {searchTerm ||
-              statusFilter !== "all" ||
-              amountRangeFilter !== "all" ||
-              termFilter !== "all"
-                ? "No se encontraron solicitudes que coincidan con los filtros aplicados."
-                : "Aún no hay solicitudes de préstamos en el marketplace."}
-            </p>
-          </CardBody>
-        </Card>
-      ) : (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {filteredRequests.map((request, index) => (
-            <AdminLoanRequestCard
-              key={request.id}
-              request={request}
-              userData={userDataMap[request.userId || ""]}
-              index={index}
-            />
-          ))}
-        </div>
-      )}
-
-      {/* Información adicional */}
-      <Card className="bg-gray-50 border border-gray-200">
-        <CardBody className="p-4">
-          <div className="flex items-center gap-2 text-gray-600">
-            <Store className="w-4 h-4" />
-            <p className="text-sm">
-              <strong>Nota:</strong> Esta vista permite monitorear todas las
-              solicitudes de préstamos en el marketplace. Como administrador,
-              puedes ver toda la información pero no realizar ofertas.
-            </p>
+        <div className="text-center py-20">
+          <div className="w-20 h-20 mx-auto mb-5 rounded-full bg-[#0e3a45]/[0.06] flex items-center justify-center">
+            <Store className="w-9 h-9 text-[#0e3a45]/40" />
           </div>
-        </CardBody>
-      </Card>
+          <h3 className="text-base font-semibold text-gray-700 mb-1.5">
+            {hasActiveFilters ? "Sin resultados" : "No hay solicitudes"}
+          </h3>
+          <p className="text-sm text-gray-400 max-w-xs mx-auto">
+            {hasActiveFilters
+              ? "Ninguna solicitud coincide con los filtros aplicados."
+              : "Las solicitudes pendientes del mercado aparecerán aquí."}
+          </p>
+        </div>
+      ) : (
+        <>
+          <div className="flex items-center justify-between px-0.5">
+            <p className="text-[10px] uppercase tracking-widest text-gray-400 font-semibold">
+              {filteredRequests.length}{" "}
+              {filteredRequests.length === 1 ? "solicitud" : "solicitudes"}
+              {hasActiveFilters && (
+                <span className="ml-1 text-[#0e3a45]/60">· filtradas</span>
+              )}
+            </p>
+            {totalPages > 1 && (
+              <p className="text-[10px] uppercase tracking-widest text-gray-400">
+                Pág. {safePage} / {totalPages}
+              </p>
+            )}
+          </div>
+
+          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+            {paginatedRequests.map((request, index) => (
+              <AdminLoanRequestCard
+                key={request.id}
+                request={request}
+                userData={userDataMap[request.userId || ""]}
+                index={(safePage - 1) * ITEMS_PER_PAGE + index}
+              />
+            ))}
+          </div>
+
+          {totalPages > 1 && (
+            <MarketplacePagination
+              currentPage={safePage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+            />
+          )}
+        </>
+      )}
     </div>
   );
 };

@@ -24,14 +24,19 @@ export async function verifyAuthentication(request: NextRequest): Promise<Authen
     const authToken = request.cookies.get('auth-token')?.value;
     const userType = request.cookies.get('user-type')?.value;
     
-    if (authToken && userType) {
+    if (authToken) {
       try {
         const decodedToken = await auth.verifyIdToken(authToken);
-        return {
-          uid: decodedToken.uid,
-          email: decodedToken.email || '',
-          userType: userType
-        };
+        // Read userType from verified JWT claims, never from the client-supplied cookie
+        const claimType = (decodedToken['userType'] as string) || (decodedToken['role'] as string);
+        if (claimType) {
+          return {
+            uid: decodedToken.uid,
+            email: decodedToken.email || '',
+            userType: claimType,
+          };
+        }
+        // Token is valid but has no role claim yet — fall through to Bearer
       } catch (cookieError) {
         console.log('Cookie auth failed, trying Bearer token...');
       }
@@ -44,12 +49,13 @@ export async function verifyAuthentication(request: NextRequest): Promise<Authen
         const token = authHeader.split('Bearer ')[1];
         const decodedToken = await auth.verifyIdToken(token);
         
-        // Para Bearer tokens, necesitamos obtener el userType de la base de datos
-        // Por ahora, asumimos 'user' para compatibilidad legacy
+        const userType = (decodedToken['userType'] as string) || (decodedToken['role'] as string);
+        if (!userType) return null;
+
         return {
           uid: decodedToken.uid,
           email: decodedToken.email || '',
-          userType: 'borrower' // Default para Bearer tokens legacy
+          userType,
         };
       } catch (bearerError) {
         console.log('Bearer auth failed');

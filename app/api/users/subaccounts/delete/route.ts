@@ -34,6 +34,14 @@ export async function DELETE(request: NextRequest) {
     // Inicializar Firebase Admin
     await initAdmin();
 
+    // Verify the target worker belongs to this admin's company before deleting
+    const { getFirestore } = await import('firebase-admin/firestore');
+    const db = getFirestore();
+    const workerDoc = await db.collection('cuentas').doc(userId).get();
+    if (!workerDoc.exists || workerDoc.data()?.adminId !== user.uid) {
+      return createErrorResponse('No tienes permiso para eliminar este usuario', 403);
+    }
+
     // Primero eliminar del Authentication
     const authResult = await delete_subaccount(userId);
     if (authResult.status !== 200) {

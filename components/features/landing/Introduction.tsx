@@ -57,7 +57,7 @@ const Introduction = () => {
 
           <div className="mt-6 flex flex-col sm:flex-row justify-center gap-3 md:gap-4 animate__animated animate__fadeIn animate__delay-1s">
             <Link
-              href="/prestamos"
+              href="/soluciones"
               className="px-6 py-3 bg-[#2EA043] text-white text-[15px] md:text-[16px] font-medium rounded-lg
                 hover:bg-green-600 transition-all duration-300 hover:shadow-lg transform hover:-translate-y-0.5
                 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50"

@@ -122,35 +122,30 @@ export function TokenManagement() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-gray-800">
-          Tokens de Registro para Bancos
-        </h2>
-        <div className="flex gap-2">
-          <Button
-            size="sm"
-            variant="bordered"
-            startContent={<RefreshCw className="w-4 h-4" />}
-            onPress={fetchTokens}
-            isLoading={loading}
-          >
-            Actualizar
-          </Button>
-          <Button
-            size="sm"
-            color="primary"
-            startContent={<Plus className="w-4 h-4" />}
-            onPress={() => setIsModalOpen(true)}
-          >
-            Crear Token
-          </Button>
-        </div>
+      <div className="flex justify-end gap-2">
+        <Button
+          size="sm"
+          variant="bordered"
+          startContent={<RefreshCw className="w-4 h-4" />}
+          onPress={fetchTokens}
+          isLoading={loading}
+        >
+          Actualizar
+        </Button>
+        <Button
+          size="sm"
+          color="primary"
+          startContent={<Plus className="w-4 h-4" />}
+          onPress={() => setIsModalOpen(true)}
+        >
+          Crear Token
+        </Button>
       </div>
 
       <Card>
         <CardHeader>
           <div className="flex items-center gap-2">
-            <Key className="w-5 h-5 text-purple-600" />
+            <Key className="w-5 h-5 text-[#0e3a45]" />
             <h3 className="text-lg font-semibold">Tokens Generados</h3>
           </div>
         </CardHeader>

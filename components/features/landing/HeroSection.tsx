@@ -1,5 +1,3 @@
-"use client";
-
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
@@ -20,7 +18,7 @@ const HeroSection = () => {
               en minutos.
             </p>
             <Link
-              href="/prestamos"
+              href="/login"
               className="inline-flex items-center gap-3 bg-[#2EA043] hover:bg-green-500 text-white text-lg font-bold px-10 py-4 rounded-xl shadow-lg hover:shadow-green-500/30 transform hover:-translate-y-1 transition-all duration-300"
             >
               Comienza a comparar tu crédito
@@ -36,6 +34,7 @@ const HeroSection = () => {
                 src="/img/landing/credit-card-chart.jpg"
                 alt="Tarjeta de crédito sobre gráficos financieros"
                 fill
+                sizes="(max-width: 1024px) 0vw, 30vw"
                 className="object-cover"
                 priority
               />
@@ -47,7 +46,9 @@ const HeroSection = () => {
                 src="/img/landing/hero-credit-card.jpg"
                 alt="Modelo de tarjeta de crédito sobre hoja de cálculo"
                 fill
+                sizes="(max-width: 1024px) 0vw, 28vw"
                 className="object-cover"
+                priority
               />
             </div>
 
@@ -57,6 +58,7 @@ const HeroSection = () => {
                 src="/img/landing/hero-credit-cards-group.jpg"
                 alt="Grupo de tarjetas de crédito"
                 fill
+                sizes="(max-width: 1024px) 0vw, 30vw"
                 className="object-cover"
               />
             </div>

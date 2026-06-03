@@ -32,65 +32,42 @@ export async function POST(request: NextRequest) {
     await initAdmin();
     const db = getFirestore();
     
-    // Preparar datos de actualización (solo campos permitidos)
-    const updateData: Record<string, any> = {
-      updatedAt: new Date().toISOString(),
-    };
-
-    // Campos de información personal permitidos
-    if (body.name && typeof body.name === 'string') {
-      updateData.name = body.name.trim();
-    }
-    if (body.lastName && typeof body.lastName === 'string') {
-      updateData.lastName = body.lastName.trim();
-    }
-    if (body.secondLastName && typeof body.secondLastName === 'string') {
-      updateData.secondLastName = body.secondLastName.trim();
-    }
-    if (body.phone && typeof body.phone === 'string') {
-      updateData.phone = body.phone.trim();
-    }
-    if (body.rfc && typeof body.rfc === 'string') {
-      updateData.rfc = body.rfc.trim().toUpperCase();
-    }
-    if (body.birthday) {
-      updateData.birthday = body.birthday;
+    if (!body.address || typeof body.address !== 'object') {
+      return createErrorResponse('Se requiere el campo address', 400);
     }
 
-    // Campos de dirección
-    if (body.address && typeof body.address === 'object') {
-      const addressFields = ['street', 'exteriorNumber', 'interiorNumber', 'colony', 'city', 'state', 'country', 'zipCode'];
-      const addressUpdate: Record<string, any> = {};
-      
-      for (const field of addressFields) {
-        if (body.address[field] !== undefined) {
-          addressUpdate[field] = typeof body.address[field] === 'string' 
-            ? body.address[field].trim() 
-            : body.address[field];
-        }
-      }
-      
-      if (Object.keys(addressUpdate).length > 0) {
-        // Get current address and merge
-        const userRef = db.collection("cuentas").doc(body.userId);
-        const userDoc = await userRef.get();
-        const currentAddress = userDoc.exists ? userDoc.data()?.address || {} : {};
-        updateData.address = { ...currentAddress, ...addressUpdate };
+    const ALLOWED_ADDRESS_FIELDS = ['street', 'exteriorNumber', 'interiorNumber', 'colony', 'city', 'state', 'country', 'zipCode'];
+    const addressUpdate: Record<string, string> = {};
+
+    for (const field of ALLOWED_ADDRESS_FIELDS) {
+      if (body.address[field] !== undefined) {
+        addressUpdate[field] = typeof body.address[field] === 'string'
+          ? body.address[field].trim()
+          : body.address[field];
       }
     }
 
-    // Verificar que hay algo que actualizar
-    if (Object.keys(updateData).length <= 1) { // Solo tiene updatedAt
-      return createErrorResponse('No se proporcionaron datos para actualizar', 400);
+    if (Object.keys(addressUpdate).length === 0) {
+      return createErrorResponse('No se proporcionaron campos de domicilio para actualizar', 400);
     }
 
-    // Update user document
     const userRef = db.collection("cuentas").doc(body.userId);
-    await userRef.update(updateData);
+    const userDoc = await userRef.get();
+
+    if (!userDoc.exists) {
+      return createErrorResponse('Usuario no encontrado', 404);
+    }
+
+    const currentAddress = userDoc.data()?.address || {};
+
+    await userRef.update({
+      address: { ...currentAddress, ...addressUpdate },
+      updatedAt: new Date().toISOString(),
+    });
     
     return createSuccessResponse(
-      { updated: Object.keys(updateData) },
-      'Perfil actualizado exitosamente'
+      { updated: Object.keys(addressUpdate) },
+      'Domicilio actualizado exitosamente'
     );
 
   } catch (error: any) {

@@ -1,17 +1,15 @@
 "use client";
 
+import Image from "next/image";
 import { Button } from "@heroui/react";
 import {
   Users,
   Settings,
-  BarChart,
   Database,
-  Shield,
   Activity,
   LogOut,
   Home,
   Key,
-  Zap,
 } from "lucide-react";
 
 type SuperAdminSidebarProps = {
@@ -28,8 +26,8 @@ export function SuperAdminSidebar({
   const getButtonClass = (tab: string) =>
     `w-full justify-start h-12 px-4 mb-2 transition-all duration-200 ease-in-out ${
       activeTab === tab
-        ? "bg-gradient-to-r from-purple-50 to-purple-100 text-purple-700 border-r-3 border-purple-500 shadow-sm"
-        : "bg-transparent text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+        ? "bg-[#0e3a45]/[0.08] text-[#0e3a45] border-r-[3px] border-[#0e3a45] font-semibold"
+        : "bg-transparent text-gray-500 hover:bg-gray-50 hover:text-gray-900"
     }`;
 
   const navItems = [
@@ -50,18 +48,6 @@ export function SuperAdminSidebar({
       label: "Tokens Bancos",
       id: "tokens",
       description: "Tokens de registro",
-    },
-    {
-      icon: Zap,
-      label: "Accesos Beta",
-      id: "beta",
-      description: "Gestionar demo privada",
-    },
-    {
-      icon: BarChart,
-      label: "Estadísticas",
-      id: "stats",
-      description: "Métricas del sistema",
     },
     {
       icon: Database,
@@ -87,16 +73,18 @@ export function SuperAdminSidebar({
     <div className="w-64 bg-white border-r border-gray-200 shadow-sm h-screen fixed left-0 top-0 z-10 hidden md:block">
       <div className="flex flex-col h-full">
         {/* Header Section */}
-        <div className="p-6 border-b border-gray-100">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center shadow-md">
-              <Shield className="w-5 h-5 text-white" />
-            </div>
-            <div>
-              <h1 className="text-lg font-bold text-gray-900">Super Admin</h1>
-              <p className="text-sm text-gray-500">Panel de Desarrollador</p>
-            </div>
-          </div>
+        <div className="px-5 py-5 border-b border-gray-100">
+          <Image
+            src="/img/logo-buscocredito.png"
+            alt="BuscoCrédito"
+            width={160}
+            height={68}
+            className="h-11 w-auto"
+            priority
+          />
+          <p className="text-[11px] uppercase tracking-wide text-gray-400 mt-0.5 font-medium">
+            Panel Super Admin
+          </p>
         </div>
 
         {/* Navigation Menu */}
@@ -131,11 +119,6 @@ export function SuperAdminSidebar({
           >
             Cerrar Sesión
           </Button>
-          <div className="px-4 py-2 mt-2 bg-purple-50 rounded-lg">
-            <p className="text-xs text-purple-600 text-center font-medium">
-              🔒 Super Admin Access
-            </p>
-          </div>
         </div>
       </div>
     </div>

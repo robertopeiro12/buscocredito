@@ -1,5 +1,3 @@
-"use client";
-
 import Image from "next/image";
 import Link from "next/link";
 
@@ -31,7 +29,9 @@ const CTABanner = () => {
           src="/img/landing/payment-card.jpg"
           alt="Tarjeta de crédito"
           fill
+          sizes="100vw"
           className="object-cover"
+          priority
         />
       </div>
 
@@ -51,7 +51,7 @@ const CTABanner = () => {
               </p>
               <div className="flex gap-2 text-sm">
                 <Link
-                  href="/prestamos"
+                  href="/login"
                   className="bg-white text-[#0e3a45] font-bold py-2 px-1.5 rounded-full hover:bg-gray-100 transition shadow-md text-sm md:text-lg text-center"
                 >
                   BUSCAR OPCIONES DE CRÉDITO
