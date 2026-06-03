@@ -42,7 +42,7 @@ export function useSuperAdminDashboard() {
 
   // Real-time data state
   const [solicitudesData, setSolicitudesData] = useState<any[]>([]);
-  const [propuestasCount, setPropuestasCount] = useState(0);
+  const [propuestasData, setPropuestasData] = useState<any[]>([]);
   
   // UI State
   const [activeTab, setActiveTab] = useState("overview");
@@ -163,8 +163,9 @@ export function useSuperAdminDashboard() {
     const unsubscribe = onSnapshot(
       propuestasQuery,
       (snapshot) => {
-        setPropuestasCount(snapshot.size);
-        console.log("📊 Propuestas updated in real-time:", snapshot.size);
+        const data = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+        setPropuestasData(data);
+        console.log("📊 Propuestas updated in real-time:", data.length);
       },
       (err) => {
         console.error("Error listening to propuestas:", err);
@@ -188,23 +189,45 @@ export function useSuperAdminDashboard() {
       (s) => s.status === "rejected"
     ).length;
 
-    // Calculate recent signups (last 7 days)
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
     const recentSignups = accounts.filter((acc) => {
       if (!acc.createdAt) return false;
-      const createdDate = new Date(acc.createdAt);
-      return createdDate >= sevenDaysAgo;
+      return new Date(acc.createdAt) >= sevenDaysAgo;
     }).length;
 
-    // Calculate recent logins (last 24 hours)
     const oneDayAgo = new Date();
     oneDayAgo.setHours(oneDayAgo.getHours() - 24);
     const recentLogins = accounts.filter((acc) => {
       if (!acc.lastLoginAt) return false;
-      const loginDate = new Date(acc.lastLoginAt);
-      return loginDate >= oneDayAgo;
+      return new Date(acc.lastLoginAt) >= oneDayAgo;
     }).length;
+
+    const toDate = (v: any): Date | null => {
+      if (!v) return null;
+      if (v.toDate) return v.toDate();
+      const d = new Date(v);
+      return isNaN(d.getTime()) ? null : d;
+    };
+
+    const solicitudesThisWeek = solicitudesData.filter((s) => {
+      const d = toDate(s.createdAt || s.fecha);
+      return d && d >= sevenDaysAgo;
+    }).length;
+
+    const propuestasThisWeek = propuestasData.filter((p) => {
+      const d = toDate(p.createdAt || p.fecha);
+      return d && d >= sevenDaysAgo;
+    }).length;
+
+    const solicitudesWithProposals = new Set(
+      propuestasData.map((p) => p.loanId || p.solicitudId).filter(Boolean)
+    );
+    const matchingRate =
+      solicitudesData.length > 0
+        ? Math.round((solicitudesWithProposals.size / solicitudesData.length) * 100)
+        : 0;
 
     return {
       totalAccounts: accounts.length,
@@ -217,14 +240,17 @@ export function useSuperAdminDashboard() {
         borrower: accounts.filter((acc) => acc.type === "borrower").length,
       },
       totalSolicitudes: solicitudesData.length,
-      totalPropuestas: propuestasCount,
+      totalPropuestas: propuestasData.length,
       pendingSolicitudes,
       approvedSolicitudes,
       rejectedSolicitudes,
       recentSignups,
       recentLogins,
+      solicitudesThisWeek,
+      propuestasThisWeek,
+      matchingRate,
     };
-  }, [accounts, solicitudesData, propuestasCount, stats]);
+  }, [accounts, solicitudesData, propuestasData, stats]);
 
   // Fetch accounts and stats (for initial load or manual refresh)
   const fetchAccountsAndStats = useCallback(async () => {

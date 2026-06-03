@@ -10,7 +10,8 @@ import {
   CheckCircle,
   XCircle,
   TrendingUp,
-  Activity,
+  Send,
+  GitMerge,
 } from "lucide-react";
 import type { SystemStats } from "@/types/superadmin";
 
@@ -106,11 +107,43 @@ export function StatsCards({ stats, isLoading }: StatsCardsProps) {
     },
   ];
 
-  const userTypeStats = [
-    { title: "Super Admins",  value: stats.accountsByType.superAdmin,   color: "bg-[#0e3a45]" },
-    { title: "Admin Empresa", value: stats.accountsByType.companyAdmin,  color: "bg-[#0e3a45]/80" },
-    { title: "Prestamistas",  value: stats.accountsByType.lender,        color: "bg-[#0e3a45]/60" },
-    { title: "Solicitantes",  value: stats.accountsByType.borrower,      color: "bg-green-600" },
+  const matchingRate = stats.matchingRate ?? 0;
+  const matchingColor =
+    matchingRate >= 70 ? "text-green-600" :
+    matchingRate >= 30 ? "text-yellow-600" :
+    "text-red-500";
+  const matchingBg =
+    matchingRate >= 70 ? "bg-green-50" :
+    matchingRate >= 30 ? "bg-yellow-50" :
+    "bg-red-50";
+
+  const marketplaceStats = [
+    {
+      title: "Total Propuestas",
+      value: stats.totalPropuestas,
+      icon: Send,
+      iconBg: "bg-[#0e3a45]/[0.08]",
+      iconColor: "text-[#0e3a45]",
+      valueColor: "text-[#0e3a45]",
+    },
+    {
+      title: "Propuestas esta semana",
+      value: stats.propuestasThisWeek ?? 0,
+      subtitle: "Últimos 7 días",
+      icon: TrendingUp,
+      iconBg: "bg-[#0e3a45]/[0.08]",
+      iconColor: "text-[#0e3a45]",
+      valueColor: "text-[#0e3a45]",
+    },
+    {
+      title: "Solicitudes esta semana",
+      value: stats.solicitudesThisWeek ?? 0,
+      subtitle: "Últimos 7 días",
+      icon: FileText,
+      iconBg: "bg-[#0e3a45]/[0.08]",
+      iconColor: "text-[#0e3a45]",
+      valueColor: "text-[#0e3a45]",
+    },
   ];
 
   return (
@@ -174,30 +207,56 @@ export function StatsCards({ stats, isLoading }: StatsCardsProps) {
         </div>
       </div>
 
-      {/* User Types Distribution */}
+      {/* Marketplace Activity */}
       <div>
         <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-          <Activity className="w-5 h-5 text-[#0e3a45]" />
-          Distribución por Tipo de Usuario
+          <GitMerge className="w-5 h-5 text-[#0e3a45]" />
+          Actividad del Marketplace
         </h3>
-        <Card>
-          <CardBody className="p-6">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {userTypeStats.map((stat, index) => (
-                <div key={index} className="text-center">
-                  <div
-                    className={`w-16 h-16 mx-auto rounded-full ${stat.color} flex items-center justify-center mb-2`}
-                  >
-                    <span className="text-2xl font-bold text-white">
-                      {stat.value}
-                    </span>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {marketplaceStats.map((stat, index) => (
+            <Card key={index} className="overflow-hidden hover:shadow-md transition-shadow">
+              <div className="h-1 bg-green-500 w-full" />
+              <CardBody className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-500">{stat.title}</p>
+                    <p className={`text-3xl font-bold ${stat.valueColor}`}>
+                      {stat.value.toLocaleString()}
+                    </p>
+                    {stat.subtitle && (
+                      <p className="text-xs text-gray-400 mt-1">{stat.subtitle}</p>
+                    )}
                   </div>
-                  <p className="text-sm text-gray-600">{stat.title}</p>
+                  <div className={`p-3 rounded-full ${stat.iconBg}`}>
+                    <stat.icon className={`w-6 h-6 ${stat.iconColor}`} />
+                  </div>
                 </div>
-              ))}
-            </div>
-          </CardBody>
-        </Card>
+              </CardBody>
+            </Card>
+          ))}
+
+          {/* Matching rate — card especial */}
+          <Card className="overflow-hidden hover:shadow-md transition-shadow">
+            <div className="h-1 bg-green-500 w-full" />
+            <CardBody className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-500">Tasa de matching</p>
+                  <p className={`text-3xl font-bold ${matchingColor}`}>
+                    {matchingRate}%
+                  </p>
+                  <p className="text-xs text-gray-400 mt-1">
+                    solicitudes con al menos 1 oferta
+                  </p>
+                </div>
+                <div className={`p-3 rounded-full ${matchingBg}`}>
+                  <CheckCircle className={`w-6 h-6 ${matchingColor}`} />
+                </div>
+              </div>
+            </CardBody>
+          </Card>
+        </div>
       </div>
     </div>
   );

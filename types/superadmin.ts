@@ -38,6 +38,9 @@ export interface SystemStats {
   rejectedSolicitudes: number;
   recentSignups: number;
   recentLogins: number;
+  propuestasThisWeek: number;
+  solicitudesThisWeek: number;
+  matchingRate: number;
 }
 
 export interface ActivityLog {

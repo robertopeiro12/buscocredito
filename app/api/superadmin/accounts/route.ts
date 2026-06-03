@@ -122,6 +122,9 @@ export async function GET(request: NextRequest) {
       rejectedSolicitudes,
       recentSignups,
       recentLogins,
+      propuestasThisWeek: 0,
+      solicitudesThisWeek: 0,
+      matchingRate: 0,
     };
 
     return NextResponse.json({
