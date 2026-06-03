@@ -99,7 +99,7 @@ export function AccountsTable({
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           startContent={<Search className="w-4 h-4 text-gray-400" />}
-          className="w-64"
+          className="w-80"
           size="sm"
         />
         <Dropdown>
