@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect } from "react";
-import { ArrowRight, ArrowLeft, AlertCircle, Shield } from "lucide-react";
+import { ArrowRight, ArrowLeft, AlertCircle } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -190,10 +190,6 @@ export default function Signup() {
                 </Link>
               </p>
 
-              <div className="flex items-center justify-center gap-2 text-xs text-gray-400 border-t border-gray-100 pt-4">
-                <Shield className="w-3.5 h-3.5" />
-                <span>Conexión segura · Tus datos están protegidos</span>
-              </div>
             </div>
           </div>
         </div>
