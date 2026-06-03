@@ -71,7 +71,7 @@ export function AccountDetailModal({
       <ModalContent>
         <ModalHeader className="flex flex-col gap-1">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center">
+            <div className="w-12 h-12 rounded-full bg-[#0e3a45] flex items-center justify-center">
               <User className="w-6 h-6 text-white" />
             </div>
             <div>
@@ -165,10 +165,10 @@ export function AccountDetailModal({
                 <div className="bg-gray-50 p-4 rounded-lg space-y-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <FileText className="w-4 h-4 text-blue-500" />
+                      <FileText className="w-4 h-4 text-[#0e3a45]" />
                       <span className="text-sm text-gray-600">Solicitudes</span>
                     </div>
-                    <span className="text-lg font-bold text-blue-600">
+                    <span className="text-lg font-bold text-[#0e3a45]">
                       {additionalData?.solicitudesCount ?? 0}
                     </span>
                   </div>
