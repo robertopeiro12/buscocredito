@@ -105,7 +105,9 @@ export function useSuperAdminDashboard() {
             type: data.type || "borrower",
             companyName: data.companyName,
             adminId: data.adminId,
-            createdAt: data.created_at?.toDate?.()?.toISOString() || data.createdAt,
+            createdAt: data.created_at?.toDate?.()?.toISOString()
+              || data.createdAt?.toDate?.()?.toISOString()
+              || (typeof data.createdAt === "string" ? data.createdAt : null),
             lastLoginAt: data.lastLoginAt,
             isActive: data.isActive !== false,
             disabled: data.isActive === false,
