@@ -263,8 +263,6 @@ export async function GET(request: NextRequest) {
       }
     };
     
-    console.log(`📤 Enviando respuesta:`, JSON.stringify(response, null, 2));
-    
     return NextResponse.json(response, { status: 200 });
     
   } catch (error) {

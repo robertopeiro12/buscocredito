@@ -12,7 +12,6 @@ import {
   ConfirmActionModal,
   SystemInfoCards,
   TokenManagement,
-  BetaManagement,
 } from "@/components/superadmin";
 import type { AccountInfo } from "@/types/superadmin";
 
@@ -52,7 +51,6 @@ export default function SuperAdminDashboard() {
     setConfirmAction,
 
     // Actions
-    getAuthToken,
     fetchAccountsAndStats,
     fetchSystemInfo,
     handleConfirmAction,
@@ -90,7 +88,6 @@ export default function SuperAdminDashboard() {
     overview:  { title: "Resumen del Sistema",  description: "Vista general de cuentas y actividad de la plataforma" },
     accounts:  { title: "Gestión de Cuentas",   description: "Administra y supervisa todas las cuentas registradas" },
     tokens:    { title: "Tokens de Registro",   description: "Gestiona tokens de acceso para nuevas instituciones" },
-    beta:      { title: "Accesos Beta",          description: "Controla el acceso a la demo privada" },
     database:  { title: "Base de Datos",         description: "Información de colecciones de Firestore" },
     system:    { title: "Estado del Sistema",    description: "Salud y rendimiento del servidor" },
     settings:  { title: "Configuración",         description: "Ajustes avanzados del sistema" },
@@ -158,14 +155,6 @@ export default function SuperAdminDashboard() {
           <div className="space-y-6">
             <TabHeader />
             <TokenManagement />
-          </div>
-        );
-
-      case "beta":
-        return (
-          <div className="space-y-6">
-            <TabHeader />
-            <BetaManagement getAuthToken={getAuthToken} />
           </div>
         );
 

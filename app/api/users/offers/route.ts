@@ -19,7 +19,6 @@ export async function GET(request: NextRequest) {
 
     // Obtener ofertas específicas del usuario autenticado
     const result = await getUserOffersByUserId(user.uid);
-    console.log('User offers for', user.uid, ':', result);
     
     return createSuccessResponse(
       { offers: result.offers }, 

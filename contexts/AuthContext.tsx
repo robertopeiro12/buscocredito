@@ -71,10 +71,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             // Si el usuario no tiene custom claims pero tiene tipo en Firestore,
             // configurar los claims automáticamente
             if (!customClaims.userType && userData.type) {
-              console.log(
-                "🔄 Setting up missing custom claims for user:",
-                firebaseUser.uid
-              );
               try {
                 const rawToken = tokenResult.token;
                 await fetch("/api/auth/setup-user-claims", {

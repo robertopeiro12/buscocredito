@@ -23,7 +23,6 @@ export async function POST(request: NextRequest) {
       return ApiResponses.missingFields(validation.errors);
     }
 
-    console.log('Fetching offers for loan:', body.loanId, 'by user:', user.uid); 
     
     // Inicializar Firebase Admin
     await initAdmin();

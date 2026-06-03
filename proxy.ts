@@ -36,34 +36,13 @@ const apiRoutes = ['/api/'];
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // 1. Definir rutas públicas que NO requieren token de beta
-  const isPublicFile = 
-    pathname.startsWith('/_next') || 
-    pathname.startsWith('/api/beta/validate') || 
+  const isPublicFile =
+    pathname.startsWith('/_next') ||
     pathname.includes('/favicon.ico') ||
     pathname.startsWith('/img/');
 
-  const isBetaPage = pathname === '/beta-access';
+  if (isPublicFile) return NextResponse.next();
 
-  // 2. Verificar si existe la cookie de acceso beta
-  const hasBetaAccess = request.cookies.has('buscocredito_beta');
-
-  // 3. Lógica de redirección de Beta
-  if (!hasBetaAccess && !isPublicFile && !isBetaPage) {
-    // Si no tiene acceso y no es una ruta pública, redirigir al gate
-    const url = request.nextUrl.clone();
-    url.pathname = '/beta-access';
-    return NextResponse.redirect(url);
-  }
-
-  if (hasBetaAccess && isBetaPage) {
-    // Si ya tiene acceso y trata de entrar al gate, redirigir al inicio
-    const url = request.nextUrl.clone();
-    url.pathname = '/';
-    return NextResponse.redirect(url);
-  }
-
-  // 4. Continuar con la lógica de proxy existente
   // Permitir todas las rutas de API
   if (apiRoutes.some(route => pathname.startsWith(route))) {
     return NextResponse.next();
