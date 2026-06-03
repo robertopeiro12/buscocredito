@@ -5,7 +5,6 @@ import { Button } from "@heroui/react";
 import {
   Users,
   Settings,
-  BarChart,
   Database,
   Activity,
   LogOut,
@@ -56,12 +55,6 @@ export function SuperAdminSidebar({
       label: "Accesos Beta",
       id: "beta",
       description: "Gestionar demo privada",
-    },
-    {
-      icon: BarChart,
-      label: "Estadísticas",
-      id: "stats",
-      description: "Métricas del sistema",
     },
     {
       icon: Database,

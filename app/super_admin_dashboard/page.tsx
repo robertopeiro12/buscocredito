@@ -91,7 +91,6 @@ export default function SuperAdminDashboard() {
     accounts:  { title: "Gestión de Cuentas",   description: "Administra y supervisa todas las cuentas registradas" },
     tokens:    { title: "Tokens de Registro",   description: "Gestiona tokens de acceso para nuevas instituciones" },
     beta:      { title: "Accesos Beta",          description: "Controla el acceso a la demo privada" },
-    stats:     { title: "Estadísticas",          description: "Métricas detalladas de la plataforma" },
     database:  { title: "Base de Datos",         description: "Información de colecciones de Firestore" },
     system:    { title: "Estado del Sistema",    description: "Salud y rendimiento del servidor" },
     settings:  { title: "Configuración",         description: "Ajustes avanzados del sistema" },
@@ -167,14 +166,6 @@ export default function SuperAdminDashboard() {
           <div className="space-y-6">
             <TabHeader />
             <BetaManagement getAuthToken={getAuthToken} />
-          </div>
-        );
-
-      case "stats":
-        return (
-          <div className="space-y-6">
-            <TabHeader />
-            <StatsCards stats={stats} isLoading={isLoading} />
           </div>
         );
 
