@@ -17,8 +17,6 @@ import {
   Calendar,
   Clock,
   Shield,
-  FileText,
-  Send,
 } from "lucide-react";
 import type { AccountInfo } from "@/types/superadmin";
 
@@ -29,10 +27,6 @@ interface AccountDetailModalProps {
   onActivate: (account: AccountInfo) => void;
   onDeactivate: (account: AccountInfo) => void;
   onDelete: (account: AccountInfo) => void;
-  additionalData?: {
-    solicitudesCount?: number;
-    propuestasCount?: number;
-  };
 }
 
 const typeLabels: Record<string, { label: string; color: "default" | "primary" | "secondary" | "success" | "warning" | "danger" }> = {
@@ -49,7 +43,6 @@ export function AccountDetailModal({
   onActivate,
   onDeactivate,
   onDelete,
-  additionalData,
 }: AccountDetailModalProps) {
   if (!account) return null;
 
@@ -104,11 +97,10 @@ export function AccountDetailModal({
             <Divider />
 
             {/* Account Info */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-4">
-                <h3 className="text-sm font-semibold text-gray-700">
-                  Información de la Cuenta
-                </h3>
+            <div className="space-y-4">
+              <h3 className="text-sm font-semibold text-gray-700">
+                Información de la Cuenta
+              </h3>
 
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-gray-100 rounded-lg">
@@ -155,51 +147,21 @@ export function AccountDetailModal({
                     </p>
                   </div>
                 </div>
-              </div>
-
-              <div className="space-y-4">
-                <h3 className="text-sm font-semibold text-gray-700">
-                  Actividad
-                </h3>
-
-                <div className="bg-gray-50 p-4 rounded-lg space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <FileText className="w-4 h-4 text-[#0e3a45]" />
-                      <span className="text-sm text-gray-600">Solicitudes</span>
-                    </div>
-                    <span className="text-lg font-bold text-[#0e3a45]">
-                      {additionalData?.solicitudesCount ?? 0}
-                    </span>
+              {account.address && (
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-gray-100 rounded-lg">
+                    <Building className="w-4 h-4 text-gray-600" />
                   </div>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Send className="w-4 h-4 text-green-500" />
-                      <span className="text-sm text-gray-600">Propuestas</span>
-                    </div>
-                    <span className="text-lg font-bold text-green-600">
-                      {additionalData?.propuestasCount ?? 0}
-                    </span>
-                  </div>
-                </div>
-
-                {account.address && (
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <h4 className="text-xs font-semibold text-gray-500 mb-2">
-                      Ubicación
-                    </h4>
-                    <p className="text-sm text-gray-700">
-                      {[
-                        account.address.city,
-                        account.address.state,
-                        account.address.country,
-                      ]
+                  <div>
+                    <p className="text-xs text-gray-500">Ubicación</p>
+                    <p className="text-sm font-medium">
+                      {[account.address.city, account.address.state, account.address.country]
                         .filter(Boolean)
                         .join(", ") || "No disponible"}
                     </p>
                   </div>
-                )}
-              </div>
+                </div>
+              )}
             </div>
 
             {/* UID */}
