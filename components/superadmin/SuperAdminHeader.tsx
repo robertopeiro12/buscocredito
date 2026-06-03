@@ -1,7 +1,7 @@
 "use client";
 
 import { Button, Spinner } from "@heroui/react";
-import { Menu, Bell, LogOut, User } from "lucide-react";
+import { Menu, Bell, User } from "lucide-react";
 
 interface SuperAdminHeaderProps {
   userEmail?: string | null;
@@ -58,17 +58,6 @@ export function SuperAdminHeader({
             </div>
           </div>
 
-          {/* Sign out button */}
-          <Button
-            size="sm"
-            variant="flat"
-            color="danger"
-            startContent={<LogOut className="w-4 h-4" />}
-            onPress={onSignOut}
-            className="hidden md:flex"
-          >
-            Salir
-          </Button>
         </div>
       </div>
     </header>
