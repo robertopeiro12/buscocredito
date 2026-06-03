@@ -256,13 +256,9 @@ export function useSuperAdminDashboard() {
         },
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to fetch accounts");
-      }
+      if (!response.ok) return;
 
       const data = await response.json();
-      // API data will be overwritten by real-time listeners, but useful for initial disabled status
       setStats(data.stats);
     } catch (err: any) {
       console.error("Error fetching accounts:", err);
@@ -285,16 +281,13 @@ export function useSuperAdminDashboard() {
         },
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to fetch system info");
-      }
+      if (!response.ok) return;
 
       const data = await response.json();
       setDatabaseInfo(data.database);
       setServerHealth(data.server);
     } catch (err: any) {
-      console.error("Error fetching system info:", err);
+      console.error("Error fetching system info (non-fatal):", err);
     }
   }, [isAuthorized, getAuthToken]);
 
