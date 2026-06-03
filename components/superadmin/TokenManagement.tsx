@@ -150,7 +150,7 @@ export function TokenManagement() {
       <Card>
         <CardHeader>
           <div className="flex items-center gap-2">
-            <Key className="w-5 h-5 text-purple-600" />
+            <Key className="w-5 h-5 text-[#0e3a45]" />
             <h3 className="text-lg font-semibold">Tokens Generados</h3>
           </div>
         </CardHeader>

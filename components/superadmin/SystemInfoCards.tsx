@@ -62,7 +62,7 @@ export function SystemInfoCards({
       {serverHealth && (
         <Card>
           <CardHeader className="flex items-center gap-3">
-            <Server className="w-5 h-5 text-purple-500" />
+            <Server className="w-5 h-5 text-[#0e3a45]" />
             <h3 className="text-lg font-semibold">Estado del Servidor</h3>
           </CardHeader>
           <CardBody>
@@ -79,41 +79,41 @@ export function SystemInfoCards({
                 </p>
               </div>
 
-              <div className="bg-blue-50 p-4 rounded-lg">
+              <div className="bg-[#0e3a45]/[0.06] p-4 rounded-lg">
                 <div className="flex items-center gap-2 mb-2">
-                  <Clock className="w-4 h-4 text-blue-600" />
-                  <span className="text-sm font-medium text-blue-700">
+                  <Clock className="w-4 h-4 text-[#0e3a45]" />
+                  <span className="text-sm font-medium text-[#0e3a45]">
                     Tiempo Activo
                   </span>
                 </div>
-                <p className="text-lg font-bold text-blue-600">
+                <p className="text-lg font-bold text-[#0e3a45]">
                   {formatUptime(serverHealth.uptime)}
                 </p>
               </div>
 
               {serverHealth.nodeVersion && (
-                <div className="bg-purple-50 p-4 rounded-lg">
+                <div className="bg-gray-50 p-4 rounded-lg">
                   <div className="flex items-center gap-2 mb-2">
-                    <HardDrive className="w-4 h-4 text-purple-600" />
-                    <span className="text-sm font-medium text-purple-700">
+                    <HardDrive className="w-4 h-4 text-gray-700" />
+                    <span className="text-sm font-medium text-gray-700">
                       Node.js
                     </span>
                   </div>
-                  <p className="text-lg font-bold text-purple-600">
+                  <p className="text-lg font-bold text-gray-700">
                     {serverHealth.nodeVersion}
                   </p>
                 </div>
               )}
 
               {serverHealth.platform && (
-                <div className="bg-indigo-50 p-4 rounded-lg">
+                <div className="bg-gray-50 p-4 rounded-lg">
                   <div className="flex items-center gap-2 mb-2">
-                    <Server className="w-4 h-4 text-indigo-600" />
-                    <span className="text-sm font-medium text-indigo-700">
+                    <Server className="w-4 h-4 text-gray-700" />
+                    <span className="text-sm font-medium text-gray-700">
                       Plataforma
                     </span>
                   </div>
-                  <p className="text-lg font-bold text-indigo-600 capitalize">
+                  <p className="text-lg font-bold text-gray-700 capitalize">
                     {serverHealth.platform}
                   </p>
                 </div>
@@ -132,13 +132,13 @@ export function SystemInfoCards({
       {databaseInfo && (
         <Card>
           <CardHeader className="flex items-center gap-3">
-            <Database className="w-5 h-5 text-indigo-500" />
+            <Database className="w-5 h-5 text-[#0e3a45]" />
             <h3 className="text-lg font-semibold">Base de Datos (Firestore)</h3>
           </CardHeader>
           <CardBody>
             <div className="mb-4">
               <p className="text-sm text-gray-500">Total de Documentos</p>
-              <p className="text-3xl font-bold text-indigo-600">
+              <p className="text-3xl font-bold text-[#0e3a45]">
                 {databaseInfo.totalDocuments.toLocaleString()}
               </p>
             </div>
