@@ -11,7 +11,7 @@ import {
   XCircle,
   TrendingUp,
   Send,
-  GitMerge,
+  ArrowUpRight,
 } from "lucide-react";
 import type { SystemStats } from "@/types/superadmin";
 
@@ -107,16 +107,6 @@ export function StatsCards({ stats, isLoading }: StatsCardsProps) {
     },
   ];
 
-  const matchingRate = stats.matchingRate ?? 0;
-  const matchingColor =
-    matchingRate >= 70 ? "text-green-600" :
-    matchingRate >= 30 ? "text-yellow-600" :
-    "text-red-500";
-  const matchingBg =
-    matchingRate >= 70 ? "bg-green-50" :
-    matchingRate >= 30 ? "bg-yellow-50" :
-    "bg-red-50";
-
   const marketplaceStats = [
     {
       title: "Total Propuestas",
@@ -127,19 +117,10 @@ export function StatsCards({ stats, isLoading }: StatsCardsProps) {
       valueColor: "text-[#0e3a45]",
     },
     {
-      title: "Propuestas esta semana",
-      value: stats.propuestasThisWeek ?? 0,
-      subtitle: "Últimos 7 días",
-      icon: TrendingUp,
-      iconBg: "bg-[#0e3a45]/[0.08]",
-      iconColor: "text-[#0e3a45]",
-      valueColor: "text-[#0e3a45]",
-    },
-    {
       title: "Solicitudes esta semana",
       value: stats.solicitudesThisWeek ?? 0,
       subtitle: "Últimos 7 días",
-      icon: FileText,
+      icon: TrendingUp,
       iconBg: "bg-[#0e3a45]/[0.08]",
       iconColor: "text-[#0e3a45]",
       valueColor: "text-[#0e3a45]",
@@ -210,7 +191,7 @@ export function StatsCards({ stats, isLoading }: StatsCardsProps) {
       {/* Marketplace Activity */}
       <div>
         <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-          <GitMerge className="w-5 h-5 text-[#0e3a45]" />
+          <ArrowUpRight className="w-5 h-5 text-[#0e3a45]" />
           Actividad del Marketplace
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -235,27 +216,6 @@ export function StatsCards({ stats, isLoading }: StatsCardsProps) {
               </CardBody>
             </Card>
           ))}
-
-          {/* Matching rate — card especial */}
-          <Card className="overflow-hidden hover:shadow-md transition-shadow">
-            <div className="h-1 bg-green-500 w-full" />
-            <CardBody className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-500">Tasa de matching</p>
-                  <p className={`text-3xl font-bold ${matchingColor}`}>
-                    {matchingRate}%
-                  </p>
-                  <p className="text-xs text-gray-400 mt-1">
-                    solicitudes con al menos 1 oferta
-                  </p>
-                </div>
-                <div className={`p-3 rounded-full ${matchingBg}`}>
-                  <CheckCircle className={`w-6 h-6 ${matchingColor}`} />
-                </div>
-              </div>
-            </CardBody>
-          </Card>
         </div>
       </div>
     </div>

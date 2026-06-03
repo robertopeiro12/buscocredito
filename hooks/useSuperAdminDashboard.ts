@@ -42,7 +42,7 @@ export function useSuperAdminDashboard() {
 
   // Real-time data state
   const [solicitudesData, setSolicitudesData] = useState<any[]>([]);
-  const [propuestasData, setPropuestasData] = useState<any[]>([]);
+  const [propuestasCount, setPropuestasCount] = useState(0);
   
   // UI State
   const [activeTab, setActiveTab] = useState("overview");
@@ -165,9 +165,8 @@ export function useSuperAdminDashboard() {
     const unsubscribe = onSnapshot(
       propuestasQuery,
       (snapshot) => {
-        const data = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-        setPropuestasData(data);
-        console.log("📊 Propuestas updated in real-time:", data.length);
+        setPropuestasCount(snapshot.size);
+        console.log("📊 Propuestas updated in real-time:", snapshot.size);
       },
       (err) => {
         console.error("Error listening to propuestas:", err);
@@ -218,21 +217,6 @@ export function useSuperAdminDashboard() {
       return d && d >= sevenDaysAgo;
     }).length;
 
-    const propuestasThisWeek = propuestasData.filter((p) => {
-      const d = toDate(p.createdAt || p.fecha);
-      return d && d >= sevenDaysAgo;
-    }).length;
-
-    const solicitudIds = new Set(solicitudesData.map((s) => s.id));
-    const idsWithProposals = new Set(
-      propuestasData.map((p) => p.loanId || p.solicitudId).filter(Boolean)
-    );
-    const matchedCount = solicitudesData.filter((s) => idsWithProposals.has(s.id)).length;
-    const matchingRate =
-      solicitudesData.length > 0
-        ? Math.round((matchedCount / solicitudesData.length) * 100)
-        : 0;
-
     return {
       totalAccounts: accounts.length,
       activeAccounts: accounts.filter((acc) => !acc.disabled).length,
@@ -244,17 +228,17 @@ export function useSuperAdminDashboard() {
         borrower: accounts.filter((acc) => acc.type === "borrower").length,
       },
       totalSolicitudes: solicitudesData.length,
-      totalPropuestas: propuestasData.length,
+      totalPropuestas: propuestasCount,
       pendingSolicitudes,
       approvedSolicitudes,
       rejectedSolicitudes,
       recentSignups,
       recentLogins,
       solicitudesThisWeek,
-      propuestasThisWeek,
-      matchingRate,
+      propuestasThisWeek: 0,
+      matchingRate: 0,
     };
-  }, [accounts, solicitudesData, propuestasData, stats]);
+  }, [accounts, solicitudesData, propuestasCount, stats]);
 
   // Fetch accounts and stats (for initial load or manual refresh)
   const fetchAccountsAndStats = useCallback(async () => {
@@ -282,8 +266,7 @@ export function useSuperAdminDashboard() {
       setStats(data.stats);
     } catch (err: any) {
       console.error("Error fetching accounts:", err);
-      setError(err.message);
-      addToast({ title: "Error al cargar los datos", color: "danger" });
+      // Real-time listeners already provide this data — API failure is non-fatal
     } finally {
       setIsLoading(false);
     }
