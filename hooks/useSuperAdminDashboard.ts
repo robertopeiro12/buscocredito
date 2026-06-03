@@ -121,6 +121,7 @@ export function useSuperAdminDashboard() {
         console.log("📊 Accounts updated in real-time:", accountsList.length);
       },
       (err) => {
+        if (err.code === "permission-denied") return;
         console.error("Error listening to accounts:", err);
         setError("Error al cargar las cuentas en tiempo real");
         setIsLoading(false);
@@ -148,6 +149,7 @@ export function useSuperAdminDashboard() {
         console.log("📊 Solicitudes updated in real-time:", solicitudes.length);
       },
       (err) => {
+        if (err.code === "permission-denied") return;
         console.error("Error listening to solicitudes:", err);
       }
     );
@@ -169,6 +171,7 @@ export function useSuperAdminDashboard() {
         console.log("📊 Propuestas updated in real-time:", snapshot.size);
       },
       (err) => {
+        if (err.code === "permission-denied") return;
         console.error("Error listening to propuestas:", err);
       }
     );
