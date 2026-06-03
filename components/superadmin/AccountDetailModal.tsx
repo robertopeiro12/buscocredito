@@ -10,14 +10,7 @@ import {
   Chip,
   Divider,
 } from "@heroui/react";
-import {
-  User,
-  Mail,
-  Building,
-  Calendar,
-  Clock,
-  Shield,
-} from "lucide-react";
+import { User, Building, Calendar, Shield, MapPin } from "lucide-react";
 import type { AccountInfo } from "@/types/superadmin";
 
 interface AccountDetailModalProps {
@@ -30,10 +23,10 @@ interface AccountDetailModalProps {
 }
 
 const typeLabels: Record<string, { label: string; color: "default" | "primary" | "secondary" | "success" | "warning" | "danger" }> = {
-  superAdmin: { label: "Super Admin", color: "secondary" },
+  superAdmin:   { label: "Super Admin",   color: "secondary" },
   companyAdmin: { label: "Admin Empresa", color: "primary" },
-  lender: { label: "Prestamista", color: "success" },
-  borrower: { label: "Solicitante", color: "default" },
+  lender:       { label: "Prestamista",   color: "success" },
+  borrower:     { label: "Solicitante",   color: "default" },
 };
 
 export function AccountDetailModal({
@@ -48,37 +41,32 @@ export function AccountDetailModal({
 
   const formatDate = (dateString: string | null) => {
     if (!dateString) return "No disponible";
-    return new Date(dateString).toLocaleDateString("es-ES", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+    const d = new Date(dateString);
+    if (isNaN(d.getTime())) return "No disponible";
+    return d.toLocaleDateString("es-ES", { year: "numeric", month: "long", day: "numeric" });
   };
 
   const isSuperAdmin = account.type === "superAdmin";
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="2xl" scrollBehavior="inside">
+    <Modal isOpen={isOpen} onClose={onClose} size="lg" scrollBehavior="inside">
       <ModalContent>
         <ModalHeader className="flex flex-col gap-1">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-full bg-[#0e3a45] flex items-center justify-center">
+            <div className="w-12 h-12 rounded-full bg-[#0e3a45] flex items-center justify-center shrink-0">
               <User className="w-6 h-6 text-white" />
             </div>
-            <div>
-              <h2 className="text-xl font-bold">
-                {account.name || "Sin nombre"}
-              </h2>
-              <p className="text-sm text-gray-500">{account.email}</p>
+            <div className="min-w-0">
+              <h2 className="text-xl font-bold truncate">{account.name || "Sin nombre"}</h2>
+              <p className="text-sm text-gray-500 truncate">{account.email}</p>
             </div>
           </div>
         </ModalHeader>
+
         <ModalBody>
-          <div className="space-y-6">
-            {/* Status & Type */}
-            <div className="flex items-center gap-4">
+          <div className="space-y-5">
+            {/* Type + Status */}
+            <div className="flex items-center gap-3">
               <Chip
                 color={typeLabels[account.type]?.color || "default"}
                 variant="flat"
@@ -86,71 +74,41 @@ export function AccountDetailModal({
               >
                 {typeLabels[account.type]?.label || account.type}
               </Chip>
-              <Chip
-                color={account.disabled ? "danger" : "success"}
-                variant="dot"
-              >
+              <Chip color={account.disabled ? "danger" : "success"} variant="dot">
                 {account.disabled ? "Cuenta Desactivada" : "Cuenta Activa"}
               </Chip>
             </div>
 
             <Divider />
 
-            {/* Account Info */}
-            <div className="space-y-4">
-              <h3 className="text-sm font-semibold text-gray-700">
-                Información de la Cuenta
-              </h3>
-
+            {/* Details */}
+            <div className="space-y-3">
+              {account.companyName && (
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-gray-100 rounded-lg">
-                    <Mail className="w-4 h-4 text-gray-600" />
+                  <div className="p-2 bg-gray-100 rounded-lg shrink-0">
+                    <Building className="w-4 h-4 text-gray-600" />
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500">Email</p>
-                    <p className="text-sm font-medium">{account.email}</p>
+                    <p className="text-xs text-gray-500">Empresa</p>
+                    <p className="text-sm font-medium">{account.companyName}</p>
                   </div>
                 </div>
+              )}
 
-                {account.companyName && (
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-gray-100 rounded-lg">
-                      <Building className="w-4 h-4 text-gray-600" />
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-500">Empresa</p>
-                      <p className="text-sm font-medium">{account.companyName}</p>
-                    </div>
-                  </div>
-                )}
-
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-gray-100 rounded-lg">
-                    <Calendar className="w-4 h-4 text-gray-600" />
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500">Fecha de Registro</p>
-                    <p className="text-sm font-medium">
-                      {formatDate(account.createdAt)}
-                    </p>
-                  </div>
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-gray-100 rounded-lg shrink-0">
+                  <Calendar className="w-4 h-4 text-gray-600" />
                 </div>
-
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-gray-100 rounded-lg">
-                    <Clock className="w-4 h-4 text-gray-600" />
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500">Último Acceso</p>
-                    <p className="text-sm font-medium">
-                      {formatDate(account.lastLoginAt)}
-                    </p>
-                  </div>
+                <div>
+                  <p className="text-xs text-gray-500">Fecha de Registro</p>
+                  <p className="text-sm font-medium">{formatDate(account.createdAt)}</p>
                 </div>
+              </div>
+
               {account.address && (
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-gray-100 rounded-lg">
-                    <Building className="w-4 h-4 text-gray-600" />
+                  <div className="p-2 bg-gray-100 rounded-lg shrink-0">
+                    <MapPin className="w-4 h-4 text-gray-600" />
                   </div>
                   <div>
                     <p className="text-xs text-gray-500">Ubicación</p>
@@ -163,50 +121,22 @@ export function AccountDetailModal({
                 </div>
               )}
             </div>
-
-            {/* UID */}
-            <div className="bg-gray-50 p-3 rounded-lg">
-              <p className="text-xs text-gray-500">ID de Usuario</p>
-              <p className="text-xs font-mono text-gray-600 break-all">
-                {account.uid}
-              </p>
-            </div>
           </div>
         </ModalBody>
+
         <ModalFooter>
           {!isSuperAdmin && (
             <>
               {account.disabled ? (
-                <Button
-                  color="success"
-                  variant="flat"
-                  onPress={() => {
-                    onActivate(account);
-                    onClose();
-                  }}
-                >
+                <Button color="success" variant="flat" onPress={() => { onActivate(account); onClose(); }}>
                   Activar Cuenta
                 </Button>
               ) : (
-                <Button
-                  color="warning"
-                  variant="flat"
-                  onPress={() => {
-                    onDeactivate(account);
-                    onClose();
-                  }}
-                >
+                <Button color="warning" variant="flat" onPress={() => { onDeactivate(account); onClose(); }}>
                   Desactivar Cuenta
                 </Button>
               )}
-              <Button
-                color="danger"
-                variant="flat"
-                onPress={() => {
-                  onDelete(account);
-                  onClose();
-                }}
-              >
+              <Button color="danger" variant="flat" onPress={() => { onDelete(account); onClose(); }}>
                 Eliminar Cuenta
               </Button>
             </>
