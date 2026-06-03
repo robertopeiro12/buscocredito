@@ -42,14 +42,14 @@ export function SuperAdminHeader({
           {/* Notifications placeholder */}
           <Button isIconOnly variant="light" className="relative">
             <Bell className="w-5 h-5 text-gray-600" />
-            <span className="absolute -top-1 -right-1 w-4 h-4 bg-purple-500 rounded-full text-[10px] text-white flex items-center justify-center">
+            <span className="absolute -top-1 -right-1 w-4 h-4 bg-[#0e3a45] rounded-full text-[10px] text-white flex items-center justify-center">
               0
             </span>
           </Button>
 
           {/* User info */}
           <div className="hidden md:flex items-center gap-3 pl-4 border-l border-gray-200">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-full bg-[#0e3a45] flex items-center justify-center">
               <User className="w-4 h-4 text-white" />
             </div>
             <div className="text-right">

@@ -350,9 +350,9 @@ export function BetaManagement({ getAuthToken }: BetaManagementProps) {
                     onValueChange={setNewTokenAssignedTo}
                     autoFocus
                   />
-                  <div className="p-3 bg-blue-50 text-blue-700 text-xs rounded-lg border border-blue-100">
-                    <strong>Nota:</strong> El token será de formato 
-                    <code className="mx-1 bg-blue-100 px-1 rounded">BETA-XXXX-XXXX</code>
+                  <div className="p-3 bg-[#0e3a45]/[0.06] text-[#0e3a45] text-xs rounded-lg border border-[#0e3a45]/20">
+                    <strong>Nota:</strong> El token será de formato
+                    <code className="mx-1 bg-[#0e3a45]/[0.08] px-1 rounded">BETA-XXXX-XXXX</code>
                     y permitirá accesos múltiples desde cualquier dispositivo hasta que sea revocado.
                   </div>
                 </div>
