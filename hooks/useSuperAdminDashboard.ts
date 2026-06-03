@@ -221,12 +221,14 @@ export function useSuperAdminDashboard() {
       return d && d >= sevenDaysAgo;
     }).length;
 
-    const solicitudesWithProposals = new Set(
+    const solicitudIds = new Set(solicitudesData.map((s) => s.id));
+    const idsWithProposals = new Set(
       propuestasData.map((p) => p.loanId || p.solicitudId).filter(Boolean)
     );
+    const matchedCount = solicitudesData.filter((s) => idsWithProposals.has(s.id)).length;
     const matchingRate =
       solicitudesData.length > 0
-        ? Math.round((solicitudesWithProposals.size / solicitudesData.length) * 100)
+        ? Math.round((matchedCount / solicitudesData.length) * 100)
         : 0;
 
     return {
