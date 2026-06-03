@@ -122,29 +122,24 @@ export function TokenManagement() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-gray-800">
-          Tokens de Registro para Bancos
-        </h2>
-        <div className="flex gap-2">
-          <Button
-            size="sm"
-            variant="bordered"
-            startContent={<RefreshCw className="w-4 h-4" />}
-            onPress={fetchTokens}
-            isLoading={loading}
-          >
-            Actualizar
-          </Button>
-          <Button
-            size="sm"
-            color="primary"
-            startContent={<Plus className="w-4 h-4" />}
-            onPress={() => setIsModalOpen(true)}
-          >
-            Crear Token
-          </Button>
-        </div>
+      <div className="flex justify-end gap-2">
+        <Button
+          size="sm"
+          variant="bordered"
+          startContent={<RefreshCw className="w-4 h-4" />}
+          onPress={fetchTokens}
+          isLoading={loading}
+        >
+          Actualizar
+        </Button>
+        <Button
+          size="sm"
+          color="primary"
+          startContent={<Plus className="w-4 h-4" />}
+          onPress={() => setIsModalOpen(true)}
+        >
+          Crear Token
+        </Button>
       </div>
 
       <Card>

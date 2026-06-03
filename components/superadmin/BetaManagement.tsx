@@ -25,14 +25,12 @@ import {
 import {
   Plus,
   RefreshCw,
-  Trash2,
   CheckCircle2,
   XCircle,
   Copy,
   Search,
   Users,
   Calendar,
-  Zap,
 } from "lucide-react";
 import { addToast } from "@heroui/react";
 
@@ -163,34 +161,25 @@ export function BetaManagement({ getAuthToken }: BetaManagementProps) {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
-            <Zap className="w-6 h-6 text-yellow-500" />
-            Accesos Beta
-          </h2>
-          <p className="text-gray-500 text-sm">
-            Gestiona quién puede entrar a la demo privada del sistema.
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Button
-            variant="bordered"
-            startContent={<RefreshCw className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`} />}
-            onPress={fetchTokens}
-            isDisabled={isLoading}
-          >
-            Actualizar
-          </Button>
-          <Button
-            color="success"
-            startContent={<Plus className="w-4 h-4" />}
-            onPress={onOpen}
-            className="text-white font-bold"
-          >
-            Generar Token
-          </Button>
-        </div>
+      <div className="flex justify-end gap-2">
+        <Button
+          size="sm"
+          variant="bordered"
+          startContent={<RefreshCw className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`} />}
+          onPress={fetchTokens}
+          isDisabled={isLoading}
+        >
+          Actualizar
+        </Button>
+        <Button
+          size="sm"
+          color="success"
+          startContent={<Plus className="w-4 h-4" />}
+          onPress={onOpen}
+          className="text-white font-bold"
+        >
+          Generar Token
+        </Button>
       </div>
 
       <Card className="shadow-sm border-gray-100">
@@ -293,22 +282,6 @@ export function BetaManagement({ getAuthToken }: BetaManagementProps) {
                           onPress={() => toggleTokenStatus(item.id, item.active)}
                         >
                           {item.active ? <XCircle size={16} /> : <CheckCircle2 size={16} />}
-                        </Button>
-                      </Tooltip>
-                      <Tooltip content="Eliminar Permanentemente" color="danger">
-                        <Button
-                          isIconOnly
-                          size="sm"
-                          variant="flat"
-                          color="danger"
-                          onPress={() => {
-                            if (window.confirm("¿Seguro que quieres eliminar este token?")) {
-                              // Podríamos añadir delete en el futuro
-                              toggleTokenStatus(item.id, true); // Por ahora solo desactivamos
-                            }
-                          }}
-                        >
-                          <Trash2 size={16} />
                         </Button>
                       </Tooltip>
                     </div>
