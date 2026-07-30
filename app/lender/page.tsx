@@ -247,7 +247,7 @@ function LenderPageContent() {
                       <p className="text-sm text-gray-600 mb-3">
                         ¿Tienes problemas con la plataforma? Nuestro equipo está disponible para ayudarte.
                       </p>
-                      <p className="text-xs font-medium text-gray-500">soporte@buscocredito.mx</p>
+                      <p className="text-xs font-medium text-gray-500">soporte@buscocredito.com</p>
                     </div>
                   </div>
                 </div>
