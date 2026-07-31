@@ -144,10 +144,12 @@ describe("POST /api/proposals/status — Aceptar/rechazar propuesta", () => {
       ],
     });
 
-    // Propuesta ganadora
+    // Propuesta ganadora — loanId debe coincidir con el de la solicitud,
+    // el route lo verifica para impedir aceptar propuestas de otra solicitud
     mockDocGet.mockResolvedValueOnce({
       exists: true,
       data: () => ({
+        loanId: "loan-1",
         lenderId: "lender-1",
         amount: 100000,
         interestRate: 15,
