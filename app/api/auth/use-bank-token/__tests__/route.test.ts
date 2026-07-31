@@ -19,9 +19,18 @@ const mockCollection = vi.fn().mockReturnValue({
   doc: mockDoc,
 });
 
+// La transacción: leer y escribir tienen que ser una sola operación indivisible,
+// o dos peticiones simultáneas pueden quemar el mismo token dos veces.
+const mockTxGet = vi.fn();
+const mockTxUpdate = vi.fn();
+const mockRunTransaction = vi.fn(async (fn: any) =>
+  fn({ get: mockTxGet, update: mockTxUpdate })
+);
+
 vi.mock("firebase-admin/firestore", () => ({
   getFirestore: () => ({
     collection: (...args: any[]) => mockCollection(...args),
+    runTransaction: (fn: any) => mockRunTransaction(fn),
   }),
 }));
 
@@ -34,10 +43,16 @@ function createRequest(body: any): NextRequest {
 }
 
 function tokenEncontrado() {
-  mockGet.mockResolvedValue({
+  mockTxGet.mockResolvedValue({
     empty: false,
-    docs: [{ id: "token-doc-1", data: () => ({}) }],
+    docs: [
+      { id: "token-doc-1", ref: { id: "token-doc-1" }, data: () => ({}) },
+    ],
   });
+}
+
+function tokenNoEncontrado() {
+  mockTxGet.mockResolvedValue({ empty: true, docs: [] });
 }
 
 describe("POST /api/auth/use-bank-token — quemar token de alta de empresa", () => {
@@ -50,20 +65,20 @@ describe("POST /api/auth/use-bank-token — quemar token de alta de empresa", ()
       const res = await POST(createRequest({ usedBy: "user-1" }));
 
       expect(res.status).toBe(400);
-      expect(mockUpdate).not.toHaveBeenCalled();
+      expect(mockTxUpdate).not.toHaveBeenCalled();
     });
 
     it("responde 400 si falta usedBy", async () => {
       const res = await POST(createRequest({ token: "token-bueno" }));
 
       expect(res.status).toBe(400);
-      expect(mockUpdate).not.toHaveBeenCalled();
+      expect(mockTxUpdate).not.toHaveBeenCalled();
     });
   });
 
   describe("token inválido o ya usado", () => {
     it("responde 400 y no escribe nada", async () => {
-      mockGet.mockResolvedValue({ empty: true, docs: [] });
+      tokenNoEncontrado();
 
       const res = await POST(
         createRequest({ token: "token-quemado", usedBy: "user-1" })
@@ -72,11 +87,11 @@ describe("POST /api/auth/use-bank-token — quemar token de alta de empresa", ()
       expect(res.status).toBe(400);
       const body = await res.json();
       expect(body.success).toBe(false);
-      expect(mockUpdate).not.toHaveBeenCalled();
+      expect(mockTxUpdate).not.toHaveBeenCalled();
     });
 
     it("solo busca entre tokens sin usar", async () => {
-      mockGet.mockResolvedValue({ empty: true, docs: [] });
+      tokenNoEncontrado();
 
       await POST(createRequest({ token: "token-x", usedBy: "user-1" }));
 
@@ -101,8 +116,7 @@ describe("POST /api/auth/use-bank-token — quemar token de alta de empresa", ()
       const body = await res.json();
       expect(body.success).toBe(true);
 
-      expect(mockDoc).toHaveBeenCalledWith("token-doc-1");
-      const [payload] = mockUpdate.mock.calls[0];
+      const [, payload] = mockTxUpdate.mock.calls[0];
       expect(payload.used).toBe(true);
       expect(payload.usedBy).toBe("user-1");
       expect(payload.usedByCompany).toBe("Banco Azteca");
@@ -117,14 +131,34 @@ describe("POST /api/auth/use-bank-token — quemar token de alta de empresa", ()
       );
 
       expect(res.status).toBe(200);
-      const [payload] = mockUpdate.mock.calls[0];
+      const [, payload] = mockTxUpdate.mock.calls[0];
       expect(payload.usedByCompany).toBeNull();
+    });
+  });
+
+  describe("atomicidad", () => {
+    it("lee y escribe dentro de una transacción", async () => {
+      mockTxGet.mockResolvedValue({
+        empty: false,
+        docs: [{ id: "token-doc-1", ref: { id: "token-doc-1" }, data: () => ({}) }],
+      });
+
+      await POST(
+        createRequest({ token: "token-bueno", usedBy: "user-1" })
+      );
+
+      // Sin transacción, dos peticiones simultáneas pasan ambas el filtro
+      // used == false antes de que cualquiera escriba, y el token se quema dos veces.
+      expect(mockRunTransaction).toHaveBeenCalled();
+      expect(mockTxUpdate).toHaveBeenCalled();
+      // La escritura NO debe salir por fuera de la transacción
+      expect(mockUpdate).not.toHaveBeenCalled();
     });
   });
 
   it("responde 500 si la escritura falla", async () => {
     tokenEncontrado();
-    mockUpdate.mockRejectedValueOnce(new Error("Firestore caído"));
+    mockRunTransaction.mockRejectedValueOnce(new Error("Firestore caído"));
 
     const res = await POST(
       createRequest({ token: "token-bueno", usedBy: "user-1" })

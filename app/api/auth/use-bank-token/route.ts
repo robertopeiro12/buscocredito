@@ -15,33 +15,40 @@ export async function POST(request: NextRequest) {
 
     await initAdmin();
     const db = getFirestore();
-    
-    // Find the token
-    const tokensSnapshot = await db.collection('bank_signup_tokens')
-      .where('token', '==', token)
-      .where('used', '==', false)
-      .limit(1)
-      .get();
-    
-    if (tokensSnapshot.empty) {
-      return NextResponse.json({ 
-        success: false, 
-        error: 'Token inválido o ya utilizado' 
+
+    // Read and write inside one transaction. Without it there is a window
+    // between "is this token free?" and the write where a second concurrent
+    // request passes the same `used == false` filter — the token gets burned
+    // twice and one signup token registers two companies.
+    const claimed = await db.runTransaction(async (tx) => {
+      const query = db.collection('bank_signup_tokens')
+        .where('token', '==', token)
+        .where('used', '==', false)
+        .limit(1);
+
+      const tokensSnapshot = await tx.get(query);
+      if (tokensSnapshot.empty) {
+        return false;
+      }
+
+      tx.update(tokensSnapshot.docs[0].ref, {
+        used: true,
+        usedBy: usedBy,
+        usedByCompany: companyName || null,
+        usedAt: new Date(),
+      });
+      return true;
+    });
+
+    if (!claimed) {
+      return NextResponse.json({
+        success: false,
+        error: 'Token inválido o ya utilizado'
       }, { status: 400 });
     }
 
-    const tokenDoc = tokensSnapshot.docs[0];
-    
-    // Mark the token as used
-    await db.collection('bank_signup_tokens').doc(tokenDoc.id).update({
-      used: true,
-      usedBy: usedBy,
-      usedByCompany: companyName || null,
-      usedAt: new Date(),
-    });
-
-    return NextResponse.json({ 
-      success: true, 
+    return NextResponse.json({
+      success: true,
       message: 'Token marcado como utilizado'
     });
   } catch (error: any) {
